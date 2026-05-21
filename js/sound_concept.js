@@ -230,12 +230,12 @@ window.setUploadBitDepth = function(bits) {
         if (btn) btn.className = 'bit-btn' + (b === bits ? ' active-bit' : '');
     });
     const labels = {
-        3:  '3비트 — 8단계로 기록 (계단 현상이 뚜렷한 투박한 소리)',
-        8:  '8비트 — 256단계로 기록 (옛날 게임 BGM 수준)',
-        16: '16비트 — 65,536단계로 기록 (CD 음질 ✨)'
+        3:  '🎵 <b>3비트</b> = 소리를 <b>8단계</b>로만 기록해요. 마치 계단처럼 뚝뚝 끊기는 소리가 납니다. <span style="color:#aaa;font-size:0.78rem;margin-left:4px;">버튼을 눌러 차이를 확인해보세요!</span>',
+        8:  '🎮 <b>8비트</b> = 소리를 <b>256단계</b>로 기록해요. 옛날 게임 BGM 수준이에요. 3비트보다 훨씬 부드럽죠? <span style="color:#aaa;font-size:0.78rem;margin-left:4px;">16비트와도 비교해보세요!</span>',
+        16: '💿 <b>16비트</b> = 소리를 <b>65,536단계</b>로 기록해요. 우리가 듣는 <b>CD 음질</b>이에요. 원본 파형과 거의 똑같아요! <span style="color:#aaa;font-size:0.78rem;margin-left:4px;">비트 수가 많을수록 원음에 가까워요!</span>'
     };
     const lbl = document.getElementById('uploadBitLabel');
-    if (lbl) lbl.textContent = labels[bits];
+    if (lbl) lbl.innerHTML = labels[bits];
     updateUploadCapacity();
     if (typeof originalAudioBuffer !== 'undefined' && originalAudioBuffer) applyResampling();
 };
@@ -262,10 +262,10 @@ window.onUploadSliderChange = function() {
     const max = parseInt(document.getElementById('uploadSampleSlider').max);
     const formatted = val.toLocaleString('ko-KR');
     const isOriginal = (val === max);
-    document.getElementById('uploadSliderValDisplay').innerText = formatted + '번/초' + (isOriginal ? ' (CD 음질 · 원본)' : '');
+    document.getElementById('uploadSliderValDisplay').innerText = val.toLocaleString('ko-KR');
 
     let label = '';
-    if      (val >= 40000) label = '💿 CD 음질 — 1초에 44,100번 측정. 사람이 들을 수 있는 모든 소리를 담아냅니다';
+    if      (val >= 44100) label = '💿 CD 음질 — 1초에 44,100번 측정. 사람이 들을 수 있는 모든 소리를 담아냅니다';
     else if (val >= 28000) label = '🎵 FM 라디오 수준 — 1초에 약 30,000번 측정. 음악도 자연스럽게 들립니다';
     else if (val >= 16000) label = '🎙️ MP3(중간 품질) 수준 — 1초에 약 22,000번 측정. 약간 차이가 느껴집니다';
     else if (val >= 8000)  label = '📻 AM 라디오 수준 — 1초에 약 9,000번 측정. 소리가 뭉개지기 시작합니다';
@@ -273,8 +273,9 @@ window.onUploadSliderChange = function() {
     else if (val >= 200)   label = '🔇 매우 낮은 품질 — 소리가 심하게 뭉개져 거의 알아들을 수 없습니다';
     else                   label = '🔇 거의 무음 — 측정 횟수가 너무 적어 소리 정보가 거의 사라집니다';
 
+
     const qualityEl = document.getElementById('uploadQualityLabel');
-    if (qualityEl) qualityEl.innerText = label;
+    if (qualityEl) qualityEl.innerHTML = label;
     updateUploadCapacity();
 };
 
@@ -283,7 +284,6 @@ window.onSliderChange = function() {
     document.getElementById('sliderValDisplay').innerText = sliderVal + '개'; 
     currentSampleCount = sliderVal; 
     document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (${sliderVal}개 자동 변환)`;
-    // 동적 설명 업데이트
     const descEl = document.getElementById('sampleSliderDesc');
     if (descEl) {
         const descs = {
@@ -305,23 +305,22 @@ window.handleAudioUpload = function(event) {
     if (!file) return;
     event.target.value = '';
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
+
     const reader = new FileReader();
     reader.onload = function(e) {
         const arrayBuffer = e.target.result;
         audioCtx.decodeAudioData(arrayBuffer, function(buffer) {
             originalAudioBuffer = buffer;
-            document.getElementById('uploadNoFileMsg').style.display = 'none';
             document.getElementById('uploadSliderGroup').style.opacity = '1';
             document.getElementById('uploadSliderGroup').style.pointerEvents = 'auto';
-            document.getElementById('uploadPlayerGroup').style.opacity = '1';
-            document.getElementById('uploadPlayerGroup').style.pointerEvents = 'auto';
+            document.getElementById('uploadControlGroup').style.opacity = '1';
+            document.getElementById('uploadControlGroup').style.pointerEvents = 'auto';
 
             const maxRate = Math.floor(buffer.sampleRate);
             const slider = document.getElementById('uploadSampleSlider');
             slider.max   = maxRate; slider.value = maxRate;
             onUploadSliderChange();
-            
+
             const qualityEl = document.getElementById('uploadQualityLabel');
             if (qualityEl && maxRate !== 44100) qualityEl.innerText = '💿 원본 음질 — 1초에 ' + maxRate.toLocaleString('ko-KR') + '번 측정';
             applyResampling();
