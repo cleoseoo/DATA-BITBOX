@@ -182,7 +182,9 @@ window.setMode = function(mode, btn) {
         slider.min = "16"; slider.max = "256"; slider.step = "8"; slider.value = "32";
         let sliderVal = parseInt(slider.value); currentSampleCount = sliderVal; 
         document.getElementById('sliderValDisplay').innerText = sliderVal + '개';
-        document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (${sliderVal}개 자동 변환)`; 
+        document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (${sliderVal}개 자동 변환)`;
+        const descEl = document.getElementById('sampleSliderDesc');
+        if (descEl) descEl.innerHTML = `✂️ <b>32개</b> = 파형을 <b>32번</b> 잘라 기록해요. 계단 현상이 조금 보여요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">슬라이더를 움직여 차이를 확인해보세요!</span>`;
         document.getElementById('drawPanel').style.display = 'flex'; 
         document.getElementById('rightPanel').style.display = 'flex'; 
         document.getElementById('manualInputsArea').style.display = 'none'; 
@@ -280,7 +282,18 @@ window.onSliderChange = function() {
     let sliderVal = parseInt(document.getElementById('sampleSlider').value); 
     document.getElementById('sliderValDisplay').innerText = sliderVal + '개'; 
     currentSampleCount = sliderVal; 
-    document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (${sliderVal}개 자동 변환)`; 
+    document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (${sliderVal}개 자동 변환)`;
+    // 동적 설명 업데이트
+    const descEl = document.getElementById('sampleSliderDesc');
+    if (descEl) {
+        const descs = {
+            low:  `✂️ <b>${sliderVal}개</b> = 파형을 <b>${sliderVal}번만</b> 잘라 기록해요. 계단이 뚜렷하게 보여요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">오른쪽 그래프에서 계단 현상을 확인해보세요!</span>`,
+            mid:  `✂️ <b>${sliderVal}개</b> = 파형을 <b>${sliderVal}번</b> 잘라 기록해요. 계단 현상이 조금 줄어들었어요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">숫자가 많아질수록 원음에 가까워져요!</span>`,
+            high: `✂️ <b>${sliderVal}개</b> = 파형을 <b>${sliderVal}번이나</b> 잘라 기록해요. 거의 원래 곡선과 똑같아요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">슬라이더를 왼쪽으로 당겨 차이를 비교해보세요!</span>`
+        };
+        const level = sliderVal <= 48 ? 'low' : sliderVal <= 144 ? 'mid' : 'high';
+        descEl.innerHTML = descs[level];
+    }
     updateCapacity();
     if(drawnPath.length > 20) doSampling(); 
 };
