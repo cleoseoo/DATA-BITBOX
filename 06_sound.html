@@ -98,10 +98,17 @@
 
                     <div id="sliderArea" style="display: none; width: 100%; margin-bottom: 20px; flex-direction: column; gap: 12px; background: #fafafa; padding: 15px 25px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
                         <!-- 샘플링 슬라이더 -->
-                        <div style="display:flex; align-items:center; gap:12px;">
-                            <span style="font-weight:900; color:var(--multi-violet); font-size:0.95rem; white-space:nowrap;">🎚️ 샘플링 개수:</span>
-                            <input type="range" id="sampleSlider" min="16" max="256" step="8" value="32" oninput="onSliderChange()" onchange="onSliderRelease()" style="flex:1; cursor:pointer; accent-color:var(--multi-violet); height:8px; border-radius:4px;">
-                            <span id="sliderValDisplay" style="font-weight:900; color:#2d3436; min-width:50px; font-size:1rem; text-align:right;">32개</span>
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <span style="font-weight:900; color:var(--multi-violet); font-size:0.95rem; white-space:nowrap;">🎚️ 샘플링 개수 — 1초에 소리를 몇 번 잘라 기록할까?:</span>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <input type="range" id="sampleSlider" min="16" max="256" step="8" value="32" oninput="onSliderChange()" onchange="onSliderRelease()" style="width:240px; cursor:pointer; accent-color:var(--multi-violet); height:8px; border-radius:4px;">
+                                    <span id="sliderValDisplay" style="font-weight:900; color:#2d3436; min-width:50px; font-size:1rem;">32개</span>
+                                </div>
+                                <div id="sampleSliderDesc" style="font-size:0.82rem; color:#555; line-height:1.6; background:#f0f8ff; border-radius:10px; padding:8px 12px; border-left:3px solid var(--accent-blue); max-width:580px;">
+                                    ✂️ <b>32개</b> = 파형을 <b>32번</b> 잘라 기록해요. 계단 현상이 조금 보여요. <span style="color:#aaa; font-size:0.78rem; margin-left:6px;">슬라이더를 움직여 차이를 확인해보세요!</span>
+                                </div>
+                            </div>
                         </div>
                         <!-- 비트 심도 — 소리 음질을 결정하는 양자화 단계 수 버튼 -->
                         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
