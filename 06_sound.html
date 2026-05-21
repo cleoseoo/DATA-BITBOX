@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>소리의 디지털 표현 - 개념 탐구</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/sound_concept.css">
+
+</head>
+<body id="mainBody">
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <span class="target-badge">대상: 중학교 1~3학년</span>
+                <h1 class="main-title" onclick="location.href='index.html'">데이터 비트박스</h1>
+            </div>
+            <div class="status-controller">
+                <button class="status-btn" onclick="resetStatus()">🔄 초기화</button>
+                <button class="status-btn btn-help" onclick="setStatus('help')">🙋‍♂️ SOS 요청</button>
+                <button class="status-btn btn-done" onclick="setStatus('done')">✅ 미션 완료</button>
+            </div>
+        </div>
+       <nav>
+            <div class="menu-item">
+                <span class="menu-link">디지털 데이터의 가치</span>
+                <ul class="dropdown">
+                    <li><a href="01_value.html">📖 개념 탐구</a></li>
+                    <li><a href="01_value_play.html">🛠️ 활용 실습</a></li>
+                </ul>
+            </div>
+            <div class="menu-item"><span class="menu-link">비트란?</span><ul class="dropdown"><li><a href="02_bit.html">📖 개념 탐구</a></li><li><a href="02_bit_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">숫자의 디지털 표현</span><ul class="dropdown"><li><a href="03_number.html">📖 개념 탐구</a></li><li><a href="03_number_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">문자의 디지털 표현</span><ul class="dropdown"><li><a href="04_text.html">📖 개념 탐구</a></li><li><a href="04_text_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">이미지의 디지털 표현</span><ul class="dropdown"><li><a href="05_image.html">📖 개념 탐구</a></li><li><a href="05_image_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link active">소리의 디지털 표현</span><ul class="dropdown"><li><a href="06_sound.html">📖 개념 탐구</a></li><li><a href="06_sound_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">동영상의 디지털 표현</span><ul class="dropdown"><li><a href="07_video.html">📖 개념 탐구</a></li><li><a href="07_video_play.html">🛠️ 활용 실습</a></li></ul></div>
+        </nav>
+
+    </header>
+    <main>
+        <div class="content-container">
+            <div class="glass-panel">
+                <div class="progress">
+                    <div class="prog-dot cur" id="dot0"></div>
+                    <div class="prog-dot" id="dot1"></div>
+                    <div class="prog-dot" id="dot2"></div>
+                    <div class="prog-dot" id="dot3"></div>
+                </div>
+
+                <div id="step1-visual" class="step-container active">
+                    <div class="slide-section">
+                        <div class="visual-title">💡 우리의 목소리는 컴퓨터에 어떻게 저장될까?</div>
+                        <div style="font-size: 0.95rem; color: #424245; font-weight: 700;">아래 [디지털 변환 과정 보기] 버튼을 눌러 부드러운 소리 파형이 0과 1로 쪼개지는 과정을 관찰하세요!</div>
+                        <div class="wave-container" id="waveContainer">
+                            <canvas id="soundVisCanvas" width="600" height="300"></canvas>
+                        </div>
+                        <button class="action-btn" onclick="startAudioScan()">▶️ 디지털 변환 과정 보기 (5비트)</button>
+                    </div>
+                    <div class="step-navigation">
+                        <div class="nav-arrow next" onclick="goStep('step2-concept')"><div>개념 탐구 (소리의 디지털화 과정)</div><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></div>
+                    </div>
+                </div>
+                <div id="step2-concept" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--multi-violet); margin-bottom: 10px; text-align: left; padding-left: 10px;">소리의 디지털화 과정 (PCM)</div>
+                    <div class="concept-wrap">
+                        <div class="concept-row"><div class="concept-icon">🌊</div><div style="flex:1;"><b style="color:var(--accent-blue)">아날로그 소리</b> : 자연의 소리처럼 시간이 지남에 따라 끊어짐 없이 연속적으로 부드럽게 변하는 파형입니다.</div></div>
+                        <div class="concept-row"><div class="concept-icon">💻</div><div style="flex:1;"><b style="color:var(--accent-violet)">디지털 소리</b> : 아날로그 소리를 컴퓨터가 처리할 수 있도록 <b>0과 1의 이진수</b>로 변환한 불연속적인 신호입니다. 표본화 → 양자화 → 부호화 3단계를 거쳐 만들어집니다.</div></div>
+
+                        <!-- ── 3단계 PCM 애니메이션 ── -->
+                        <div id="pcm-anim-wrap" style="width:100%;margin:14px 0 8px;background:#f8f6ff;border-radius:16px;padding:16px 18px;border:1.5px solid #ede9fe;">
+                            <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">
+                                <button onclick="pcmStep(1)" id="pcmBtn1" style="padding:7px 18px;border-radius:20px;border:2px solid var(--accent-blue);background:var(--accent-blue);color:#fff;font-weight:900;font-size:0.82rem;cursor:pointer!important;">① 표본화</button>
+                                <button onclick="pcmStep(2)" id="pcmBtn2" style="padding:7px 18px;border-radius:20px;border:2px solid var(--multi-violet);background:#fff;color:var(--multi-violet);font-weight:900;font-size:0.82rem;cursor:pointer!important;">② 양자화</button>
+                                <button onclick="pcmStep(3)" id="pcmBtn3" style="padding:7px 18px;border-radius:20px;border:2px solid var(--accent-green);background:#fff;color:var(--accent-green);font-weight:900;font-size:0.82rem;cursor:pointer!important;">③ 부호화</button>
+                            </div>
+                            <canvas id="pcmAnimCanvas" width="2700" height="840" style="width:100%;max-width:900px;display:block;margin:0 auto;border-radius:10px;background:#fff;border:1px solid #e2e8f0;"></canvas>
+                            <div id="pcmAnimLabel" style="text-align:center;margin-top:10px;font-size:0.92rem;font-weight:700;color:var(--multi-violet);min-height:22px;"></div>
+                        </div>
+
+                        <div class="concept-row"><div class="concept-icon">✂️</div><div style="flex:1;"><b>1단계: </b><button class="pill-btn" onclick="revealInline(this, '표본화 (Sampling)', 'var(--accent-blue)')">❓ 확인</button><br>연속적인 아날로그 파형을 <b>일정한 시간 간격으로 잘게 쪼개어</b> 값을 추출하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 샘플링 레이트: 1초에 몇 번 쪼개는지 나타내며 단위는 헤르츠(Hz)를 사용합니다.</span></div></div>
+                        <div class="concept-row"><div class="concept-icon">📏</div><div style="flex:1;"><b>2단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--multi-violet), #a29bfe);" onclick="revealInline(this, '양자화 (Quantization)', 'var(--multi-violet)')">❓ 확인</button><br>표본화로 추출된 실수 값을 가장 가까운 <b>정수(단계)로 반올림하여 수치화</b>하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 표현 단계 수(정밀도): 소리의 크기를 몇 단계로 쪼갤지 결정합니다. (비트 수가 클수록 정밀합니다.)</span></div></div>
+                        <div class="concept-row"><div class="concept-icon">🔢</div><div style="flex:1;"><b>3단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--accent-green), #55efc4);" onclick="revealInline(this, '부호화 (Encoding)', 'var(--accent-green)')">❓ 확인</button><br>양자화된 수치(정수)를 컴퓨터가 이해하고 저장할 수 있도록 <b>0과 1의 이진수 코드로 변환</b>하는 과정입니다.</div></div>
+                    </div>
+                    <div class="step-navigation">
+                        <div class="nav-arrow prev" onclick="goStep('step1-visual')"><svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg><div>이전 (변환기 보기)</div></div>
+                        <div class="nav-arrow next" onclick="goStep('step3-advanced')"><div>심화 실습 (소리의 디지털화)</div><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></div>
+                    </div>
+                </div>
+                <div id="step3-advanced" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--multi-violet); margin-bottom: 5px; text-align:left;">🔥 심화 실습: 소리 파형 실험실</div>
+                    <p style="color: var(--text-sub); font-size: 0.95rem; margin-top: 5px; margin-bottom: 15px; font-weight: 600; text-align:left;">파형을 직접 그리고 샘플링 개수를 조절해보세요. 샘플이 촘촘해질수록 원래 아날로그 곡선에 매우 가까워집니다!</p>
+                    
+                    <div class="mode-selector">
+                        <button class="mode-btn active" onclick="setMode('manual', this)">✏️ 11개 수동 입력</button>
+                        <button class="mode-btn" onclick="setMode('auto', this)">🎚️ 자동 변환 (개수 조절)</button>
+                        <button class="mode-btn" onclick="setMode('upload', this)">🎵 소리 업로드(샘플링 개수 조절)</button>
+                    </div>
+
+                    <div id="sliderArea" style="display: none; width: 100%; margin-bottom: 20px; flex-direction: column; gap: 12px; background: #fafafa; padding: 15px 25px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                        <!-- 샘플링 슬라이더 -->
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <span style="font-weight:900; color:var(--multi-violet); font-size:0.95rem; white-space:nowrap;">🎚️ 샘플링 개수:</span>
+                            <input type="range" id="sampleSlider" min="16" max="256" step="8" value="32" oninput="onSliderChange()" onchange="onSliderRelease()" style="flex:1; cursor:pointer; accent-color:var(--multi-violet); height:8px; border-radius:4px;">
+                            <span id="sliderValDisplay" style="font-weight:900; color:#2d3436; min-width:50px; font-size:1rem; text-align:right;">32개</span>
+                        </div>
+                        <!-- 비트 심도 — 소리 음질을 결정하는 양자화 단계 수 버튼 -->
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <span style="font-weight:900; color:var(--multi-violet); font-size:0.95rem; white-space:nowrap;">🔢 비트 심도 — 소리 음질을 결정하는 양자화 단계 수:</span>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="display:flex; gap:8px;">
+                                    <button id="bitBtn3"  onclick="setBitDepth(3)"  class="bit-btn active-bit">3비트<br><small>8단계</small></button>
+                                    <button id="bitBtn8"  onclick="setBitDepth(8)"  class="bit-btn">8비트<br><small>256단계</small></button>
+                                    <button id="bitBtn16" onclick="setBitDepth(16)" class="bit-btn">16비트<br><small>65,536단계</small></button>
+                                </div>
+                                <div id="bitDepthDesc" style="font-size:0.82rem; color:#555; line-height:1.6; background:#f8f6ff; border-radius:10px; padding:8px 12px; border-left:3px solid var(--multi-violet); max-width:580px;">
+                                    🎚️ <b>3비트</b> = 소리를 <b>8단계</b>로만 기록해요. 마치 계단처럼 뚝뚝 끊기는 소리가 납니다.
+                                    <span style="color:#aaa; font-size:0.78rem; margin-left:6px;">버튼을 눌러 차이를 확인해보세요!</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 용량 계산 -->
+                        <div style="background:#fff3cd; border-radius:8px; padding:8px 14px; font-size:0.88rem; font-weight:800; color:#856404; border-left:3px solid #ffc107;">
+                            📦 예상 용량: <span id="capCalc">32개 × 3비트 = 96비트</span>
+                            <span style="color:#6c757d; font-weight:600; font-size:0.82rem;"> — 비트 수가 많을수록 파일이 커집니다</span>
+                        </div>
+                    </div>
+                    
+                    <div class="sound-lab">
+                        <div class="lab-panel" id="drawPanel">
+                            <div class="panel-title">1. 아날로그 파형 그리기</div>
+                            <div class="draw-area" id="drawArea">
+                                <span style="position: absolute; top: -25px; left: 0; font-size: 11px; font-weight: 900; color: #86868b;">진폭(Amplitude) ▲</span>
+                                <span style="position: absolute; bottom: -20px; right: 0; font-size: 11px; font-weight: 900; color: #86868b;">시간(Time) ▶</span>
+                                <canvas id="drawCanvas" width="420" height="220"></canvas>
+                            </div>
+                            <div class="lab-btn-group">
+                                <button class="lab-action-btn" id="btnReset" onclick="resetDrawing()">🔄 다시 그리기</button>
+                                <button class="lab-action-btn" id="btnSample" onclick="doSampling()">✂️ 표본화 실행</button>
+                            </div>
+                            <div id="drawHintBox" class="draw-hint-box">👉 <b>파형을 0초(왼쪽 끝)</b>에서 시작해서 <b>10초(오른쪽 끝)</b>까지 연결해서 그려주세요!</div>
+                        </div>
+                        <div class="lab-panel" id="rightPanel" style="opacity: 0.5; pointer-events: none; transition: 0.3s;">
+                            <div class="panel-title" id="rightPanelTitle">2. 양자화 & 부호화 실습 (3비트)</div>
+                            <div class="sample-grid" id="sampleGrid"></div>
+                            
+                            <div id="manualInputsArea" style="width: 100%; max-width: 420px; margin: 0 auto; position: relative;">
+                                <div style="font-size: 0.85rem; color: #495057; font-weight: 800; margin-bottom: 5px; padding-left: 20px;">양자화 (위 점의 높이 눈금 0~7 입력)</div>
+                                <div class="input-row" id="quantInputs"></div>
+                                <div style="font-size: 0.85rem; color: #495057; font-weight: 800; margin-bottom: 5px; padding-left: 20px;">부호화 (3비트 이진수 입력)</div>
+                                <div class="input-row" id="binInputs"></div>
+                            </div>
+                            
+                            <div id="autoMessageArea" style="display: none; width: 100%; height: 120px; flex-direction: column; justify-content: center; align-items: center; background: white; border-radius: 12px; margin-top: 10px; border: 2px dashed #ced4da;">
+                                <div style="font-size: 2.2rem; margin-bottom: 5px;">📉📈</div>
+                                <div style="font-size: 1.1rem; font-weight: 900; color: var(--multi-violet);">자동 양자화/부호화 완료!</div>
+                                <div style="font-size: 0.9rem; color: #666; font-weight: 700; text-align: center; margin-top: 5px; line-height: 1.5;">표본 개수가 많아질수록 붉은 점이 촘촘해져<br>원래의 파형에 매우 가까워집니다.</div>
+                            </div>
+                        </div>
+
+                        <div id="uploadModeArea" style="display: none; width: 100%; gap: 20px; align-items: stretch;">
+                            <div class="lab-panel" style="flex: 1; display: flex; flex-direction: column;">
+                                <div class="panel-title">1. 소리 파일 업로드 및 음질 조절</div>
+                                
+                                <!-- 파일 input (항상 존재) -->
+                                <input type="file" id="audioUpload" accept="audio/*" style="display:none;" onchange="handleAudioUpload(event)">
+
+                                <!-- 소리 파일 선택 버튼 (항상 표시) -->
+                                <button class="lab-action-btn" id="uploadFileBtn"
+                                    style="background:var(--multi-violet); width: 100%; padding: 10px; font-size:1rem; margin-bottom: 8px;"
+                                    onclick="document.getElementById('audioUpload').click()">🎵 소리 파일 선택</button>
+
+                                <!-- 파일 미선택 안내 (파일 없을 때만 표시) -->
+                                <p id="uploadNoFileMsg" style="font-size: 0.82rem; color: #86868b; margin: 0 0 8px 0; font-weight: 700; text-align:center;">mp3, wav 등의 오디오 파일을 선택해주세요.</p>
+
+                                <!-- 샘플링 레이트 조절 -->
+                                <div id="uploadSliderGroup" style="opacity:0.35; pointer-events:none; width:100%; display:flex; flex-direction:column; gap:8px;">
+
+                                    <div style="font-weight: 900; color: var(--multi-violet); font-size: 0.95rem;">
+                                        🎚️ 샘플링 개수 (1초에 몇 번 측정?)
+                                    </div>
+                                    <input type="range" id="uploadSampleSlider" min="50" max="44100" step="50" value="44100"
+                                        oninput="onUploadSliderChange()" onchange="onUploadSliderRelease()"
+                                        style="width: 100%; cursor: pointer; accent-color: var(--multi-violet); height: 10px; border-radius: 5px;">
+
+                                    <!-- 현재 값 + 기준점 표시 -->
+                                    <div id="uploadSliderValDisplay" style="font-weight: 900; color: var(--apple-red); text-align: center; font-size: 1.1rem;">44,100번/초 (CD 음질 · 원본)</div>
+                                    <div id="uploadQualityLabel" style="font-weight: 800; color: var(--multi-violet); text-align:center; font-size:0.88rem; background:#f8f6ff; border-radius:8px; padding:6px 8px;">
+                                        💿 CD 음질 — 1초에 44,100번 측정. 사람이 들을 수 있는 모든 소리를 담아냅니다
+                                    </div>
+
+                                    <!-- 기준점 눈금 (JS 경계값과 일치) -->
+                                    <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#aaa; font-weight:700; padding:0 2px; margin-top:-4px;">
+                                        <span>50<br>최저(거의 무음)</span>
+                                        <span style="text-align:center;">8,000<br>AM라디오</span>
+                                        <span style="text-align:center;">28,000<br>FM라디오</span>
+                                        <span style="text-align:right;">44,100<br>CD</span>
+                                    </div>
+
+                                    <p style="font-size: 0.8rem; color: #666; font-weight: 700; text-align: center; margin: 4px 0 0 0; line-height: 1.5; background:#fff3cd; border-radius:8px; padding:7px; border-left: 3px solid #ffc107;">
+                                        💡 숫자를 낮출수록 측정 횟수가 줄어 소리 정보가 빠져나가고,<br>소리가 <b>먹먹하고 뭉개진 것처럼</b> 들립니다.
+                                    </p>
+                                    <!-- 비트 심도(양자화 단계) -->
+                                    <div style="border-top:1px solid #e2e8f0; padding-top:10px; margin-top:4px;">
+                                        <div style="font-weight:900; color:var(--multi-violet); font-size:0.95rem; margin-bottom:8px;">🔢 비트 심도(양자화 단계)</div>
+                                        <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                            <button id="uploadBitBtn3"  onclick="setUploadBitDepth(3)"  class="bit-btn active-bit">3비트<br><small>8단계</small></button>
+                                            <button id="uploadBitBtn8"  onclick="setUploadBitDepth(8)"  class="bit-btn">8비트<br><small>256단계</small></button>
+                                            <button id="uploadBitBtn16" onclick="setUploadBitDepth(16)" class="bit-btn">16비트<br><small>65,536단계</small></button>
+                                        </div>
+                                        <div id="uploadBitLabel" style="font-size:0.82rem; font-weight:800; color:#495057; background:#f8f6ff; border-radius:8px; padding:6px 10px; margin-bottom:6px;">
+                                            3비트 — 8단계로 기록 (계단 현상이 뚜렷한 투박한 소리)
+                                        </div>
+                                        <div style="background:#fff3cd; border-radius:8px; padding:7px 12px; font-size:0.85rem; font-weight:800; color:#856404; border-left:3px solid #ffc107;">
+                                            📦 용량 = <span id="uploadCapCalc">44,100 × 3비트 = 132,300비트/초</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 오디오 플레이어 (항상 표시, 파일 없으면 비활성) -->
+                                <div id="uploadPlayerGroup" style="opacity:0.35; pointer-events:none; width:100%; margin-top:8px;">
+                                    <audio id="audioPlayer" controls style="width: 100%; outline: none;"></audio>
+                                </div>
+                            </div>
+                            <div class="lab-panel" style="flex: 1;">
+                                <div class="panel-title">2. 실시간 소리 파형 시각화</div>
+                                <div style="width: 100%; height: 220px; background: #1e272e; border-radius: 8px; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
+                                    <canvas id="realtimeWaveCanvas" width="840" height="440" style="width: 100%; height: 100%; display: block;"></canvas>
+                                </div>
+                                <p style="font-size: 0.85rem; color: #666; font-weight: 700; text-align: center; margin-top: 15px;">음질이 낮아지면 우측 파형이 어떻게 변하는지 관찰해보세요.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="step-navigation">
+                        <div class="nav-arrow prev" onclick="goStep('step2-concept')"><svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg><div>이전 (개념 탐구)</div></div>
+                        <div class="nav-arrow next" onclick="goStep('step4-quiz')"><div>개념 확인 (최종 퀴즈)</div><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></div>
+                    </div>
+                </div>
+                <div id="step4-quiz" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--apple-red); margin-bottom: 25px;">🎯 최종 퀴즈: 소리의 디지털 표현 마스터하기!</div>
+                    <div class="quiz-controls-row">
+                        <div class="inline-tip" onclick="openTipPopup()"><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px; height:18px;"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>미션 가이드</div>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div id="quizTimer" class="quiz-timer">⏱️ 00:00</div>
+                            <button id="startQuizBtn" class="start-quiz-btn" onclick="startQuizTimer()">▶️ 퀴즈 시작</button>
+                            <button id="resetTimerBtn" class="reset-timer-btn" onclick="resetQuiz()">🔄 타이머 초기화</button>
+                        </div>
+                    </div>
+                    <div class="word-score-container" style="margin-bottom: 20px;">
+                        <div class="word-bank" id="wordBank" style="opacity: 0.4; pointer-events: none;">
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">아날로그</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">표본화</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">양자화</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">부호화</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">헤르츠(Hz)</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">용량</div>
+                        </div>
+                    </div>
+                    <div id="quizForm">
+                        <div class="quiz-box">1. 사람의 목소리나 자연의 소리처럼 끊어짐 없이 연속적으로 부드럽게 변하는 신호를 <input type="text" class="blank" data-answer="아날로그" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 신호라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">2. 아날로그 파형을 일정한 시간 간격으로 잘게 쪼개어 값을 추출하는 과정을 <input type="text" class="blank" data-answer="표본화" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">3. 1초 동안 추출하는 표본의 개수를 샘플링 레이트라고 하며, 단위는 <input type="text" class="blank" data-answer="헤르츠(Hz)" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 를 사용합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">4. 추출된 표본의 진폭 값을 일정한 간격의 숫자로 맞추어 정수로 반올림하여 표현하는 과정을 <input type="text" class="blank" data-answer="양자화" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">5. 표본화를 할 때 소리를 쪼개는 간격(주기)이 짧을수록 원음에 가까워지지만, 처리해야 할 데이터가 늘어나 파일의 <input type="text" class="blank" data-answer="용량" data-score="20" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 이 커지게 됩니다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
+                        <div class="quiz-box" style="margin-bottom:0;">6. 숫자로 변환된 양자화 값을 컴퓨터가 처리할 수 있도록 0과 1의 이진수로 변환하는 과정을 <input type="text" class="blank" data-answer="부호화" data-score="20" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
+                    </div>
+                    <div style="text-align: center; display: none;" id="submitQuizBtnWrap"><button class="submit-quiz-btn" onclick="submitQuiz()">✅ 미션 완료 및 채점하기</button></div>
+                    <div class="step-navigation">
+                        <div class="nav-arrow prev" onclick="goStep('step3-advanced')"><svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg><div>이전 (심화 실습)</div></div>
+                        <div style="display: flex; gap: 10px; margin-left: auto;">
+                            <div class="nav-arrow report-btn" onclick="downloadReportTXT()"><div>📄 텍스트 저장</div></div>
+                            <div class="nav-arrow img-report-btn" onclick="downloadReportImageOffline()"><div>🖼️ 이미지(PNG) 저장</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <aside class="sidebar-right">
+            <div class="memo-section">
+                <div style="font-weight:900; color:#1e1e2f; margin-bottom:12px; font-size:1.05rem;">📌 배움 노트</div>
+                <textarea id="memoInput" class="memo-area" placeholder="중요한 내용을 기록하세요. 궁금한 사항은 기록하고 질문하세요."></textarea>
+            </div>
+            <div class="reflection-section">
+                <div style="font-weight:900; color:#1e1e2f; margin-bottom:12px; font-size:1.05rem;">🌿 배움 활동 소감</div>
+                <textarea id="reflectionInput" class="reflection-area" placeholder="새롭게 알게된 사실과 느낀점을 기록하세요."></textarea>
+                <div class="capture-tip">📸 캡처: Win+Shift+S | Mac: Cmd+Shift+4</div>
+            </div>
+            <div class="erase-section"><button class="erase-btn" onclick="eraseStepContent()">🗑️ 이 단원 학습 내용 지우기<br><span style="font-size:0.68rem; font-weight:600; opacity:0.7;">(메모·소감·퀴즈 기록)</span></button></div>
+        </aside>
+    </main>
+    <div class="modal-overlay" id="modalOverlay"><div class="modal-content" id="modalContent"></div></div>
+    <div class="modal-overlay" id="customAlertModal" style="z-index: 9999;">
+        <div class="alert-box" style="transition: border-color 0.3s, box-shadow 0.3s;">
+            <div id="alertIcon" style="font-size: 3rem; margin-bottom: 10px;">🚫</div>
+            <h3 id="alertTitle" style="color: var(--apple-red); font-size: 1.5rem; margin-top: 0; margin-bottom: 15px; font-weight: 900;">접근 거부!</h3>
+            <div id="alertMessage" class="alert-message" style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 25px; white-space: pre-line; word-break: keep-all;">메시지가 이곳에 표시됩니다.</div>
+            <button id="alertBtn" onclick="closeCustomAlert()" style="width: 100%; padding: 12px; background: var(--apple-red); color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: 0.3s;">확인</button>
+        </div>
+    </div>
+    <footer>
+        <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            데이터 비트박스
+        </div>
+        <div style="color: var(--apple-gray);">&copy; 중학교 정보 - 데이터 표현</div>
+    </footer>
+    <script src="./js/concept_common.js"></script>    
+    <script src="./js/sound_concept.js"></script>
+</body>
+</html>
