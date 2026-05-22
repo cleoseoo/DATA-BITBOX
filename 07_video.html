@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>동영상의 디지털 표현 - 개념 탐구</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/video_concept.css">
+
+</head>
+<body id="mainBody">
+
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <span class="target-badge">대상: 중학교 1~3학년</span>
+                <h1 class="main-title" onclick="location.href='index.html'">데이터 비트박스</h1>
+            </div>
+            <div class="status-controller">
+                <button class="status-btn" onclick="resetStatus()">🔄 초기화</button>
+                <button class="status-btn btn-help" onclick="setStatus('help')">🙋‍♂️ SOS 요청</button>
+                <button class="status-btn btn-done" onclick="setStatus('done')">✅ 미션 완료</button>
+            </div>
+        </div>
+
+         <nav>
+            <div class="menu-item">
+                <span class="menu-link">디지털 데이터의 가치</span>
+                <ul class="dropdown">
+                    <li><a href="01_value.html">📖 개념 탐구</a></li>
+                    <li><a href="01_value_play.html">🛠️ 활용 실습</a></li>
+                </ul>
+            </div>
+            <div class="menu-item"><span class="menu-link">비트란?</span><ul class="dropdown"><li><a href="02_bit.html">📖 개념 탐구</a></li><li><a href="02_bit_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">숫자의 디지털 표현</span><ul class="dropdown"><li><a href="03_number.html">📖 개념 탐구</a></li><li><a href="03_number_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">문자의 디지털 표현</span><ul class="dropdown"><li><a href="04_text.html">📖 개념 탐구</a></li><li><a href="04_text_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">이미지의 디지털 표현</span><ul class="dropdown"><li><a href="05_image.html">📖 개념 탐구</a></li><li><a href="05_image_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">소리의 디지털 표현</span><ul class="dropdown"><li><a href="06_sound.html">📖 개념 탐구</a></li><li><a href="06_sound_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link active">동영상의 디지털 표현</span><ul class="dropdown"><li><a href="07_video.html">📖 개념 탐구</a></li><li><a href="07_video_play.html">🛠️ 활용 실습</a></li></ul></div>
+        </nav>
+
+    </header>
+
+    <main>
+        <div class="content-container">
+            <div class="glass-panel">
+
+                <div class="progress">
+                    <div class="prog-dot cur" id="dot0"></div>
+                    <div class="prog-dot" id="dot1"></div>
+                    <div class="prog-dot" id="dot2"></div>
+                    <div class="prog-dot" id="dot3"></div>
+                </div>
+
+                <div id="step1-visual" class="step-container active">
+                    <div class="slide-section">
+                        <div class="visual-title">💡 동영상은 어떻게 움직이는 걸까?</div>
+                        <div style="font-size: 0.95rem; color: #424245; font-weight: 700;">
+                            사실 동영상은 수많은 정지 이미지(프레임)가 아주 빠르게 지나가는 '착시 현상'입니다!<br>아래 [프레임 분해하기] 버튼을 눌러 통통 튀는 공이 어떻게 쪼개지는지 확인하세요.
+                        </div>
+                        
+                        <div class="video-container" id="videoContainer">
+                            <canvas id="videoVisCanvas" width="600" height="300"></canvas>
+                        </div>
+                        
+                        <button class="action-btn" id="btnDissect" onclick="toggleFilmScan()">🎞️ 프레임 분해하기 (정지 이미지 확인)</button>
+                    </div>
+
+                    <div class="step-navigation">
+                        <div class="nav-arrow next" onclick="goStep('step2-concept')">
+                            <div>개념 탐구 (동영상의 원리와 압축)</div>
+                            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step2-concept" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--multi-navy); margin-bottom: 10px; text-align: left; padding-left: 10px;">동영상의 디지털 표현 원리</div>
+                    <div class="concept-wrap">
+                        <div class="concept-row">
+                            <div class="concept-icon">👀</div>
+                            <div style="flex:1;">
+                                <b style="color:var(--multi-navy-light)">잔상 효과 (Persistence of Vision)</b> : 눈에 보였던 물체가 사라진 후에도 짧은 시간 동안 뇌에 이미지가 남아있는 현상. 이 원리를 이용해 정지된 이미지를 연속으로 보여주면 뇌는 그것을 움직임으로 착각합니다.
+                            </div>
+                        </div>
+                        <div class="concept-row">
+                            <div class="concept-icon">🖼️</div>
+                            <div style="flex:1;">
+                                <b>프레임 (Frame) : </b><button class="pill-btn" onclick="revealInline(this, '동영상을 구성하는 한 장의 정지 이미지', 'var(--accent-green)')">❓ 확인</button><br>
+                                수많은 프레임들이 모여 하나의 영상 흐름을 만들어 냅니다.
+                            </div>
+                        </div>
+                        <div class="concept-row">
+                            <div class="concept-icon">⏱️</div>
+                            <div style="flex:1;">
+                                <b>프레임 레이트 (fps) : </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--multi-navy), #273c75);" onclick="revealInline(this, '1초당 화면에 보여주는 프레임의 개수 (Frames Per Second)', 'var(--apple-red)')">❓ 확인</button><br>
+                                <span style="font-size: 0.85rem; color: var(--text-sub);">* fps 수치가 높을수록 1초에 더 많은 그림을 보여주어 움직임이 훨씬 부드럽습니다. (영화는 보통 24fps, 게임은 60fps 이상)</span>
+                            </div>
+                        </div>
+                        <div class="concept-row">
+                            <div class="concept-icon">🗜️</div>
+                            <div style="flex:1;">
+                                <b>동영상 압축 (Compression) : </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--accent-green), #55efc4);" onclick="revealInline(this, '데이터의 용량을 줄이는 과정', 'var(--accent-green)')">❓ 확인</button><br>
+                                동영상은 수많은 이미지의 연속이므로 파일 크기가 어마어마합니다. 따라서 앞뒤 프레임의 비슷한 부분을 묶거나 생략하여 용량을 줄이는 코덱(Codec) 기술이 필수적입니다.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-navigation">
+                        <div class="nav-arrow prev" onclick="goStep('step1-visual')">
+                            <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg>
+                            <div>이전 (애니메이션 보기)</div>
+                        </div>
+                        <div class="nav-arrow next" onclick="goStep('step3-advanced')">
+                            <div>심화 실습 (프레임 실험 및 용량)</div>
+                            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step3-advanced" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--multi-navy); margin-bottom: 5px; text-align:left;">🔥 심화 실습: 프레임(fps) 야간 비행 실험실</div>
+                    <p style="color: var(--text-sub); font-size: 0.95rem; margin-top: 5px; margin-bottom: 15px; font-weight: 600; text-align:left;">
+                        슬라이더를 조절하여 우주선이 그리는 네온 궤적을 관찰하세요.<br>
+                        <b>FPS가 낮으면</b> 띄엄띄엄 순간이동을 하고, <b>FPS가 높으면</b> 부드러운 하나의 선으로 이어집니다!
+                    </p>
+                    
+                    <div class="fps-lab">
+                        <div class="fps-slider-box">
+                            <span style="font-weight: 900; color: var(--multi-navy); font-size: 1rem; flex-shrink: 0;">프레임 조절 (fps):</span>
+                            <input type="range" id="fpsSlider" min="2" max="60" step="2" value="60" oninput="updateFPS()" style="flex: 1; cursor: pointer; accent-color: var(--multi-navy); height: 8px; border-radius: 4px;">
+                            <span id="fpsValDisplay" style="font-weight: 900; color: #2d3436; min-width: 60px; font-size: 1.1rem; text-align: right;">60 fps</span>
+                        </div>
+                        
+                        <div class="fps-canvas-wrap">
+                            <canvas id="fpsCanvas" width="500" height="250"></canvas>
+                        </div>
+
+                        <div class="mission-box">
+                            <div style="font-size: 1.1rem; margin-bottom: 8px;"><b>🚨 [탐구 미션] 압축 전 데이터 용량 구하기</b></div>
+                            해상도 크기로 인해 프레임 <b style="color:var(--apple-red)">1장의 용량이 2MB</b>인 고화질 이미지가 있습니다.<br>
+                            이 이미지를 사용하여 <b style="color:var(--apple-red)">30fps</b>의 속도로 <b style="color:var(--apple-red)">10초</b> 분량의 동영상을 촬영한다면, 압축 기술을 적용하기 전 동영상의 총 데이터 용량은 몇 MB가 될까요?
+                            
+                            <div class="mission-input-group">
+                                <span style="font-weight: 1000; color:#495057;">정답: </span>
+                                <input type="text" id="missionInput" class="mission-input" placeholder="숫자만 입력">
+                                <span style="font-weight: 900; color:#495057;">MB</span>
+                                <button class="mission-btn" onclick="checkMission()">제출하기</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-navigation">
+                        <div class="nav-arrow prev" onclick="goStep('step2-concept')">
+                            <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg>
+                            <div>이전 (개념 탐구)</div>
+                        </div>
+                        <div class="nav-arrow next" onclick="goStep('step4-quiz')">
+                            <div>개념 확인 (최종 퀴즈)</div>
+                            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step4-quiz" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--apple-red); margin-bottom: 25px;">🎯 최종 퀴즈: 동영상의 디지털 표현 마스터하기!</div>
+
+                    <div class="quiz-controls-row">
+                        <div class="inline-tip" onclick="openTipPopup()">
+                            <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px; height:18px;"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+                            미션 가이드
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div id="quizTimer" class="quiz-timer">⏱️ 00:00</div>
+                            <button id="startQuizBtn" class="start-quiz-btn" onclick="startQuizTimer()">▶️ 퀴즈 시작</button>
+                            <button id="resetTimerBtn" class="reset-timer-btn" onclick="resetQuiz()">🔄 타이머 초기화</button>
+                        </div>
+                    </div>
+
+                    <div class="word-score-container" id="wordBankWrap">
+                        <div class="word-bank" id="wordBank" style="opacity: 0.4; pointer-events: none;">
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">프레임</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">fps</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">픽셀</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">압축</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">스트리밍</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">잔상</div>
+                        </div>
+                    </div>
+
+                    <div id="quizForm">
+                        <div class="quiz-box">1. 동영상은 여러 장의 정지 이미지를 연속적으로 보여주어 뇌가 움직인다고 착각하게 만드는 눈의 <input type="text" class="blank" data-answer="잔상" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 효과를 이용한다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">2. 동영상을 구성하는 한 장 한 장의 정지 이미지를 <input type="text" class="blank" data-answer="프레임" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 부른다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">3. 1초 동안 화면에 보여주는 이미지의 장수를 나타내는 단위를 <input type="text" class="blank" data-answer="fps" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 한다. 값이 클수록 부드럽다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">4. 동영상은 그대로 저장하면 용량이 너무 크기 때문에, 중복되는 데이터를 제거하여 파일 크기를 줄이는 <input type="text" class="blank" data-answer="압축" data-score="15" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 과정을 거친다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">5. 화면을 구성하는 가장 작은 점을 의미하며, 프레임 한 장의 해상도를 결정하는 요소는 <input type="text" class="blank" data-answer="픽셀" data-score="20" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 이다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
+                        <div class="quiz-box" style="margin-bottom:0;">6. 인터넷에서 대용량의 동영상 파일을 모두 다운로드하지 않고, 조금씩 전송받으면서 동시에 재생하는 기술을 <input type="text" class="blank" data-answer="스트리밍" data-score="20" oninput="checkAns(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 한다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
+                    </div>
+
+                    <div style="text-align: center; display: none;" id="submitQuizBtnWrap">
+                        <button class="submit-quiz-btn" onclick="submitQuiz()">✅ 미션 완료 및 채점하기</button>
+                    </div>
+
+                    <div class="step-navigation">
+                        <div class="nav-arrow prev" onclick="goStep('step3-advanced')">
+                            <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg>
+                            <div>이전 (심화 실습)</div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-left: auto;">
+                            <div class="nav-arrow report-btn" onclick="downloadReportTXT()">
+                                <div>📄 텍스트 저장</div>
+                            </div>
+                            <div class="nav-arrow img-report-btn" onclick="downloadReportImageOffline()">
+                                <div>🖼️ 이미지(PNG) 저장</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div id="toast">정답입니다! 🎉</div>
+        </div>
+
+         <aside class="sidebar-right">
+            <div class="memo-section">
+                <div style="font-weight:900; color:#1e1e2f; margin-bottom:12px; font-size:1.05rem;">📌 배움 노트</div>
+                <textarea id="memoInput" class="memo-area" placeholder="중요한 내용을 기록하세요. 궁금한 사항은 기록하고 질문하세요."></textarea>
+            </div>
+            <div class="reflection-section">
+                <div style="font-weight:900; color:#1e1e2f; margin-bottom:12px; font-size:1.05rem;">🌿 배움 활동 소감</div>
+                <textarea id="reflectionInput" class="reflection-area" placeholder="새롭게 알게된 사실과 느낀점을 기록하세요."></textarea>
+                <div class="capture-tip">📸 캡처: Win+Shift+S | Mac: Cmd+Shift+4</div>
+            </div>
+            <div class="erase-section">
+                <button class="erase-btn" onclick="eraseStepContent()">
+                    🗑️ 이 단원 학습 내용 지우기<br>
+                    <span style="font-size:0.68rem; font-weight:600; opacity:0.7;">(메모·소감·퀴즈 기록)</span>
+                </button>
+            </div>
+        </aside>
+
+    </main>
+
+    <div class="overlay" id="modalOverlay">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <div class="overlay" id="customAlertOverlay" style="z-index: 9999;">
+      <div class="alert-box">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🚫</div>
+            <h3 style="color: var(--apple-red); font-size: 1.5rem; margin-top: 0; margin-bottom: 15px; font-weight: 900;">접근 거부!</h3>
+            <div style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 25px; white-space: pre-line; word-break: keep-all;" id="customAlertMsg">메시지가 이곳에 표시됩니다.</div>
+            <button onclick="closeCustomAlert()" style="width: 100%; padding: 12px; background: var(--apple-red); color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1.1rem; cursor: pointer;">확인</button>
+        </div>
+    </div>
+    
+    <footer>
+        <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            데이터 비트박스
+        </div>
+        <div style="color: var(--apple-gray);">&copy; 중학교 정보 - 데이터 표현</div>
+    </footer>
+   <script src="./js/concept_common.js"></script>
+    <script src="./js/video_concept.js"></script>
+</body>
+</html>

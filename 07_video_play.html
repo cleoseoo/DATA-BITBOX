@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920">
+    <title>Digital BitBox</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/video_play_concept.css">
+</head>
+<body>
+
+<!-- ✅ DATA BITBOX 공통 네비바 (오른쪽 정렬 및 아이콘 추가) -->
+<style>
+#dbb-topnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 22px;
+    background: rgba(255,255,255,0.13);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(232,244,255,0.2);
+    box-shadow: 0 2px 20px rgba(0,0,0,0.18);
+    font-family: 'Noto Sans KR','Pretendard','Inter',sans-serif;
+    box-sizing: border-box;
+}
+#dbb-topnav a.dbb-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.3px;
+    text-decoration: none;
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid rgba(232,244,255,0.35);
+    color: #E8F4FF;
+    background: rgba(232,244,255,0.08);
+    transition: all 0.18s ease;
+    white-space: nowrap;
+}
+#dbb-topnav a.dbb-btn:hover {
+    background: rgba(232,244,255,0.15);
+    border-color: rgba(232,244,255,0.6);
+    box-shadow: 0 0 14px rgba(232,244,255,0.2);
+    transform: translateY(-1px);
+}
+#dbb-topnav .dbb-title {
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+    margin-left: auto; 
+    font-size: 0.85rem; 
+    font-weight: 800;
+    color: #E8F4FF;
+    letter-spacing: 0.5px;
+}
+</style>
+<div id="dbb-topnav">
+    <div style="display:flex;gap:9px;align-items:center;">
+        <a class="dbb-btn" href="index.html">← 메인으로</a>
+        <a class="dbb-btn" href="07_video.html">📖 개념으로</a>
+    </div>
+    <span class="dbb-title">🎬 동영상의 디지털 표현 · 활용 실습</span>
+</div>
+<!-- /네비바 -->
+
+    <div class="header">
+        <h1>🎧 DATA BITBOX</h1>
+        <div class="subtitle" id="pageIndicator">Step 1: 문자와 이미지 데이터 제작 (Text & Image)</div>
+    </div>
+
+    <button class="nav-btn" id="prevBtn" onclick="slidePage(0)" title="이전 단계">◀</button>
+    <button class="nav-btn" id="nextBtn" onclick="slidePage(1)" title="다음 단계">▶</button>
+
+    <div class="slider-container">
+        <div class="slide-track" id="slideTrack">
+            
+            <div class="slide">
+                <div class="panel">
+                    <h2 class="panel-title"><span class="step-badge">1</span> 문자 입력하기 (Text to Binary)</h2>
+                    
+                    <div class="instruction">👉 [실습] 동영상에 들어갈 영어와 한글, 특수 문자를 입력하세요.</div>
+                    <div class="speech-bubble">
+                        💬 <strong>문자의 디지털 표현(UTF-8)</strong><br>
+			알파벳과 숫자는 8비트(1바이트)만으로 표현할 수 있습니다.<br>
+                        하지만 한글처럼 복잡하고 방대한 글자는 8비트로는 공간이 부족하여 <strong>24비트(3바이트)</strong> 공간을 사용해 이진수로 저장합니다.<br>
+                        전 세계 모든 문자를 컴퓨터가 이해하도록 번역하는 표준 방식을 <strong>'UTF-8'</strong>이라고 부릅니다.
+                    </div>
+                    
+                    <!-- ✅ 수정: 입력창과 출력창을 가로로 배치하고 세로 160px(약 5cm)로 고정, 하단 여백 추가 -->
+                    <!-- ✅ 수정: 오른쪽 모니터 창에 box-sizing: border-box; 를 추가하여 높이를 완벽히 맞춤 -->
+<div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: stretch; margin-bottom: 20px;">
+    <textarea id="textInput" placeholder="자막 입력 (예: 학교폭력 NO!)" oninput="updateTextBinary()" style="flex: 1; min-width: 250px; height: 160px; margin: 0; padding: 15px; background: #0B0F19; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; font-size: 1.05rem; font-family: 'Pretendard', sans-serif; resize: none; line-height: 1.5;"></textarea>
+    
+    <div class="binary-screen" id="textBinary" style="flex: 1; min-width: 250px; height: 160px; margin: 0; box-sizing: border-box;">[시스템 대기] 문자를 입력하고 이진 코드를 확인하세요.</div>
+</div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="panel-title"><span class="step-badge">2</span> 이미지 그리기 (Image to Binary)</h2>
+                    
+                    <div class="instruction">👉 [실습] 20x20 눈금 도화지 위에 나만의 픽셀 이미지를 5장 그려보세요.</div>
+                    <div class="speech-bubble">
+                        💬 <strong>이미지의 디지털 표현</strong><br>
+			해상도를 낮춰 캔버스를 총 400(20*20)개의 네모 칸(픽셀)으로 나누었습니다.<br>
+                        마우스로 점을 찍을 때마다 내가 칠한 칸(X, Y 좌표)의 색상이 빛의 삼원색인 <strong>빨강(R), 초록(G), 파랑(B)</strong>의 8비트 데이터로 추출되어 모니터에 기록됩니다.
+                    </div>
+                    
+                    <div class="drawing-layout">
+                        <div class="canvas-area">
+                            <div class="canvas-wrapper">
+                                <canvas id="drawCanvas" width="450" height="450"></canvas>
+                                <canvas id="gridCanvas" width="450" height="450"></canvas>
+                            </div>
+                            <div class="frame-selector">
+                                <button class="frame-btn active" onclick="selectFrame(0)">#1</button>
+                                <button class="frame-btn" onclick="selectFrame(1)">#2</button>
+                                <button class="frame-btn" onclick="selectFrame(2)">#3</button>
+                                <button class="frame-btn" onclick="selectFrame(3)">#4</button>
+                                <button class="frame-btn" onclick="selectFrame(4)">#5</button>
+                            </div>
+                        </div>
+                        
+                        <div class="tools-area">
+                            <div class="tool-row">
+                                <input type="color" id="penColor" value="#00F0FF" title="펜 색상">
+                                <button class="btn" style="background: #334155; color: white;" onclick="setEraser()">🧽 지우개</button>
+                                <button class="btn" onclick="undo()">↩️ 되돌리기</button>
+                                <button class="btn" style="background: #ef4444; color: white;" onclick="clearCanvas()">🗑️ 비우기</button>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:10px; background:#0B0F19; padding:10px 14px; border-radius:6px; border:1px solid #334155;">
+                                <span style="color:#94A3B8; font-size:0.85rem; font-weight:bold; white-space:nowrap;">🖌️ 브러시</span>
+                                <input type="range" id="brushSize" min="2" max="60" value="12"
+                                    style="flex:1; accent-color:var(--primary);"
+                                    oninput="updateBrushPreview()">
+                                <span id="brushSizeVal" style="color:var(--primary); font-weight:bold; font-size:0.9rem; min-width:36px; text-align:right;">12px</span>
+                                <canvas id="brushPreviewCanvas" width="40" height="40"
+                                    style="border-radius:50%; border:1px solid #334155; background:#1e293b; flex-shrink:0;"></canvas>
+                            </div>
+                            <div class="binary-screen" id="imageBinary" style="flex: 1; color: var(--accent);">[시스템 대기] 이미지를 그리고 이진 코드를 확인하세요.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slide">
+                <div class="panel">
+                    <h2 class="panel-title"><span class="step-badge">3</span> 소리 입력하기 (Audio to Binary)</h2>
+                    
+                    <div class="instruction">👉 [실습] 음악이나 효과음 파일(mp3, wav)을 업로드하고 재생하세요.</div>
+                    <div class="speech-bubble">
+                        💬 <strong>소리의 디지털 표현</strong><br>
+                        소리는 연속적인 파동입니다. 컴퓨터가 소리를 저장하려면 세 단계를 거쳐야 합니다.<br>
+                        <strong>① 표본화</strong>: 파동을 일정 간격으로 잘라 값을 읽고,
+                        <strong>② 양자화</strong>: 그 값을 정수로 반올림하고,
+                        <strong>③ 부호화</strong>: 0과 1의 이진수로 변환합니다.<br>
+                        아래 파형과 이진수는 이 세 단계를 모두 거친 결과물입니다.
+                    </div>
+
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <input type="file" id="audioInput" accept="audio/*" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <audio id="audioPlayer" controls style="height: 45px; flex: 1; min-width: 200px;"></audio>
+                    </div>
+                    <canvas id="waveCanvas"></canvas>
+                    <div class="binary-screen" id="audioBinary" style="height: 40px; margin-top: 10px;">[시스템 대기] 소리를 입력하고 이진 코드를 확인하세요.</div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="panel-title"><span class="step-badge">4</span> 동영상 완성하기 (Data to Video)</h2>
+                    
+                    <div class="instruction">👉 [실습] 프레임 속도(FPS)를 조절해 보세요. 모든 데이터를 조합해 10초 동영상을 완성하세요.</div>
+                    <div class="speech-bubble" style="margin-bottom: 10px;">
+                        💬 <strong>동영상의 디지털 표현</strong><br>
+			여러 장의 정지된 이미지 데이터가 1초에 여러 장(FPS) 겹쳐 지나가면 우리 눈에는 움직이는 '영상'으로 보입니다.<br>
+                        지금까지 만든 <strong>문자 + 이미지 + 소리의 거대한 이진수 덩어리</strong>가 조합되어 하나의 동영상 파일로 탄생합니다!
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center; background: #171E2E; padding: 15px; border-radius: 8px; border: 1px solid #334155; flex-wrap: wrap;">
+                        <span style="font-weight: bold; color: #94A3B8; white-space: nowrap;">저장 포맷:</span>
+                        <select id="formatSelect" style="width: 150px; margin-bottom: 0;">
+                            <option value="video/webm">WebM (권장)</option>
+                            <option value="video/mp4">MP4 (호환)</option>
+                        </select>
+                        <button class="btn" onclick="renderVideo()" id="renderBtn" style="flex: 1; min-width: 200px; font-size: 1.1rem; background: var(--secondary); color: white; letter-spacing: 1px;">🎬 10초 동영상 만들기</button>
+                    </div>
+                    
+                    <div class="render-layout">
+                        <div class="preview-box">
+                            <div style="font-size: 0.9rem; color: #94A3B8; margin-bottom: 10px; font-weight: bold;">[ 실시간 미리보기 ]</div>
+                            <canvas id="previewCanvas" width="450" height="450" style="width: 450px; height: 450px;"></canvas>
+                            <div class="fps-control">
+                                <span style="font-size: 0.8rem; color: #E2E8F0;">속도(FPS)</span>
+                                <input type="range" id="fpsSlider" min="1" max="15" value="5" oninput="updateFPS()">
+                                <span id="fpsValue" style="color: var(--secondary); font-weight: bold; width: 20px;">5</span>
+                            </div>
+                        </div>
+
+                        <div class="result-box" id="resultBox">
+                            <div id="renderStatus" style="color: var(--primary); font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; text-align: center;">동영상을 만들면<br>이곳에 결과물이 표시됩니다.</div>
+                            <video id="finalVideo" controls></video>
+                            <a id="downloadLink" class="btn" style="display:none; margin-top:20px; text-decoration:none; width: 80%; text-align: center; font-size: 1.1rem; border: 1px solid #000;">💾 10초 동영상 다운로드</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function slidePage(index) {
+            document.getElementById('slideTrack').style.transform = `translateX(-${index * 50}%)`;
+            document.getElementById('prevBtn').style.display = index === 0 ? 'none' : 'flex';
+            document.getElementById('nextBtn').style.display = index === 1 ? 'none' : 'flex';
+            document.getElementById('pageIndicator').innerText = index === 0 ? "Step 1: 문자와 이미지 데이터 제작 (Text & Image)" : "Step 2: 소리와 동영상 데이터 제작 (Audio & Video)";
+        }
+
+        function updateTextBinary() {
+            const text = document.getElementById('textInput').value;
+            const display = document.getElementById('textBinary');
+            if(!text) { display.innerHTML = "[시스템 대기] 문자를 입력하고 이진 코드를 확인하세요."; return; }
+            
+            const encoder = new TextEncoder();
+            let resultHTML = "";
+            
+            for(let i=0; i<text.length; i++) {
+                const char = text[i];
+                const bytes = encoder.encode(char); 
+                
+                const binStr = Array.from(bytes).map(b => b.toString(2).padStart(8, '0')).join(' ');
+                let byteInfo = bytes.length === 1 ? "(8비트)" : `(${bytes.length * 8}비트)`;
+                resultHTML += `<span style="color:#FFF;">[${char}]</span> ${binStr} <span style="color:#64748B;">${byteInfo}</span><br>`;
+            }
+            display.innerHTML = resultHTML;
+        }
+
+        const drawCanvas = document.getElementById('drawCanvas');
+        const gridCanvas = document.getElementById('gridCanvas');
+        const dCtx = drawCanvas.getContext('2d', {willReadFrequently: true});
+        const gCtx = gridCanvas.getContext('2d');
+        
+        const PIXEL_SIZE = 22; // 이진코드 좌표 표시용으로만 유지
+        const frames = Array(5).fill(null);
+        let currentFrame = 0, isDrawing = false, isEraser = false;
+        let undoStack = [];
+        let lastDrawnCell = null;
+        let lastBrushX = null, lastBrushY = null; // 부드러운 선 연결용
+
+        function drawGrid() {
+            gCtx.clearRect(0, 0, 450, 450);
+            // 자유 브러시 방식 — 격자는 그리기 방해 안 되도록 매우 연하게만 표시
+            gCtx.strokeStyle = "rgba(0, 240, 255, 0.07)";
+            gCtx.lineWidth = 0.5;
+            for(let i=0; i<=450; i+=PIXEL_SIZE) {
+                gCtx.beginPath(); gCtx.moveTo(i, 0); gCtx.lineTo(i, 450); gCtx.stroke();
+                gCtx.beginPath(); gCtx.moveTo(0, i); gCtx.lineTo(450, i); gCtx.stroke();
+            }
+        }
+        drawGrid();
+
+        function updateBrushPreview() {
+            const size   = parseInt(document.getElementById('brushSize').value);
+            const color  = isEraser ? '#ffffff' : document.getElementById('penColor').value;
+            const pc     = document.getElementById('brushPreviewCanvas');
+            const ctx    = pc.getContext('2d');
+            document.getElementById('brushSizeVal').innerText = size + 'px';
+            ctx.clearRect(0, 0, 40, 40);
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, 40, 40);
+            ctx.beginPath();
+            ctx.arc(20, 20, Math.min(size / 2, 18), 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+        updateBrushPreview();
+        document.getElementById('penColor').addEventListener('input', () => { isEraser = false; updateBrushPreview(); });
+
+        function saveState() {
+            if(undoStack.length > 20) undoStack.shift(); 
+            undoStack.push(dCtx.getImageData(0, 0, 450, 450));
+        }
+
+        function undo() {
+            if(undoStack.length > 0) {
+                const prevState = undoStack.pop();
+                dCtx.putImageData(prevState, 0, 0);
+                frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+            }
+        }
+
+        function get8BitColor(hex) {
+            let r = parseInt(hex.substring(1,3), 16);
+            let g = parseInt(hex.substring(3,5), 16);
+            let b = parseInt(hex.substring(5,7), 16);
+            // 레트로 반올림 로직 제거: 선택한 색상값을 정확하게 사용
+            return { rgb: `rgb(${r},${g},${b})`, r, g, b };
+        }
+
+        function initCanvas() {
+            dCtx.fillStyle = "white"; dCtx.fillRect(0, 0, 450, 450);
+            for(let i=0; i<5; i++) frames[i] = dCtx.getImageData(0, 0, 450, 450);
+        }
+        initCanvas();
+
+        function selectFrame(index) {
+            frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+            currentFrame = index;
+            dCtx.putImageData(frames[currentFrame], 0, 0);
+            document.querySelectorAll('.frame-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+            undoStack = [];
+        }
+
+        function setEraser() { isEraser = true; updateBrushPreview(); }
+        // penColor listener → drawGrid 초기화 블록에서 통합 관리
+
+        function clearCanvas() { 
+            saveState();
+            dCtx.fillStyle = "white"; dCtx.fillRect(0, 0, 450, 450); 
+            document.getElementById('imageBinary').innerHTML = "[시스템 대기] 도화지가 초기화 되었습니다.";
+        }
+
+        drawCanvas.addEventListener('mousedown', (e) => {
+            saveState();
+            isDrawing = true;
+            lastDrawnCell = null;
+            lastBrushX = null; lastBrushY = null;
+            draw(e);
+        });
+        drawCanvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', () => {
+            isDrawing = false;
+            lastBrushX = null; lastBrushY = null;
+            frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+        });
+        drawCanvas.addEventListener('mouseleave', () => {
+            isDrawing = false;
+            lastBrushX = null; lastBrushY = null;
+        });
+
+        function draw(e) {
+            if(!isDrawing) return;
+            const rect   = drawCanvas.getBoundingClientRect();
+            const scaleX = drawCanvas.width  / rect.width;
+            const scaleY = drawCanvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top)  * scaleY;
+            const size = parseInt(document.getElementById('brushSize').value);
+
+            dCtx.lineCap     = 'round';
+            dCtx.lineJoin    = 'round';
+            dCtx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+
+            if (isEraser) {
+                dCtx.strokeStyle = 'rgba(0,0,0,1)';
+                dCtx.lineWidth   = size;
+            } else {
+                const rawColor   = document.getElementById('penColor').value;
+                dCtx.strokeStyle = rawColor;
+                dCtx.lineWidth   = size;
+            }
+
+            dCtx.beginPath();
+            if (lastBrushX === null) {
+                // 첫 점: 점만 찍기
+                dCtx.arc(x, y, size / 2, 0, Math.PI * 2);
+                dCtx.fillStyle = isEraser ? 'rgba(0,0,0,1)' : document.getElementById('penColor').value;
+                dCtx.fill();
+            } else {
+                // 이전 점에서 현재 점까지 이어 그리기
+                dCtx.moveTo(lastBrushX, lastBrushY);
+                dCtx.lineTo(x, y);
+                dCtx.stroke();
+            }
+            lastBrushX = x;
+            lastBrushY = y;
+
+            // 지우개 후 composite 복원
+            dCtx.globalCompositeOperation = 'source-over';
+
+            // 이진코드 로그: 현재 마우스 위치 픽셀 색상 샘플링
+            const cellX = Math.floor(x / PIXEL_SIZE);
+            const cellY = Math.floor(y / PIXEL_SIZE);
+            const currentCell = `${cellX},${cellY}`;
+            if (currentCell !== lastDrawnCell) {
+                lastDrawnCell = currentCell;
+                const px = dCtx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+                const rBin = px[0].toString(2).padStart(8,'0');
+                const gBin = px[1].toString(2).padStart(8,'0');
+                const bBin = px[2].toString(2).padStart(8,'0');
+                const binScreen = document.getElementById('imageBinary');
+                const newLog = `[좌표 X:${String(cellX).padStart(2,'0')} Y:${String(cellY).padStart(2,'0')}] R:${rBin} G:${gBin} B:${bBin}<br>`;
+                binScreen.innerHTML = newLog + binScreen.innerHTML.substring(0, 1000);
+            }
+        }
+
+        const audioInput = document.getElementById('audioInput');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const waveCanvas = document.getElementById('waveCanvas');
+        const wCtx = waveCanvas.getContext('2d');
+        let audioCtx, analyser, source, waveData;
+
+        audioInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                audioPlayer.src = URL.createObjectURL(file);
+                setupAudio();
+            }
+        });
+
+        function setupAudio() {
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                source = audioCtx.createMediaElementSource(audioPlayer);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                waveData = new Uint8Array(analyser.frequencyBinCount);
+                drawWave();
+            }
+        }
+
+        function drawWave() {
+            requestAnimationFrame(drawWave);
+            if(audioPlayer.paused) return;
+
+            analyser.getByteTimeDomainData(waveData);
+            wCtx.fillStyle = '#0B0F19';
+            wCtx.fillRect(0, 0, waveCanvas.width, waveCanvas.height);
+            wCtx.lineWidth = 2;
+            wCtx.strokeStyle = '#00F0FF';
+            wCtx.beginPath();
+            
+            let sliceWidth = waveCanvas.width * 1.0 / analyser.frequencyBinCount;
+            let x = 0;
+            for(let i = 0; i < analyser.frequencyBinCount; i++) {
+                let v = waveData[i] / 128.0;
+                let y = v * waveCanvas.height/2;
+                if(i === 0) wCtx.moveTo(x, y);
+                else wCtx.lineTo(x, y);
+                x += sliceWidth;
+            }
+            wCtx.stroke();
+            document.getElementById('audioBinary').innerText = "[Wave PCM] " + waveData[0].toString(2).padStart(8,'0') + " " + waveData[1].toString(2).padStart(8,'0') + " " + waveData[2].toString(2).padStart(8,'0') + "...";
+        }
+
+        const previewCanvas = document.getElementById('previewCanvas');
+        const pCtx = previewCanvas.getContext('2d');
+        let previewFrame = 0;
+        let currentFps = 5;
+        let previewInterval;
+
+        function updateFPS() {
+            currentFps = document.getElementById('fpsSlider').value;
+            document.getElementById('fpsValue').innerText = currentFps;
+            startPreview();
+        }
+
+        function startPreview() {
+            clearInterval(previewInterval);
+            previewInterval = setInterval(() => {
+                frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+                pCtx.putImageData(frames[previewFrame], 0, 0);
+                
+                const text = document.getElementById('textInput').value;
+                if(text) {
+                    pCtx.fillStyle = "rgba(0,0,0,0.6)";
+                    pCtx.fillRect(0, 360, 450, 90);
+                    pCtx.fillStyle = "white";
+                    pCtx.font = "bold 30px Pretendard";
+                    pCtx.textAlign = "center";
+                    pCtx.fillText(text, 225, 415, 420);
+                }
+                previewFrame = (previewFrame + 1) % 5;
+            }, 1000 / currentFps);
+        }
+        startPreview(); 
+
+        async function renderVideo() {
+            const btn = document.getElementById('renderBtn');
+            const format = document.getElementById('formatSelect').value;
+            const status = document.getElementById('renderStatus');
+            
+            btn.innerText = "⏳ 동영상 만드는 중..."; 
+            btn.disabled = true;
+            status.innerHTML = "데이터를 조합하여 동영상을 만들고 있습니다...<br><span style='font-size:0.9rem; color:#94A3B8;'>(이 작업은 10초가 소요됩니다)</span>";
+
+            if(audioPlayer.src) { audioPlayer.currentTime = 0; audioPlayer.play(); }
+
+            const canvasStream = previewCanvas.captureStream(parseInt(currentFps)); 
+            const tracks = canvasStream.getVideoTracks();
+
+            if(audioPlayer.src && audioPlayer.captureStream) {
+                tracks.push(...audioPlayer.captureStream().getAudioTracks());
+            }
+
+            const combinedStream = new MediaStream(tracks);
+            
+            let mimeType = format;
+            if(format === 'video/mp4' && !MediaRecorder.isTypeSupported('video/mp4')) {
+                alert("현재 브라우저에서 MP4를 지원하지 않아 WebM으로 저장됩니다.");
+                mimeType = 'video/webm';
+            }
+
+            const recorder = new MediaRecorder(combinedStream, { mimeType });
+            const chunks = [];
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                
+                const finalVideo = document.getElementById('finalVideo');
+                finalVideo.src = url;
+                finalVideo.style.display = "block";
+                
+                const ext = mimeType.includes('mp4') ? '.mp4' : '.webm';
+                const dl = document.getElementById('downloadLink');
+                dl.href = url;
+                dl.download = "digital_bitbox_10sec" + ext;
+                dl.style.display = "block";
+
+                btn.innerText = "🎬 10초 동영상 만들기"; 
+                btn.disabled = false;
+                status.innerText = "✨ 10초 동영상 완성!";
+                audioPlayer.pause();
+            };
+
+            recorder.start();
+            setTimeout(() => recorder.stop(), 10000); 
+        }
+    </script>
+</body>
+</html>

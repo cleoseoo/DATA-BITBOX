@@ -50,11 +50,10 @@
                     <div class="prog-dot" id="dot1"></div>
                     <div class="prog-dot" id="dot2"></div>
                     <div class="prog-dot" id="dot3"></div>
-                    <div class="prog-dot" id="dot4"></div>
                 </div>
 
                 <div id="step1-visual" class="step-container">
-                    <div style="font-size: 1.3rem; font-weight: 900; color: #0071e3; margin-bottom: 15px; text-align: center;">전구를 켜서 이진수를 만들어보자!!</div>
+                    <div style="font-size: 1.3rem; font-weight: 900; color: #0071e3; margin-bottom: 15px; text-align: center;">전구를 켜서 이진수 & 십진수를 만들어보자!!</div>
                     
                     <div class="visual-container">
                         <div class="mode-switch">
@@ -133,36 +132,75 @@
                         </div>
                     </div>
 
-                    <div class="step-navigation">
-                        <div class="nav-arrow next" onclick="goToStep('step1-visual', 'step2-concept')">
-                            <div>핵심 개념 탐구</div>
-                            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+                    <!-- 🔥 핵심 개념 탐구 — step1에 합쳐진 구 step2 내용 -->
+                    <div style="margin-top:32px; border-top:2px solid rgba(0,113,227,0.12); padding-top:28px;">
+                        <div style="font-size:1.4rem; font-weight:900; color:#0071e3; margin-bottom:20px; text-align:left;">🔥 핵심 개념 탐구</div>
+
+                        <!-- 기본 개념 카드 2개 (클릭해서 열기) -->
+                        <div style="display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap;">
+
+                            <!-- 이진수 개념 카드 -->
+                            <div style="flex:1; min-width:260px; border-radius:16px; border:2px solid #bfdbfe; overflow:hidden; box-shadow:0 4px 12px rgba(9,132,227,0.08);">
+                                <button onclick="toggleConceptCard('card-bin')"
+                                    style="width:100%; padding:14px 18px; background:linear-gradient(135deg,#eff6ff,#dbeafe); border:none; cursor:pointer !important; display:flex; align-items:center; gap:10px; text-align:left; font-family:inherit;">
+                                    <span style="font-size:1.5rem;">💡</span>
+                                    <span style="flex:1; font-size:1rem; font-weight:900; color:#1d4ed8;">이진수(Binary)란?</span>
+                                    <span id="card-bin-icon" style="font-size:1.3rem; color:#3b82f6; transition:transform 0.3s;">❓</span>
+                                </button>
+                                <div id="card-bin" style="display:none; padding:16px 18px; background:#f8faff; border-top:1px solid #bfdbfe; font-size:0.88rem; line-height:1.8; color:#1e3a5f;">
+                                    <p style="margin:0 0 10px 0;">컴퓨터는 전기의 <b style="color:#1d4ed8;">켜짐(1)</b>과 <b style="color:#94a3b8;">꺼짐(0)</b>, 단 두 가지 상태만 인식합니다.<br>
+                                    그래서 <b style="color:#1d4ed8;">0과 1만 사용하는 이진수</b>로 모든 정보를 표현해요.</p>
+                                    <div style="background:#e0f2fe; border-radius:10px; padding:10px 14px; border-left:3px solid #0284c7;">
+                                        <b>각 자리의 값은 오른쪽→왼쪽으로 2배씩 커집니다</b><br>
+                                        <span style="font-family:'JetBrains Mono',monospace; font-size:0.95rem; color:#0284c7;">
+                                            2<sup>0</sup>=1 &nbsp;|&nbsp; 2<sup>1</sup>=2 &nbsp;|&nbsp; 2<sup>2</sup>=4 &nbsp;|&nbsp; 2<sup>3</sup>=8 &nbsp;|&nbsp; 2<sup>4</sup>=16 …
+                                        </span>
+                                    </div>
+                                    <p style="margin:10px 0 0 0;">예) <b style="font-family:'JetBrains Mono',monospace; color:#1d4ed8;">1011<sub>(2)</sub></b>
+                                        = (1×8) + (0×4) + (1×2) + (1×1) = <b style="color:#dc2626;">11<sub>(10)</sub></b></p>
+                                </div>
+                            </div>
+
+                            <!-- 십진수 개념 카드 -->
+                            <div style="flex:1; min-width:260px; border-radius:16px; border:2px solid #fed7aa; overflow:hidden; box-shadow:0 4px 12px rgba(249,115,22,0.08);">
+                                <button onclick="toggleConceptCard('card-dec')"
+                                    style="width:100%; padding:14px 18px; background:linear-gradient(135deg,#fff7ed,#ffedd5); border:none; cursor:pointer !important; display:flex; align-items:center; gap:10px; text-align:left; font-family:inherit;">
+                                    <span style="font-size:1.5rem;">🔢</span>
+                                    <span style="flex:1; font-size:1rem; font-weight:900; color:#c2410c;">십진수(Decimal)란?</span>
+                                    <span id="card-dec-icon" style="font-size:1.3rem; color:#f97316; transition:transform 0.3s;">❓</span>
+                                </button>
+                                <div id="card-dec" style="display:none; padding:16px 18px; background:#fffbf7; border-top:1px solid #fed7aa; font-size:0.88rem; line-height:1.8; color:#431407;">
+                                    <p style="margin:0 0 10px 0;">우리가 일상에서 사용하는 수 체계로,<br>
+                                    <b style="color:#c2410c;">0부터 9까지 10개의 숫자</b>를 사용합니다.</p>
+                                    <div style="background:#fff3cd; border-radius:10px; padding:10px 14px; border-left:3px solid #f97316;">
+                                        <b>각 자리의 값은 오른쪽→왼쪽으로 10배씩 커집니다</b><br>
+                                        <span style="font-family:'JetBrains Mono',monospace; font-size:0.95rem; color:#c2410c;">
+                                            10<sup>0</sup>=1 &nbsp;|&nbsp; 10<sup>1</sup>=10 &nbsp;|&nbsp; 10<sup>2</sup>=100 &nbsp;|&nbsp; 10<sup>3</sup>=1,000 …
+                                        </span>
+                                    </div>
+                                    <p style="margin:10px 0 0 0;">예) <b style="font-family:'JetBrains Mono',monospace; color:#c2410c;">325</b>
+                                        = (3×100) + (2×10) + (5×1) = <b style="color:#dc2626;">325</b></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 변환 마스터 박스 -->
+                        <div class="concept-box">
+                            <div class="concept-box-title">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                                이진수 ↔ 십진수 변환 마스터하기!
+                            </div>
+                            <p style="margin:0;">
+                                <strong>✅ 이진수를 십진수로:</strong> 켜져 있는 전구(1)의 <button class="pill-btn" onclick="revealInline(this, '자릿값들을 모두 더하면', '#ff2d55')">❔ 확인</button> 됩니다.<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;(예: 00001010<span style="font-size:0.8em; font-weight:800;">(2)</span> ➡ 8 + 2 = 10)<br><br>
+                                <strong>✅ 십진수를 이진수로:</strong> 표현할 숫자에서 <button class="pill-btn" onclick="revealInline(this, '가장 큰 자릿값부터 뺄셈', '#ff2d55')">❔ 확인</button>하며 전구를 켭니다.<br>
+                                &nbsp;&nbsp;&nbsp;&nbsp;(예: 20을 만들려면 ➡ 16을 빼고(전구 ON), 남은 4를 뺍니다(전구 ON) ➡ 00010100<span style="font-size:0.8em; font-weight:800;">(2)</span>)
+                            </p>
                         </div>
                     </div>
-                </div>
-
-                <div id="step2-concept" class="step-container">
-                    <div style="font-size: 1.3rem; font-weight: 900; color: #0071e3; margin-bottom: 20px; text-align: center;">이진수와 십진수 변환하기</div>
-
-                    <div class="concept-box">
-                        <div class="concept-box-title">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                            이진수 ↔ 십진수 변환 마스터하기!
-                        </div>
-                        <p style="margin:0;">
-                            <strong>✅ 이진수를 십진수로:</strong> 켜져 있는 전구(1)의 <button class="pill-btn" onclick="revealInline(this, '자릿값들을 모두 더하면', '#ff2d55')">❔ 확인</button> 됩니다.<br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;(예: 00001010<span style="font-size:0.8em; font-weight:800;">(2)</span> ➡ 8 + 2 = 10)<br><br>
-                            <strong>✅ 십진수를 이진수로:</strong> 표현할 숫자에서 <button class="pill-btn" onclick="revealInline(this, '가장 큰 자릿값부터 뺄셈', '#ff2d55')">❔ 확인</button>하며 전구를 켭니다.<br>
-                            &nbsp;&nbsp;&nbsp;&nbsp;(예: 20을 만들려면 ➡ 16을 빼고(전구 ON), 남은 4를 뺍니다(전구 ON) ➡ 00010100<span style="font-size:0.8em; font-weight:800;">(2)</span>)
-                        </p>
-                    </div>
 
                     <div class="step-navigation">
-                        <div class="nav-arrow prev" onclick="goToStep('step2-concept', 'step1-visual')">
-                            <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg>
-                            <div>이전 (전구로 숫자 표현)</div>
-                        </div>
-                        <div class="nav-arrow next" onclick="goToStep('step2-concept', 'step3-tip')">
+                        <div class="nav-arrow next" onclick="goToStep('step1-visual', 'step3-tip')">
                             <div>심화 탐구 (십진수를 이진수로 변환)</div>
                             <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
                         </div>
@@ -225,9 +263,9 @@
                     </div>
 
                     <div class="step-navigation"> 
-                        <div class="nav-arrow prev" onclick="goToStep('step3-tip', 'step2-concept')">
+                        <div class="nav-arrow prev" onclick="goToStep('step3-tip', 'step1-visual')">
                             <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg> 
-                            <div>이전 (핵심 개념)</div>
+                            <div>이전 (전구로 숫자 표현 & 핵심 개념)</div>
                         </div>
                         <div class="nav-arrow next" onclick="goToStep('step3-tip', 'step4-tip2')">
                             <div>심화 탐구 (이진수를 십진수로 변환)</div>

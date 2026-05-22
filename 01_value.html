@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>디지털 데이터의 가치 - 개념 탐구</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/value_concept.css">
+</head><body>
+
+    <header>
+        <div class="header-top">
+            <div class="header-left">
+                <span class="target-badge">대상: 중학교 1~3학년</span>
+                <h1 class="main-title" onclick="location.href='index.html'">데이터 비트박스</h1>
+            </div>
+            <div class="status-controller">
+                <button class="status-btn" onclick="setStatus('normal')">🔄 초기화</button>
+                <button class="status-btn btn-help" onclick="setStatus('help')">🙋‍♂️ SOS 요청</button>
+                <button class="status-btn btn-done" onclick="setStatus('done')">✅ 미션 완료</button>
+            </div>
+        </div>
+
+        <nav>
+            <div class="menu-item">
+                <span class="menu-link active">디지털 데이터의 가치</span>
+                <ul class="dropdown">
+                    <li><a href="01_value.html">📖 개념 탐구</a></li>
+                    <li><a href="01_value_play.html">🛠️ 활용 실습</a></li>
+                </ul>
+            </div>
+            <div class="menu-item"><span class="menu-link">비트란?</span><ul class="dropdown"><li><a href="02_bit.html">📖 개념 탐구</a></li><li><a href="02_bit_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">숫자의 디지털 표현</span><ul class="dropdown"><li><a href="03_number.html">📖 개념 탐구</a></li><li><a href="03_number_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">문자의 디지털 표현</span><ul class="dropdown"><li><a href="04_text.html">📖 개념 탐구</a></li><li><a href="04_text_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">이미지의 디지털 표현</span><ul class="dropdown"><li><a href="05_image.html">📖 개념 탐구</a></li><li><a href="05_image_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">소리의 디지털 표현</span><ul class="dropdown"><li><a href="06_sound.html">📖 개념 탐구</a></li><li><a href="06_sound_play.html">🛠️ 활용 실습</a></li></ul></div>
+            <div class="menu-item"><span class="menu-link">동영상의 디지털 표현</span><ul class="dropdown"><li><a href="07_video.html">📖 개념 탐구</a></li><li><a href="07_video_play.html">🛠️ 활용 실습</a></li></ul></div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="content-container">
+            <div class="content-card">
+
+                <div class="progress">
+                    <div class="prog-dot cur" id="dot0"></div>
+                    <div class="prog-dot" id="dot1"></div>
+                    <div class="prog-dot" id="dot2"></div>
+                </div>
+
+                <div id="step1-intro" class="step-container active">
+                    <div class="visual-container">
+                        <div class="input-col">
+                            <div class="icon-wrap"><div class="icon-circle"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="icon-label">사용자</div></div>
+                            <div class="icon-wrap"><div class="icon-circle"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></div><div class="icon-label">기기</div></div>
+                            <div class="icon-wrap"><div class="icon-circle"><svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg></div><div class="icon-label">네트워크</div></div>
+                        </div>
+                        <div class="flow-track"><div class="flow-particle"></div></div>
+                        <div class="ai-robot">
+                            <div class="robot-head">
+                                <div class="robot-eye" style="left:16px;"></div>
+                                <div class="robot-eye" style="right:16px;"></div>
+                            </div>
+                            <div class="robot-screen">
+                                <div class="binary-line">0110 1001 1100 0011</div>
+                            </div>
+                            <div style="font-weight: 800; color: var(--teal-main); margin-top: 10px; font-size: 0.85rem;">이진수 변환 및 처리</div>
+                        </div>
+                        <div class="flow-track track-out"><div class="flow-particle"></div></div>
+                        <div class="output-grid">
+                            <div class="icon-wrap"><div class="icon-circle"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div><div class="icon-label" style="color:var(--gold-main)">의료·복지</div></div>
+                            <div class="icon-wrap"><div class="icon-circle"><svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg></div><div class="icon-label" style="color:var(--gold-main)">스마트교통</div></div>
+                            <div class="icon-wrap"><div class="icon-circle"><svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66l.95-2.3c.48.17.98.3 1.34.3C12 20 22 14 22 4C22 4 18 4 17 8z"/></svg></div><div class="icon-label" style="color:var(--gold-main)">환경보호</div></div>
+                            <div class="icon-wrap"><div class="icon-circle"><svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg></div><div class="icon-label" style="color:var(--gold-main)">스마트시티</div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="catchphrase">AI 세상을 움직이는 보이지 않는 힘!</div> 
+                    <div class="data-circle-box" style="text-align: center; font-size: 1.2rem; font-weight: 700; color: var(--text-sub);">
+                        <span class="char-circle">디</span><span class="char-circle">지</span><span class="char-circle" style="margin-right: 15px;">털</span><span class="char-circle">데</span><span class="char-circle">이</span><span class="char-circle">터</span> 
+                    </div>
+                    <p style="font-size:0.95rem; color:var(--text-sub); font-weight:600; margin-top:10px; margin-bottom:40px; text-align: center;">컴퓨터가 데이터를 어떻게 처리하는지 단계별 활동으로 체험해보세요!</p>
+
+                    <div class="step-navigation">
+                        <div class="nav-arrow next" onclick="goToStep('step1-intro', 'step2-visual')">
+                            <div>아날로그 vs 디지털 비교하기</div>
+                            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step2-visual" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--teal-main); margin-bottom: 20px; text-align: center;">아날로그 방식 vs 디지털 방식</div>
+                    
+                    <div id="concept-section" style="width: 100%; margin-bottom: 20px;">
+                        <div class="concept-summary">
+                            <div class="summary-item">
+                                <div class="summary-title" style="color:#888;">📼 <button class="pill-btn" onclick="revealInline(this, '아날로그(Analog)', '#888')">❔ 확인</button> 데이터</div>
+                                <div class="summary-desc">소리나 빛 등 연속적으로 변화하는 형태 그대로 기록합니다.<br> 시간이 지나면 훼손되거나, 복사 및 전송을 할 때마다 품질이 떨어지기 쉽습니다.</div>
+                                <div class="example-container" onclick="toggleExample(this)">
+                                    <div class="question-box"><span class="q-text">❓ 실생활 예시 확인하기</span></div>
+                                    <div class="answer-box">
+                                        <ul>
+                                            <li>필름 카메라 (사진)</li>
+                                            <li>카세트 테이프 / LP 판 (음악)</li>
+                                            <li>바늘 시계 / 수은 온도계 (측정)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-title" style="color:var(--teal-main);">💻 <button class="pill-btn" onclick="revealInline(this, '디지털(Digital)', 'var(--teal-main)')">❔ 확인</button> 데이터</div>
+                                <div class="summary-desc">모든 정보를 0과 1(비트)의 불연속적인 숫자로 변환하여 기록합니다. 원본의 손상 없이 영구적으로 보존하고 완벽하게 복제할 수 있습니다.</div>
+                                <div class="example-container" onclick="toggleExample(this)">
+                                    <div class="question-box"><span class="q-text">❓ 실생활 예시 확인하기</span></div>
+                                    <div class="answer-box">
+                                        <ul>
+                                            <li>스마트폰 카메라 / 이미지 파일 (사진)</li>
+                                            <li>MP3 파일 / 스트리밍 (음악)</li>
+                                            <li>스마트워치 / 디지털 온도계 (측정)</li>
+                                            <li>하이패스 단말기 / 고속도로 통행 기록 (결제)</li> 
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+
+                    <div class="expand-arrow" id="compareToggleBtn" onclick="toggleCompare()">
+                        <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                        <div>아날로그와 디지털 비교</div>
+                    </div>
+                    
+                    <div class="compare-container" id="compare-section" style="display: none; margin-top: 20px;">
+                        <div class="compare-card">
+                            <div class="card-title">1. 복제와 보존</div>
+                            <div class="zone analog-zone">
+                                <span class="zone-label">아날로그 방식</span>
+                                <svg class="analog-doc doc1" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                <svg class="analog-doc doc2" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                <svg class="analog-doc doc3" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                <span class="desc-label">복사할수록 열화/훼손됨</span>
+                            </div>
+                            <div class="zone digital-zone">
+                                <span class="zone-label">디지털 방식</span>
+                                <svg class="digital-doc ddoc1" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                                <svg class="digital-doc ddoc2" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                                <svg class="digital-doc ddoc3" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                                <span class="desc-label">원본 손상 없는 무한 복제</span>
+                            </div>
+                        </div>
+                        <div class="compare-card">
+                            <div class="card-title">2. 전송과 공유</div>
+                            <div class="zone analog-zone">
+                                <span class="zone-label">아날로그 방식</span>
+                                <svg class="analog-mail" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                <span class="desc-label">물리적 이동 한계 (느림)</span>
+                            </div>
+                            <div class="zone digital-zone">
+                                <span class="zone-label">디지털 방식</span>
+                                <div class="digital-spark"></div>
+                                <div class="digital-spark"></div>
+                                <div class="digital-spark"></div>
+                                <span class="desc-label">빛의 속도로 즉시 전송</span>
+                            </div>
+                        </div>
+                        <div class="compare-card">
+                            <div class="card-title">3. 검색과 분석</div>
+                            <div class="zone analog-zone">
+                                <span class="zone-label">아날로그 방식</span>
+                                <svg class="analog-pile" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zM10 9h8v2h-8zm0 3h4v2h-4zm0-6h8v2h-8z"/></svg>
+                                <svg class="analog-mag" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                                <span class="desc-label">수동 검색 및 가공 불가</span>
+                            </div>
+                            <div class="zone digital-zone">
+                                <span class="zone-label">디지털 방식</span>
+                                <svg class="digital-gear" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59,0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                                <svg class="digital-chart" viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm6 14H7v-5h2v5zm4 0h-2v-9h2v9zm4 0h-2V7h2v10z"/></svg>
+                                <span class="desc-label">빠른 검색 및 빅데이터 분석</span>
+                            </div>
+                        </div>
+                    </div> 
+
+                    <div class="step-navigation"> 
+                        <div class="nav-arrow prev" onclick="goToStep('step2-visual', 'step1-intro')">
+                            <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg> 
+                            <div>이전 개념 보기</div>
+                        </div>
+                        <div class="nav-arrow next" onclick="goToStep('step2-visual', 'step3-quiz')">
+                            <div>개념 확인 (최종 퀴즈)</div>
+                            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="step3-quiz" class="step-container">
+                    <div style="font-size: 1.3rem; font-weight: 900; color: var(--apple-red); margin-bottom: 25px;">🎯 최종 퀴즈: 디지털 데이터의 가치 마스터하기!</div>
+
+                    <div class="quiz-controls-row">
+                        <div class="inline-tip" onclick="openTipPopup()">
+                            <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px; height:18px;"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+                            미션 가이드
+                        </div>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div id="quizTimer" class="quiz-timer">⏱️ 00:00</div>
+                            <button id="startQuizBtn" class="start-quiz-btn" onclick="startQuizTimer()">▶️ 퀴즈 시작</button>
+                            <button id="resetTimerBtn" class="reset-timer-btn" onclick="resetQuiz()">🔄 타이머 초기화</button>
+                        </div>
+                    </div>
+
+                    <div class="word-score-container" id="wordBankWrap">
+                        <div class="word-bank" id="wordBank" style="opacity: 0.4; pointer-events: none;">
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">아날로그</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">디지털</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">기록</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">이미지</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">숫자</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">자산</div>
+                            <div class="word-item" draggable="true" ondragstart="drag(event)">안전</div>
+                        </div>
+                    </div>
+
+                    <div id="quizForm">
+                        <div class="quiz-box">1. 소리나 빛처럼 연속적으로 변화하는 형태 그대로 기록하는 방식을 <input type="text" class="blank" data-answer="아날로그" data-score="10" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 데이터라고 하고, 0과 1의 불연속적인 숫자로 변환하여 기록하는 방식을 <input type="text" class="blank" data-answer="디지털" data-score="10" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 데이터라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
+                        <div class="quiz-box">2. 우리 주변의 모든 현상을 숫자, 문자, 영상 등으로 남기는 것을 <input type="text" class="blank" data-answer="기록" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled>이라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">3. 데이터는 우리 주변의 현상을 숫자, 문자, <input type="text" class="blank" data-answer="이미지" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled>, 영상 등으로 표현한 것입니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">4. 디지털 데이터는 현실의 다양한 정보를 컴퓨터가 처리할 수 있도록 0과 1의 불연속적인 <input type="text" class="blank" data-answer="숫자" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 형태로 변환한 것입니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">5. 일상 속의 다양한 데이터는 우리 사회를 발전시키는 소중한 <input type="text" class="blank" data-answer="자산" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled>입니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box" style="margin-bottom: 0;">6. 공공데이터는 시민의 <input type="text" class="blank" data-answer="안전" data-score="20" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled>을 지키기 위해 누구나 자유롭게 활용하도록 개방된 데이터입니다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
+                    </div>
+
+                    <div style="text-align: center; display: none;" id="submitQuizBtnWrap">
+                        <button class="submit-quiz-btn" onclick="submitQuiz()">✅ 미션 완료 및 채점하기</button>
+                    </div>
+
+                    <div class="step-navigation"> 
+                        <div class="nav-arrow prev" onclick="goToStep('step3-quiz', 'step2-visual')">
+                            <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg> 
+                            <div>이전 개념 보기</div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-left: auto;">
+                            <div class="nav-arrow report-btn" onclick="downloadReportTXT()">
+                                <div>📄 텍스트 저장</div>
+                            </div>
+                            <div class="nav-arrow img-report-btn" onclick="downloadReportImageOffline()">
+                                <div>🖼️ 이미지(PNG) 저장</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <aside class="sidebar-right">
+            <div class="memo-section">
+                <div class="sidebar-title">📌 배움 노트</div>
+                <textarea id="memoInput" class="memo-area" placeholder="중요한 내용을 기록하세요. 궁금한 사항은 기록하고 질문하세요."></textarea>
+            </div>
+            <div class="reflection-section">
+                <div class="sidebar-title">🌿 배움 활동 소감</div>
+                <textarea id="reflectionInput" class="reflection-area" placeholder="새롭게 알게된 사실과 느낀점을 기록하세요."></textarea>
+                <div class="capture-tip">📸 캡처: Win+Shift+S | Mac: Cmd+Shift+4</div>
+            </div>
+            <div class="erase-section">
+                <button class="erase-btn" onclick="eraseStepContent()">
+                    🗑️ 이 단원 학습 내용 지우기<br>
+                    <span style="font-size:0.68rem; font-weight:600; opacity:0.7;">(메모·소감·퀴즈 기록)</span>
+                </button>
+            </div>
+        </aside>
+    </main>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+    
+    <div class="modal-overlay" id="customAlertModal" style="z-index: 9999;">
+        <div class="alert-box">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🚫</div>
+            <h3 id="alertTitle" style="color: var(--apple-red); font-size: 1.5rem; margin-top: 0; margin-bottom: 15px; font-weight: 900;">접근 거부!</h3>
+            <div id="alertMessage" class="alert-message" style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-bottom: 25px; white-space: pre-line; word-break: keep-all;">메시지가 이곳에 표시됩니다.</div>
+            <button onclick="closeCustomAlert()" style="width: 100%; padding: 12px; background: var(--apple-red); color: white; border: none; border-radius: 12px; font-weight: 900; font-size: 1.1rem; cursor: pointer;">확인</button>
+        </div>
+    </div>
+
+    <footer>
+        <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 4px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px;">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            데이터 비트박스
+        </div>
+        <div style="color: var(--apple-gray);">&copy; 중학교 정보 - 데이터 표현</div>
+    </footer>
+
+   <script>
+        const THIS_STEP = 1; 
+        const STEP_TITLE = "1. 디지털 데이터의 가치";
+        const FILE_NAME_PREFIX = "디지털_데이터의_가치";
+        const PASS_SCORE = 70;
+        const MEMO_KEY = "value_concept_memo";
+        const REF_KEY = "value_concept_reflection";
+
+        const stepDotMap = {
+            'step1-intro':  0,
+            'step2-visual': 1,
+            'step3-quiz':   2
+        };
+
+        // 🌟 [개별 기능] 이 페이지에만 있는 특수 기능 (아날로그 vs 디지털 비교 등)
+        function toggleCompare() {
+            const section = document.getElementById('compare-section');
+            const btn = document.getElementById('compareToggleBtn');
+            if (section.style.display === 'none' || section.style.display === '') {
+                section.style.display = 'grid';
+                section.style.animation = 'fadeSlideDown 0.6s ease-out forwards';
+                btn.classList.add('open');
+                btn.querySelector('div').innerText = '아날로그와 디지털 비교 닫기';
+                setTimeout(() => { section.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 50);
+            } else {
+                section.style.display = 'none';
+                btn.classList.remove('open');
+                btn.querySelector('div').innerText = '아날로그와 디지털 비교';
+            }
+        }
+
+        function toggleExample(element) {
+            const answerBox = element.querySelector('.answer-box');
+            const qText = element.querySelector('.q-text');
+            if (answerBox.style.display === 'none' || answerBox.style.display === '') {
+                answerBox.style.display = 'block';
+                qText.innerText = '🔽 예시 닫기';
+            } else {
+                answerBox.style.display = 'none';
+                qText.innerText = '❓ 실생활 예시 확인하기';
+            }
+        }
+    </script>
+    
+    <script src="./js/concept_common.js"></script>
+</body>
+</html>
+</body>
+</html>
