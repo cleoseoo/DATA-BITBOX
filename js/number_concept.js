@@ -12,10 +12,9 @@ const REF_KEY = "number_concept_reflection";
 // ✅ 진행 점 매핑
 const stepDotMap = {
     'step1-visual':  0,
-    'step2-concept': 1,
-    'step3-tip':     2,
-    'step4-tip2':    3,
-    'step5-quiz':    4
+    'step3-tip':     1,
+    'step4-tip2':    2,
+    'step5-quiz':    3
 };
 
 // 🌟 [개별 기능] 1. 전구 스위치 및 이진수 계산기
@@ -129,6 +128,16 @@ function toggleHint(btn, text) {
         display.innerText = text; display.style.display = 'inline-block';
     } else { display.style.display = 'none'; }
 }
+
+// 🌟 [개별 기능] 3-1. 개념 카드 토글
+window.toggleConceptCard = function(cardId) {
+    const card = document.getElementById(cardId);
+    const icon = document.getElementById(cardId + '-icon');
+    if (!card) return;
+    const isOpen = card.style.display !== 'none';
+    card.style.display = isOpen ? 'none' : 'block';
+    if (icon) icon.textContent = isOpen ? '❓' : '✅';
+};
 
 // 🌟 [개별 기능] 4. 10진수 전구 — 클릭할 때마다 0→1→...→9→0 순환
 let decBulbValues = Array(8).fill(0);
