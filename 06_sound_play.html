@@ -1116,9 +1116,11 @@
                 let noteDurMs, waitMs;
                 if (useRecorded) {
                     const rn = recordedNotes[i];
-                    noteDurMs = Math.max(80, rn.durationMs || 300);
+                    // 슬라이더 BPM 반영: 기준 400ms 대비 현재 tempo 비율로 스케일
+                    const speedRatio = currentTempo / 400;
+                    noteDurMs = Math.max(50, (rn.durationMs || 300) * speedRatio);
                     waitMs = i + 1 < recordedNotes.length
-                        ? Math.max(50, recordedNotes[i+1].pressTime - rn.pressTime)
+                        ? Math.max(40, (recordedNotes[i+1].pressTime - rn.pressTime) * speedRatio)
                         : noteDurMs + 200;
                 } else {
                     const beatMs  = currentTempo;
@@ -1171,9 +1173,11 @@
             // 박자 결정: 녹음 데이터 있으면 실제 타이밍, 내장곡이면 악보 박자, 직접 입력이면 균등
             let noteTimings = null;
             if (recordedNotes.length === codes.length) {
+                // WAV 저장에도 BPM 슬라이더 속도 반영
+                const speedRatio = currentTempo / 400;
                 noteTimings = recordedNotes.map((rn, i) => ({
-                    startMs:    rn.pressTime,
-                    durationMs: Math.max(300, rn.durationMs || 400) // 최소 300ms 보장
+                    startMs:    rn.pressTime * speedRatio,
+                    durationMs: Math.max(100, (rn.durationMs || 400) * speedRatio)
                 }));
             }
             const durations = (currentSongKey && songs[currentSongKey])
@@ -1247,27 +1251,27 @@
             // MIDI 음표 번호: C3(index 0) = MIDI 48번
             const MIDI_BASE = 48;
             const TICKS_PER_BEAT = 480;
-            const BPM_FIXED = 120;                    // 고정 BPM
-            const BEAT_MS   = 60000 / BPM_FIXED;     // 500ms/beat
-            const TEMPO_US  = Math.round(60000000 / BPM_FIXED); // 500000 μs/beat
+            // BPM 슬라이더 반영: currentTempo(ms/beat) → BPM
+            const BPM_ACTUAL = Math.round(60000 / currentTempo);
+            const BEAT_MS    = currentTempo;           // 슬라이더 BPM 기준 ms/beat
+            const TEMPO_US   = Math.round(60000000 / BPM_ACTUAL); // μs/beat
 
             // 박자 결정
             let noteDurations = []; // 각 음의 길이 (tick 단위)
             let noteGaps      = []; // 음 사이 간격 (tick 단위, delta time)
 
             if (recordedNotes.length === codes.length) {
-                // 실제 녹음 타이밍 사용
-                // ms → tick 변환: tick = ms / BEAT_MS * TICKS_PER_BEAT
+                // 실제 녹음 타이밍 + BPM 슬라이더 속도 반영
+                const speedRatio = currentTempo / 400;
                 codes.forEach((_, i) => {
                     const rn    = recordedNotes[i];
-                    // 최소 300ms 보장: 건반을 짧게 눌러도 음이 들릴 수 있도록
-                    const durMs = Math.max(300, rn.durationMs || 400);
+                    const durMs = Math.max(100, (rn.durationMs || 400) * speedRatio);
                     let gapMs   = 0;
                     if (i > 0) {
-                        const prev       = recordedNotes[i - 1];
-                        const prevDurMs  = Math.max(300, prev.durationMs || 400);
-                        const prevOffMs  = prev.pressTime + prevDurMs; // 이전 음 NoteOFF 시각
-                        gapMs = Math.max(0, rn.pressTime - prevOffMs); // NoteOFF ~ NoteON 사이 쉼표
+                        const prev      = recordedNotes[i - 1];
+                        const prevDurMs = Math.max(100, (prev.durationMs || 400) * speedRatio);
+                        const prevOffMs = prev.pressTime * speedRatio + prevDurMs;
+                        gapMs = Math.max(0, rn.pressTime * speedRatio - prevOffMs);
                     }
                     noteDurations.push(Math.round(durMs / BEAT_MS * TICKS_PER_BEAT));
                     noteGaps.push(Math.round(gapMs / BEAT_MS * TICKS_PER_BEAT));
