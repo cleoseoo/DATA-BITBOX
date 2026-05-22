@@ -671,49 +671,95 @@ window.checkLabInput = function(inp) {
         ctx.strokeStyle = '#0984e3'; ctx.lineWidth = 2.5; ctx.shadowColor = 'rgba(9,132,227,0.25)'; ctx.shadowBlur = 3; ctx.stroke(); ctx.shadowBlur = 0;
     }
 
+    let animFrame = null;
+    function cancelAnim() { if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; } }
+
+    // ── 표본화: 점+세로선이 왼쪽→오른쪽으로 하나씩 등장 ──
     function drawStep1() {
+        cancelAnim();
         drawBackground();
-        ctx.fillStyle = '#0984e3'; ctx.font = 'bold 13px Inter, sans-serif'; ctx.fillText('① 표본화 (Sampling) — 일정한 시간 간격으로 값을 추출합니다', PAD, 34);
-        sampleXs.forEach((sx, i) => {
-            const sy = waveY(sampleYs[i]);
-            ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(9,132,227,0.45)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(sx, WAVE_BOT); ctx.lineTo(sx, sy); ctx.stroke(); ctx.setLineDash([]);
-            ctx.beginPath(); ctx.arc(sx, sy, 5.5, 0, Math.PI * 2); ctx.fillStyle = '#0984e3'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8; ctx.stroke();
-        });
+        ctx.fillStyle = '#0984e3'; ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.fillText('① 표본화 (Sampling) — 일정한 시간 간격으로 값을 추출합니다', PAD, 34);
         document.getElementById('pcmAnimLabel').textContent = '아날로그 파형을 ' + SAMPLES + '개의 시간 지점에서 측정합니다. 파란 점이 추출된 표본(샘플)입니다.';
+        let i = 0;
+        function drawNext() {
+            if (i >= SAMPLES) return;
+            const sx = sampleXs[i], sy = waveY(sampleYs[i]);
+            ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(9,132,227,0.45)'; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(sx, WAVE_BOT); ctx.lineTo(sx, sy); ctx.stroke(); ctx.setLineDash([]);
+            ctx.beginPath(); ctx.arc(sx, sy, 5.5, 0, Math.PI * 2); ctx.fillStyle = '#0984e3'; ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8; ctx.stroke();
+            i++;
+            animFrame = setTimeout(drawNext, 120);
+        }
+        drawNext();
     }
 
+    // ── 양자화: 빨간점 먼저, 그 다음 보라 화살표+점+숫자 순차 등장 ──
     function drawStep2() {
+        cancelAnim();
         drawBackground();
-        ctx.fillStyle = '#6c5ce7'; ctx.font = 'bold 13px Inter, sans-serif'; ctx.fillText('② 양자화 (Quantization) — 추출값을 가장 가까운 정수(0~7)로 반올림합니다', PAD, 34);
+        ctx.fillStyle = '#6c5ce7'; ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.fillText('② 양자화 (Quantization) — 추출값을 가장 가까운 정수(0~7)로 반올림합니다', PAD, 34);
+        document.getElementById('pcmAnimLabel').innerHTML = '<b><span style="color:#e74c3c;">빨간색 점(원래 값)</span> → 보라 점(반올림된 정수). 보라색 숫자(0~7)가 양자화된 정수값입니다.</b>';
+        // 먼저 빨간 점 전부 그리기
         sampleXs.forEach((sx, i) => {
-            const origY = waveY(sampleYs[i]), qy = gridY(quantized[i]);
-            ctx.beginPath(); ctx.arc(sx, origY, 4, 0, Math.PI * 2); ctx.fillStyle = '#ff0000'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
+            const origY = waveY(sampleYs[i]);
+            ctx.beginPath(); ctx.arc(sx, origY, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff0000'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
+        });
+        // 그 다음 보라 점+화살표+숫자 순차 등장
+        let i = 0;
+        function drawNext() {
+            if (i >= SAMPLES) return;
+            const sx = sampleXs[i], origY = waveY(sampleYs[i]), qy = gridY(quantized[i]);
             if (Math.abs(origY - qy) > 3) {
-                ctx.strokeStyle = '#a29bfe'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(sx, origY + (qy > origY ? 5 : -5)); ctx.lineTo(sx, qy + (qy > origY ? -7 : 7)); ctx.stroke(); ctx.setLineDash([]);
-                const dir = qy > origY ? 1 : -1; ctx.fillStyle = '#a29bfe'; ctx.beginPath(); ctx.moveTo(sx, qy); ctx.lineTo(sx - 4, qy - dir * 7); ctx.lineTo(sx + 4, qy - dir * 7); ctx.closePath(); ctx.fill();
+                ctx.strokeStyle = '#a29bfe'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+                ctx.beginPath(); ctx.moveTo(sx, origY + (qy > origY ? 5 : -5)); ctx.lineTo(sx, qy + (qy > origY ? -7 : 7)); ctx.stroke(); ctx.setLineDash([]);
+                const dir = qy > origY ? 1 : -1;
+                ctx.fillStyle = '#a29bfe'; ctx.beginPath(); ctx.moveTo(sx, qy); ctx.lineTo(sx - 4, qy - dir * 7); ctx.lineTo(sx + 4, qy - dir * 7); ctx.closePath(); ctx.fill();
             }
             ctx.beginPath(); ctx.arc(sx, qy, 5, 0, Math.PI * 2); ctx.fillStyle = '#6c5ce7'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8; ctx.stroke();
             ctx.fillStyle = '#4527a0'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center'; ctx.fillText(quantized[i], sx, qy - 10);
-        });
-        ctx.textAlign = 'left';
-        document.getElementById('pcmAnimLabel').innerHTML = '<b><span style="color:#e74c3c;">빨간색 점(원래 값)</span> → 보라 점(반올림된 정수). 보라색 숫자(0~7)가 양자화된 정수값입니다.</b>';
+            ctx.textAlign = 'left';
+            i++;
+            animFrame = setTimeout(drawNext, 130);
+        }
+        animFrame = setTimeout(drawNext, 300);
     }
 
+    // ── 부호화: 점 등장 후 이진수가 위→아래 비트 순서로 하나씩 나타남 ──
     function drawStep3() {
+        cancelAnim();
         drawBackground();
-        ctx.fillStyle = '#00b894'; ctx.font = 'bold 13px Inter, sans-serif'; ctx.fillText('③ 부호화 (Encoding) — 정수값을 3비트 이진수로 변환합니다', PAD, 34);
+        ctx.fillStyle = '#00b894'; ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.fillText('③ 부호화 (Encoding) — 정수값을 3비트 이진수로 변환합니다', PAD, 34);
+        document.getElementById('pcmAnimLabel').textContent = '정수값(점 위 숫자) → 아래 3비트 이진수. 초록=1, 회색=0. 예) 4 → 100, 6 → 110';
+        // 먼저 점+정수값 전부
         sampleXs.forEach((sx, i) => {
             const qy = gridY(quantized[i]);
-            ctx.strokeStyle = 'rgba(0,184,148,0.3)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx, qy + 6); ctx.lineTo(sx, WAVE_BOT + 6); ctx.stroke();
+            ctx.strokeStyle = 'rgba(0,184,148,0.3)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(sx, qy + 6); ctx.lineTo(sx, WAVE_BOT + 6); ctx.stroke();
             ctx.beginPath(); ctx.arc(sx, qy, 5, 0, Math.PI * 2); ctx.fillStyle = '#00b894'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8; ctx.stroke();
             ctx.fillStyle = '#065f46'; ctx.font = 'bold 11px JetBrains Mono, monospace'; ctx.textAlign = 'center'; ctx.fillText(quantized[i], sx, qy - 9);
-            const bits = encoded[i].split('');
-            bits.forEach((bit, bi) => {
-                ctx.fillStyle = bit === '1' ? '#059669' : '#94a3b8'; ctx.font = 'bold 12px JetBrains Mono, monospace'; ctx.textAlign = 'center'; ctx.fillText(bit, sx, WAVE_BOT + 16 + bi * 16);
-            });
+            ctx.textAlign = 'left';
         });
-        ctx.textAlign = 'left';
-        document.getElementById('pcmAnimLabel').textContent = '정수값(점 위 숫자) → 아래 3비트 이진수. 초록=1, 회색=0. 예) 4 → 100, 6 → 110';
+        // 이진수: 열(샘플) × 행(비트) 순서로 순차 등장
+        const total = SAMPLES * 3;
+        let idx = 0;
+        function drawNextBit() {
+            if (idx >= total) return;
+            const si = Math.floor(idx / 3), bi = idx % 3;
+            const sx = sampleXs[si];
+            const bit = encoded[si][bi];
+            ctx.fillStyle = bit === '1' ? '#059669' : '#94a3b8';
+            ctx.font = 'bold 12px JetBrains Mono, monospace'; ctx.textAlign = 'center';
+            ctx.fillText(bit, sx, WAVE_BOT + 16 + bi * 16);
+            ctx.textAlign = 'left';
+            idx++;
+            animFrame = setTimeout(drawNextBit, 60);
+        }
+        animFrame = setTimeout(drawNextBit, 400);
     }
 
     window.pcmStep = function(n) {
@@ -721,7 +767,7 @@ window.checkLabInput = function(inp) {
         ['pcmBtn1','pcmBtn2','pcmBtn3'].forEach((id, idx) => {
             const btn = document.getElementById(id);
             if (!btn) return;
-            if (idx + 1 === n) { btn.style.background = colors[idx]; btn.style.borderColor = colors[idx]; btn.style.color = '#fff'; } 
+            if (idx + 1 === n) { btn.style.background = colors[idx]; btn.style.borderColor = colors[idx]; btn.style.color = '#fff'; }
             else { btn.style.background = '#fff'; btn.style.borderColor = colors[idx]; btn.style.color = colors[idx]; }
         });
         if (n === 1) drawStep1(); else if (n === 2) drawStep2(); else drawStep3();
