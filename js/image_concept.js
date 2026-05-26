@@ -232,8 +232,13 @@ window.switchMode = function(mode) {
         document.getElementById('customUI').style.display = 'block';
         document.getElementById('hdUI').style.display = 'none';
         
-        document.getElementById('resSlider').max = Math.max(currentW, currentH);
-        document.getElementById('resSlider').value = Math.max(currentW, currentH);
+        const maxPx = Math.max(currentW, currentH);
+        document.getElementById('resSlider').max = maxPx;
+        document.getElementById('resSlider').value = maxPx;
+        const minL = document.getElementById('sliderMinLabel');
+        const maxL = document.getElementById('sliderMaxLabel');
+        if (minL) minL.textContent = '4×4 픽셀 (저해상도)';
+       if (maxL) maxL.textContent = maxPx + '×' + maxPx + ' 픽셀 (고해상도)';
         makeGrid();
     } else {
         document.getElementById('modeHD').classList.add('active');
@@ -246,6 +251,10 @@ window.switchMode = function(mode) {
         
         document.getElementById('resSlider').max = 300;
         document.getElementById('resSlider').value = 300;
+        const minLhd = document.getElementById('sliderMinLabel');
+        const maxLhd = document.getElementById('sliderMaxLabel');
+        if (minLhd) minLhd.textContent = '4×4 픽셀 (저해상도)';
+        if (maxLhd) maxLhd.textContent = '300×300 픽셀 (원본 고해상도)';
         
         drawAppleOnLeft(); 
         updateResultCanvas();
@@ -286,8 +295,25 @@ window.makeGrid = function() {
     
     const grid = document.getElementById('drawGrid');
     grid.style.gridTemplateColumns = `repeat(${currentW}, 1fr)`;
-    grid.innerHTML = ''; 
-    
+    grid.innerHTML = '';
+
+    // ── 컨테이너 크기: 항상 정사각형 셀이 되도록 W:H 비율로 계산 ──
+    const MAX_BOX = 300;   // 허용 최대 픽셀
+    let boxW, boxH;
+    if (currentW >= currentH) {
+        boxW = MAX_BOX;
+        boxH = Math.round(MAX_BOX * currentH / currentW);
+    } else {
+        boxH = MAX_BOX;
+        boxW = Math.round(MAX_BOX * currentW / currentH);
+    }
+    const container = document.getElementById('gridContainer');
+    if (container) {
+        container.style.width  = boxW + 'px';
+        container.style.height = boxH + 'px';
+    }
+
+    // 🌟 [수정 포인트 1] 초기 로드(16x16) 외에는 무조건 입력된 가로*세로 크기만큼 배열 생성
     if(isInitialLoad && currentW === 16 && currentH === 16) {
         const layout = [
             "WWWWWWWWWWWWWWWW", "WWWWWWWWWWWWWWWW", "WWWWKKWWWWKKWWWW", "WWWKRRKWWKRRKWWW",
@@ -314,9 +340,11 @@ window.makeGrid = function() {
         cell.onmouseenter = (e) => { if(e.buttons === 1) paint(); };
         grid.appendChild(cell);
     }
-    
-    document.getElementById('resSlider').max = Math.max(currentW, currentH);
-    document.getElementById('resSlider').value = Math.max(currentW, currentH);
+
+    // 슬라이더: 가장 긴 축 기준
+    const maxDimension = Math.max(currentW, currentH);
+    document.getElementById('resSlider').max = maxDimension;
+    document.getElementById('resSlider').value = maxDimension;
     
     updateResultCanvas();
 };
@@ -327,125 +355,278 @@ window.updateResultCanvas = function() {
     rCtx.imageSmoothingEnabled = false; 
 
     const sliderVal = parseInt(document.getElementById('resSlider').value);
-    const modeLabel = currentMode === 'hd'
-        ? `비트맵 해상도: ${sliderVal} x ${sliderVal}px\n(원본 300x300에서 다운샘플링)`
-        : `현재 디스플레이 해상도: ${sliderVal} x ${sliderVal} 픽셀`;
-    document.getElementById('resValueDisplay').innerHTML = modeLabel.replace(/\n/g, '<br>');
+    const slider = document.getElementById('resSlider');
+    const sliderMax = parseInt(slider.max) || 50;
 
-    rCtx.clearRect(0, 0, 300, 300); 
+    // 🌟 [수정 포인트 3] 직사각형 비율을 반영하여 출력 캔버스 배율 계산
+    let outW, outH;
+    if (currentMode === 'custom') {
+        const ratio = currentW / currentH;
+        if (currentW >= currentH) {
+            outW = sliderVal;
+            outH = Math.round(sliderVal / ratio);
+        } else {
+            outH = sliderVal;
+            outW = Math.round(sliderVal * ratio);
+        }
+    } else {
+        outW = sliderVal; outH = sliderVal; // HD 모드는 무조건 1:1
+    }
 
+    // 상단 칩 텍스트 업데이트
+    const modeLabel = `${outW} × ${outH} 픽셀`;
+    const chip = document.getElementById('resValueDisplay');
+    if (chip) {
+        chip.textContent = modeLabel;
+        chip.classList.remove('bump');
+        void chip.offsetWidth;
+        chip.classList.add('bump');
+        setTimeout(() => chip.classList.remove('bump'), 200);
+    }
+
+    // 슬라이더 최대값 라벨 동기화
+    const maxL = document.getElementById('sliderMaxLabel');
+    if (maxL) {
+        if (currentMode === 'hd') maxL.textContent = '300×300 픽셀 (원본 고해상도)';
+        else {
+             // 최대 크기일 때의 실제 WxH 텍스트 표시
+             let maxW, maxH;
+             const ratio = currentW / currentH;
+             if (currentW >= currentH) { maxW = sliderMax; maxH = Math.round(sliderMax / ratio); }
+             else { maxH = sliderMax; maxW = Math.round(sliderMax * ratio); }
+             maxL.textContent = maxW + '×' + maxH + ' 픽셀 (고해상도)';
+        }
+    }
+    
+    const wrap = document.getElementById('resultCanvasWrap');
+    if (wrap) {
+        wrap.classList.remove('pulsing');
+        void wrap.offsetWidth;
+        wrap.classList.add('pulsing');
+        setTimeout(() => wrap.classList.remove('pulsing'), 500);
+    }
+
+    // ── 출력 캔버스 크기를 실제 W:H 비율에 맞게 동적 설정 ──
+    const MAX_OUT = 300;
+    let canvasDisplayW, canvasDisplayH;
+    if (currentMode === 'hd') {
+        canvasDisplayW = MAX_OUT; canvasDisplayH = MAX_OUT;
+    } else if (currentW >= currentH) {
+        canvasDisplayW = MAX_OUT;
+        canvasDisplayH = Math.round(MAX_OUT * currentH / currentW);
+    } else {
+        canvasDisplayH = MAX_OUT;
+        canvasDisplayW = Math.round(MAX_OUT * currentW / currentH);
+    }
+    resCanvas.width  = canvasDisplayW;
+    resCanvas.height = canvasDisplayH;
+    resCanvas.style.width  = canvasDisplayW + 'px';
+    resCanvas.style.height = canvasDisplayH + 'px';
+
+    // ⚠️ canvas.width 재설정 시 컨텍스트가 초기화되므로 여기서 다시 설정
+    rCtx.imageSmoothingEnabled = false;
+
+    // wrapper도 같은 크기로 맞춤
+    const resWrap = document.getElementById('resultCanvasWrap');
+    if (resWrap) {
+        resWrap.style.width  = canvasDisplayW + 'px';
+        resWrap.style.height = canvasDisplayH + 'px';
+    }
+
+    rCtx.clearRect(0, 0, canvasDisplayW, canvasDisplayH);
+
+    // 중간 변환 캔버스 (입력받은 직사각형 비율 그대로 반영)
     const downCanvas = document.createElement('canvas');
-    downCanvas.width = sliderVal; downCanvas.height = sliderVal;
+    downCanvas.width = outW; downCanvas.height = outH;
     const dCtx = downCanvas.getContext('2d');
     dCtx.imageSmoothingEnabled = false;
 
     if(currentMode === 'custom') {
-        const offCanvas = document.createElement('canvas'); offCanvas.width = currentW; offCanvas.height = currentH;
+        const offCanvas = document.createElement('canvas'); 
+        offCanvas.width = currentW; offCanvas.height = currentH;
         const oCtx = offCanvas.getContext('2d');
         for(let y=0; y<currentH; y++) {
             for(let x=0; x<currentW; x++) { oCtx.fillStyle = gridData[y * currentW + x]; oCtx.fillRect(x, y, 1, 1); }
         }
-        dCtx.drawImage(offCanvas, 0, 0, currentW, currentH, 0, 0, sliderVal, sliderVal);
+        dCtx.drawImage(offCanvas, 0, 0, currentW, currentH, 0, 0, outW, outH);
     } else {
         const vectorCanvas = document.createElement('canvas'); vectorCanvas.width = 300; vectorCanvas.height = 300;
         const vCtx = vectorCanvas.getContext('2d');
         vCtx.fillStyle = '#ffffff'; vCtx.fillRect(0,0,300,300);
         drawBeautifulApple(vCtx, 150, 150, 1.3); 
-        dCtx.drawImage(vectorCanvas, 0, 0, 300, 300, 0, 0, sliderVal, sliderVal);
+        dCtx.drawImage(vectorCanvas, 0, 0, 300, 300, 0, 0, outW, outH);
     }
 
-    rCtx.drawImage(downCanvas, 0, 0, sliderVal, sliderVal, 0, 0, 300, 300);
+    // 최종 결과 캔버스에 가득 채워 그리기 (여백 없음)
+    rCtx.drawImage(downCanvas, 0, 0, outW, outH, 0, 0, canvasDisplayW, canvasDisplayH);
 
-    if (sliderVal <= 30) { 
+    // 격자선 그리기 (저해상도일 때만)
+    if (Math.max(outW, outH) <= 30) {
         rCtx.strokeStyle = 'rgba(0, 0, 0, 0.15)'; rCtx.lineWidth = 1;
-        const cellSize = 300 / sliderVal;
-        for(let i=0; i<=300; i+=cellSize) {
-            rCtx.beginPath(); rCtx.moveTo(i, 0); rCtx.lineTo(i, 300); rCtx.stroke();
-            rCtx.beginPath(); rCtx.moveTo(0, i); rCtx.lineTo(300, i); rCtx.stroke();
+        const cellW = canvasDisplayW / outW;
+        const cellH = canvasDisplayH / outH;
+
+        for(let i=0; i<=outW; i++) {
+            rCtx.beginPath(); rCtx.moveTo(i*cellW, 0); rCtx.lineTo(i*cellW, canvasDisplayH); rCtx.stroke();
+        }
+        for(let i=0; i<=outH; i++) {
+            rCtx.beginPath(); rCtx.moveTo(0, i*cellH); rCtx.lineTo(canvasDisplayW, i*cellH); rCtx.stroke();
         }
     }
 };
-
 // 🌟 [개별 기능] 비트맵 암호 해독기
 let currentBitDepth = 1;
+let currentNBit = 2;       // N-Bit 모드에서 선택된 비트 수
 let decoderPalette = {};
 
-window.setBitDepth = function(bits) {
-    currentBitDepth = bits;
-    document.getElementById('btn1bit').classList.remove('active');
-    document.getElementById('btn2bit').classList.remove('active');
-    document.getElementById('btn8bit').classList.remove('active');
-    document.getElementById(`btn${bits}bit`).classList.add('active');
-
-    document.getElementById('bitInfoArea').style.display = 'none';
-    document.getElementById('decoderMainArea').style.display = 'flex';
-
-    const paletteArea = document.getElementById('paletteArea');
-    paletteArea.innerHTML = '<div style="font-size: 0.95rem; font-weight: 800; color: var(--multi-violet); margin-bottom: 5px;">🎨 팔레트 (규칙 설정)</div>';
-    
-    decoderPalette = {};
-    let inputExample = "";
-
-    if (bits === 1) {
-        decoderPalette['0'] = '#ffffff';
-        decoderPalette['1'] = '#ff2d55';
-        paletteArea.innerHTML += `
-            <div class="palette-row">0: <input type="color" id="pal0" value="${decoderPalette['0']}" onchange="updateDecoderPalette()"></div>
-            <div class="palette-row">1: <input type="color" id="pal1" value="${decoderPalette['1']}" onchange="updateDecoderPalette()"></div>
-        `;
-        inputExample = "0011001100\n0111111110\n1111111111\n1111111111\n0111111110\n0011111100\n0001111000\n0000110000\n0000000000\n0000000000";
-    } else {
-        decoderPalette['00'] = '#ffffff';
-        decoderPalette['01'] = '#fdcb6e'; 
-        decoderPalette['10'] = '#2d3436'; 
-        decoderPalette['11'] = '#ff7675'; 
-        paletteArea.innerHTML += `
-            <div class="palette-row">00: <input type="color" id="pal00" value="${decoderPalette['00']}" onchange="updateDecoderPalette()"></div>
-            <div class="palette-row">01: <input type="color" id="pal01" value="${decoderPalette['01']}" onchange="updateDecoderPalette()"></div>
-            <div class="palette-row">10: <input type="color" id="pal10" value="${decoderPalette['10']}" onchange="updateDecoderPalette()"></div>
-            <div class="palette-row">11: <input type="color" id="pal11" value="${decoderPalette['11']}" onchange="updateDecoderPalette()"></div>
-        `;
-        inputExample = "00000000000000000000\n00010100000000010100\n01010101010101010101\n01010101010101010101\n01011001010101100101\n01010101101001010101\n01010101010101010101\n00011101010101110100\n00000101010101010000\n00000000000000000000";
-    }
-
-    document.getElementById('codeInput').value = inputExample;
-    renderDecoder();
+// ── 기본 팔레트 색상 ──────────────────────────────────────
+const PALETTE_DEFAULTS = {
+    1:  ['#ffffff','#ff2d55'],
+    2:  ['#ffffff','#fdcb6e','#2d3436','#ff7675'],
+    3:  ['#ffffff','#fdcb6e','#2d3436','#6c5ce7','#00b894','#0984e3','#e17055','#dfe6e9'],
+    4:  ['#ffffff','#fdcb6e','#2d3436','#6c5ce7',
+         '#00b894','#0984e3','#e17055','#fd79a8',
+         '#a29bfe','#55efc4','#ffeaa7','#fab1a0',
+         '#74b9ff','#636e72','#b2bec3','#1e272e']
 };
 
-window.showBitInfo = function() {
-    document.getElementById('btn1bit').classList.remove('active');
-    document.getElementById('btn2bit').classList.remove('active');
-    document.getElementById('btn8bit').classList.add('active');
+// ── 기본 예제 코드 ────────────────────────────────────────
+const EXAMPLE_CODES = {
+    1: `0011001100
+0111111110
+1111111111
+1111111111
+0111111110
+0011111100
+0001111000
+0000110000
+0000000000
+0000000000`,
+    2: `00000000000000000000
+00010100000000010100
+01010101010101010101
+01010101010101010101
+01011001010101100101
+01010101101001010101
+01010101010101010101
+00011101010101110100
+00000101010101010000
+00000000000000000000`
+};
 
+// ── 공통: 모드 버튼 상태 초기화 ──────────────────────────
+function clearModeButtons() {
+    ['btn1bit','btnNbit','btn8bit'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+    });
+}
+
+// ── 공통: 팔레트 + 코드 + 캔버스 그리기 ─────────────────
+function buildPaletteAndRender(bits, exampleCode) {
+    currentBitDepth = bits;
+    const colorCount = Math.pow(2, bits);
+    const defaults = PALETTE_DEFAULTS[bits] || PALETTE_DEFAULTS[4];
+
+    // 팔레트 초기화
+    decoderPalette = {};
+    const paletteArea = document.getElementById('paletteArea');
+    paletteArea.innerHTML = '<div class="palette-title">🎨 팔레트 (규칙 설정)</div>';
+
+    // 행 목록 생성
+    const rowsWrap = document.createElement('div');
+    rowsWrap.className = 'palette-rows';
+
+    for (let i = 0; i < colorCount; i++) {
+        const key = i.toString(2).padStart(bits, '0');
+        decoderPalette[key] = defaults[i] || '#cccccc';
+
+        const row = document.createElement('div');
+        row.className = 'palette-row';
+        row.innerHTML = `
+            <span class="pal-key-label">${key}</span>
+            <input type="color" id="pal_${key}" value="${decoderPalette[key]}"
+                   class="pal-color" onchange="updateDecoderPalette()">
+        `;
+        rowsWrap.appendChild(row);
+    }
+    paletteArea.appendChild(rowsWrap);
+
+    // 예제 코드 세팅
+    document.getElementById('codeInput').value = exampleCode ||
+        Array(10).fill('0'.repeat(bits * 10)).join('\n');
+
+    renderDecoder();
+}
+
+// ── 1-Bit 모드 ───────────────────────────────────────────
+window.setBitDepth = function(bits) {
+    clearModeButtons();
+    document.getElementById('btn1bit').classList.add('active');
+    document.getElementById('nbitPicker').style.display = 'none';
+    document.getElementById('bitInfoArea').style.display = 'none';
+    document.getElementById('decoderMainArea').style.display = 'flex';
+    buildPaletteAndRender(1, EXAMPLE_CODES[1]);
+};
+
+// ── N-Bit 버튼 클릭 — 피커 열기 + 기존 선택 비트 유지 ──
+window.activateNBit = function() {
+    clearModeButtons();
+    document.getElementById('btnNbit').classList.add('active');
+    document.getElementById('bitInfoArea').style.display = 'none';
+    document.getElementById('decoderMainArea').style.display = 'flex';
+    const picker = document.getElementById('nbitPicker');
+    picker.style.display = 'flex';
+    setNBit(currentNBit);   // 마지막 선택 비트 수로 복원
+};
+
+// ── N-Bit 비트수 선택 ────────────────────────────────────
+window.setNBit = function(n) {
+    currentNBit = n;
+    // 숫자 버튼 활성화
+    [2,3,4].forEach(v => {
+        const btn = document.getElementById('nbitBtn' + v);
+        if (btn) btn.classList.toggle('nbit-num-active', v === n);
+    });
+    buildPaletteAndRender(n, EXAMPLE_CODES[n] || null);
+};
+
+// ── 비트 심도 정보 패널 ──────────────────────────────────
+window.showBitInfo = function() {
+    clearModeButtons();
+    document.getElementById('btn8bit').classList.add('active');
+    document.getElementById('nbitPicker').style.display = 'none';
     document.getElementById('decoderMainArea').style.display = 'none';
     document.getElementById('bitInfoArea').style.display = 'block';
 };
 
+// ── 팔레트 색상 변경 시 재렌더 ───────────────────────────
 window.updateDecoderPalette = function() {
-    if (currentBitDepth === 1) {
-        decoderPalette['0'] = document.getElementById('pal0').value;
-        decoderPalette['1'] = document.getElementById('pal1').value;
-    } else {
-        decoderPalette['00'] = document.getElementById('pal00').value;
-        decoderPalette['01'] = document.getElementById('pal01').value;
-        decoderPalette['10'] = document.getElementById('pal10').value;
-        decoderPalette['11'] = document.getElementById('pal11').value;
+    const colorCount = Math.pow(2, currentBitDepth);
+    for (let i = 0; i < colorCount; i++) {
+        const key = i.toString(2).padStart(currentBitDepth, '0');
+        const el = document.getElementById('pal_' + key);
+        if (el) decoderPalette[key] = el.value;
     }
     renderDecoder();
 };
 
+// ── 캔버스 렌더 ──────────────────────────────────────────
 window.renderDecoder = function() {
     const canvas = document.getElementById('decoderCanvas');
     const ctx = canvas.getContext('2d');
-    const GRID = 10;        
-    const CELL = 39;        
-    const W = GRID * CELL;  
+    const GRID = 10;
+    const CELL = 39;
+    const W = GRID * CELL;
+
+    canvas.width  = W;
+    canvas.height = W;
 
     ctx.clearRect(0, 0, W, W);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, W);
 
-    const codeText = document.getElementById('codeInput').value.replace(/\s+/g, '');
+    const codeText = document.getElementById('codeInput').value.replace(/[^01]/g, '');
     let pixelIndex = 0;
 
     for (let i = 0; i < codeText.length; i += currentBitDepth) {
@@ -461,34 +642,58 @@ window.renderDecoder = function() {
         pixelIndex++;
     }
 
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    // 격자선
+    ctx.strokeStyle = 'rgba(0,0,0,0.1)';
     ctx.lineWidth = 0.5;
     for (let i = 0; i <= GRID; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * CELL, 0);
-        ctx.lineTo(i * CELL, W);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, i * CELL);
-        ctx.lineTo(W, i * CELL);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, W); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i * CELL); ctx.lineTo(W, i * CELL); ctx.stroke();
     }
 };
 
 // 🌟 [개별 기능] 벡터 그래픽
+// ── 벡터 viewBox 공통 갱신 함수 ─────────────────────────────
+function applyVectorViewBox() {
+    const z  = parseInt(document.getElementById('vecZoom').value) || 1;
+    const cx = parseFloat(document.getElementById('vecX').value);
+    const cy = parseFloat(document.getElementById('vecY').value);
+
+    // viewBox 크기: 전체 SVG(200×200) / z배
+    const vw = 200 / z;
+    const vh = 200 / z;
+
+    let vx, vy;
+    if (z === 1) {
+        // 줌 1x: 전체 캔버스를 그대로 보여줌 → 원의 실제 이동이 눈에 보임
+        vx = 0; vy = 0;
+    } else {
+        // 줌 2x 이상: 원 중심을 뷰포트 정중앙에 배치
+        // → 꼭지점 근처에서는 원이 반쪽만 보이는 것이 SVG의 정확한 동작
+        vx = cx - vw / 2;
+        vy = cy - vh / 2;
+    }
+
+    document.getElementById('vectorSvg').setAttribute('viewBox', `${vx} ${vy} ${vw} ${vh}`);
+}
+
 window.updateVector = function() {
-    const cx = document.getElementById('vecX').value;
-    const cy = document.getElementById('vecY').value;
-    const r = document.getElementById('vecR').value;
+    const cx    = document.getElementById('vecX').value;
+    const cy    = document.getElementById('vecY').value;
+    const r     = document.getElementById('vecR').value;
     const color = document.getElementById('vecColor').value;
 
+    // SVG 원 속성 갱신
     const circle = document.getElementById('vCircle');
     circle.setAttribute('cx', cx);
     circle.setAttribute('cy', cy);
     circle.setAttribute('r', r);
     circle.setAttribute('fill', color);
 
-    document.getElementById('vecCode').innerHTML = 
+    // 현재 줌 상태 그대로 viewBox도 함께 갱신 (원이 뷰 밖으로 사라지는 버그 수정)
+    applyVectorViewBox();
+
+    // 코드 디스플레이 갱신
+    document.getElementById('vecCode').innerHTML =
         `&lt;svg width="200" height="200"&gt;<br>` +
         `&nbsp;&nbsp;&lt;circle <br>` +
         `&nbsp;&nbsp;&nbsp;&nbsp;cx="<span style="color:#e17055">${cx}</span>" <br>` +
@@ -500,15 +705,29 @@ window.updateVector = function() {
 };
 
 window.updateVectorZoom = function() {
-    const z = document.getElementById('vecZoom').value;
-    document.getElementById('vecZoomText').innerText = `현재 확대 배율: ${z}x`;
-    
-    const w = 200 / z;
-    const h = 200 / z;
-    const x = 100 - w/2; 
-    const y = 100 - h/2;
-    
-    document.getElementById('vectorSvg').setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+    const z = parseInt(document.getElementById('vecZoom').value);
+
+    // 칩 텍스트 + bump 애니메이션
+    const chip = document.getElementById('vecZoomText');
+    if (chip) {
+        chip.textContent = z + 'x 배율';
+        chip.classList.remove('bump');
+        void chip.offsetWidth;
+        chip.classList.add('bump');
+        setTimeout(() => chip.classList.remove('bump'), 200);
+    }
+
+    // 출력 캔버스 펄스
+    const wrap = document.getElementById('vectorCanvasWrap');
+    if (wrap) {
+        wrap.classList.remove('pulsing');
+        void wrap.offsetWidth;
+        wrap.classList.add('pulsing');
+        setTimeout(() => wrap.classList.remove('pulsing'), 500);
+    }
+
+    // viewBox 갱신 (공통 함수 사용)
+    applyVectorViewBox();
 };
 
 // 🌟 [개별 기능] 아이패드/태블릿 터치 드로잉 지원

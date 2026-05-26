@@ -141,11 +141,15 @@ function resetQuiz() {
 }
 
 function check(el) {
-    if (!isQuizStarted) return; 
-    if (el.value.trim() === el.getAttribute('data-answer') && !scored.has(el)) {
-        el.classList.add('correct'); 
+    if (!isQuizStarted) return;
+    const val = el.value.trim();
+    const answer = el.getAttribute('data-answer');
+    const answerAlt = el.getAttribute('data-answer-alt');
+    const isCorrect = val === answer || (answerAlt && val === answerAlt);
+    if (isCorrect && !scored.has(el)) {
+        el.classList.add('correct');
         el.disabled = true;
-        scored.add(el); 
+        scored.add(el);
         score += parseInt(el.getAttribute('data-score') || '10');
         correctAnswers++;
     }
@@ -175,7 +179,7 @@ function openTipPopup() {
         <p style="line-height:1.8; text-align:left; padding:0 20px; font-size:1.05rem; word-break:keep-all;">
             - <b>[▶️ 퀴즈 시작]</b> 버튼을 누르면 타이머가 켜지고 입력이 가능해집니다.<br>
             - 보기 단어를 마우스로 <b>끌어서</b> 빈칸에 넣거나 <b>직접 입력</b>해 보세요.<br>
-            - 모든 문제를 푼 뒤 화면 하단의 <b>[✅ 미션 완료 및 채점하기]</b> 버튼을 누르면 점수와 시간이 나옵니다.
+            - 모든 문제를 푼 뒤 화면 하단의 <b>[✏️ 채점하기]</b> 버튼을 누르면 점수와 시간이 나옵니다.
         </p>
         <button onclick="closeModal()" style="width:100%; padding:14px; background:var(--teal-main); color:white; border:none; border-radius:12px; font-weight:700; font-size:1.1rem; cursor:pointer; margin-top:10px;">확인</button>
     `;
@@ -282,7 +286,7 @@ function downloadReportImageOffline() {
     function getLines(text, maxWidth) {
         ctx.font = "18px sans-serif";
         const lines = [];
-        const paragraphs = text.split('\\n');
+        const paragraphs = text.split('\n');
         paragraphs.forEach(p => {
             let currentLine = '';
             for(let i=0; i<p.length; i++) {
@@ -437,4 +441,231 @@ window.addEventListener('keydown', function(e) {
     if (alertOverlay && alertOverlay.style.display === 'flex') {
         if (e.key === 'Enter') { e.preventDefault(); closeCustomAlert(); }
     }
+});
+
+// =========================================================
+// 🌟 [추가 엔진] 챕터 상단(Header) 0과 1 우주 배경 및 동적 테마 애니메이션 🌟
+// =========================================================
+window.addEventListener('DOMContentLoaded', () => {
+    const header = document.querySelector('header');
+    if (!header) return;
+
+    // 0. 현재 페이지 테마 자동 판별 (선택된 메뉴 텍스트 기준)
+    let theme = 'mint'; // 기본값 (1단원, 2단원)
+    const activeMenu = document.querySelector('.menu-link.active');
+    if (activeMenu) {
+        const text = activeMenu.textContent;
+        // 3, 4단원: 파란색 테마
+        if (text.includes('숫자') || text.includes('문자')) {
+            theme = 'blue';
+        }
+        // 5, 6단원: 보라색 테마
+        else if (text.includes('이미지') || text.includes('소리')) {
+            theme = 'violet';
+        }
+        // 7단원: 회색빛 남색 테마 (수정 완료!)
+        else if (text.includes('동영상')) {
+            theme = 'navy';
+        }
+    }
+
+    // 테마별 색상 팔레트 (인덱스 화면과 100% 일치)
+    const palette = {
+        mint: {
+            main: '#00f5c4', // 네온 민트
+            bg: 'rgba(0, 245, 196, 0.12)',
+            border: 'rgba(0, 245, 196, 0.2)',
+            badgeBg: 'rgba(0, 245, 196, 0.15)',
+            shadow: 'rgba(0, 245, 196, 0.2)',
+            particle1: '0, 245, 196',
+            particle2: '10, 132, 255'
+        },
+        blue: {
+            main: '#5ac8fa', // 네온 블루
+            bg: 'rgba(10, 132, 255, 0.12)',
+            border: 'rgba(10, 132, 255, 0.2)',
+            badgeBg: 'rgba(10, 132, 255, 0.15)',
+            shadow: 'rgba(10, 132, 255, 0.2)',
+            particle1: '10, 132, 255',
+            particle2: '90, 200, 250'
+        },
+        violet: {
+            main: '#d08ef7', // 네온 보라
+            bg: 'rgba(191, 90, 242, 0.12)',
+            border: 'rgba(191, 90, 242, 0.2)',
+            badgeBg: 'rgba(191, 90, 242, 0.15)',
+            shadow: 'rgba(191, 90, 242, 0.2)',
+            particle1: '191, 90, 242',
+            particle2: '208, 142, 247'
+        },
+        navy: {
+            main: '#748fd8', // 🌟 세련된 회색빛 남색 (Slate Blue)
+            bg: 'rgba(116, 143, 216, 0.12)',
+            border: 'rgba(116, 143, 216, 0.2)',
+            badgeBg: 'rgba(116, 143, 216, 0.15)',
+            shadow: 'rgba(116, 143, 216, 0.2)',
+            particle1: '116, 143, 216',
+            particle2: '130, 155, 225'
+        }
+    };
+
+    const colors = palette[theme];
+
+    // 1. 헤더 배경색 및 테마 테두리선 동적 적용
+    header.style.position = 'relative';
+    header.style.background = '#03050d'; 
+    header.style.borderBottom = `1px solid ${colors.border}`;
+
+    Array.from(header.children).forEach(child => {
+        child.style.position = 'relative';
+        child.style.zIndex = '10';
+    });
+
+    // 2. CSS '우선순위' 극대화 및 동적 테마 주입
+    const style = document.createElement('style');
+    style.innerHTML = `
+        html body header .main-title { color: #ffffff !important; text-shadow: 0 0 12px ${colors.shadow} !important; }
+        
+        /* 타겟 배지도 테마 색상으로 자동 변환 */
+        html body header .target-badge { background: ${colors.badgeBg} !important; color: ${colors.main} !important; border: 1px solid ${colors.border} !important; }
+        
+        /* =======================================================
+           🌟 프로그래스 바(진행 점) 테마 색상 자동 연동 추가! 🌟
+        ======================================================= */
+        /* 1. 현재 진행 중인 점 (현재 위치) */
+        html body .progress .prog-dot.cur { 
+            background: ${colors.main} !important; 
+            box-shadow: 0 0 12px ${colors.shadow}, 0 0 20px ${colors.shadow} !important; 
+        }
+        
+        /* 2. 이미 완료한 점 */
+        html body .progress .prog-dot.done { 
+            background: ${colors.main} !important; 
+            opacity: 0.7; /* 완료된 점은 살짝 투명하게 해서 현재 위치와 구분 */
+        }
+        /* ======================================================= */
+
+        /* 기본 버튼 (초기화) */
+        html body header .status-btn { 
+            background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 100%) !important; 
+            color: #ffffff !important; 
+            border: 1px solid rgba(255,255,255,0.15) !important; 
+            border-bottom: 2.5px solid rgba(150, 160, 175, 0.45) !important; 
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 2px 5px rgba(0,0,0,0.4) !important; 
+            transition: all 0.15s ease !important;
+            transform: translateY(0);
+        }
+        html body header .status-btn:hover { background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 100%) !important; transform: translateY(-1px) !important; }
+        html body header .status-btn:active { transform: translateY(2px) !important; border-bottom-width: 1px !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.2) !important; }
+
+        /* SOS 요청 버튼 */
+        html body header .status-btn.btn-help { 
+            color: #ff453a !important; background: linear-gradient(180deg, rgba(255,69,58,0.15) 0%, rgba(255,69,58,0.02) 100%) !important; 
+            border-color: rgba(255,69,58,0.3) !important; border-bottom: 2.5px solid rgba(120,20,15,0.7) !important;
+            box-shadow: inset 0 1px 1px rgba(255,100,100,0.3), 0 2px 5px rgba(0,0,0,0.4) !important;
+        }
+
+        /* 미션 완료 버튼 */
+        html body header .status-btn.btn-done { 
+            color: #34c759 !important; background: linear-gradient(180deg, rgba(52,199,89,0.15) 0%, rgba(52,199,89,0.02) 100%) !important; 
+            border-color: rgba(52,199,89,0.3) !important; border-bottom: 2.5px solid rgba(20,80,30,0.7) !important;
+            box-shadow: inset 0 1px 1px rgba(100,255,150,0.3), 0 2px 5px rgba(0,0,0,0.4) !important;
+        }
+        
+        /* 메뉴 링크 기본 상태 */
+        html body header nav .menu-item .menu-link { color: rgba(255,255,255,0.6) !important; background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+        html body header nav .menu-item:hover > .menu-link,
+        html body header nav .menu-item:hover > .menu-link:not(.active) { color: #ffffff !important; background: rgba(255,255,255,0.05) !important; border-color: transparent !important; }
+        
+        /* 🌟 선택된 메뉴 (active) - 테마 팔레트 색상으로 자동 적용! 🌟 */
+        html body header nav .menu-item .menu-link.active,
+        html body header nav .menu-item:hover > .menu-link.active { 
+            background: ${colors.bg} !important; 
+            color: ${colors.main} !important; 
+            box-shadow: 0 -4px 12px ${colors.shadow} !important; 
+            border-color: transparent !important; 
+        }
+        
+        /* 하위 드롭다운 메뉴 호버 시 🌟 */
+        html body header .dropdown { background: rgba(10, 15, 30, 0.95) !important; border: 1px solid ${colors.border} !important; backdrop-filter: blur(10px) !important; }
+        html body header .dropdown li a { color: rgba(255,255,255,0.8) !important; background: transparent !important; }
+        html body header .dropdown li a:hover { background: ${colors.badgeBg} !important; color: ${colors.main} !important; }
+    `;
+    document.head.appendChild(style);
+
+    // 3. 애니메이션 도화지(Canvas) 삽입
+    const canvasContainer = document.createElement('div');
+    canvasContainer.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden;';
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'width: 100%; height: 100%; opacity: 0.7;'; 
+    canvasContainer.appendChild(canvas);
+    header.insertBefore(canvasContainer, header.firstChild);
+
+    // 4. 파티클(0과 1) 및 별빛 그리기 엔진
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [], stars = [];
+
+    function resize() {
+        width = header.clientWidth;
+        height = header.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Star {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.size = Math.random() * 1.5 + 0.5;
+            this.opacity = Math.random();
+            this.speed = Math.random() * 0.03 + 0.01;
+        }
+        update() {
+            this.opacity += this.speed;
+            if (this.opacity > 1 || this.opacity < 0) this.speed = -this.speed;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+            ctx.fill();
+        }
+    }
+
+    class Particle {
+        constructor() { this.reset(); this.y = Math.random() * height; }
+        reset() {
+            this.x = Math.random() * width;
+            this.y = height + 20;
+            this.speed = Math.random() * 0.4 + 0.1;
+            this.text = Math.random() > 0.5 ? '0' : '1';
+            this.size = Math.random() * 12 + 10;
+            this.opacity = Math.random() * 0.5 + 0.1;
+            // 0과 1 숫자 색상도 테마에 맞춰서 자동으로 그려집니다!
+            this.color = Math.random() > 0.5 ? `rgba(${colors.particle1}, ${this.opacity})` : `rgba(${colors.particle2}, ${this.opacity})`;
+        }
+        update() {
+            this.y -= this.speed;
+            if (this.y < -30) this.reset();
+        }
+        draw() {
+            ctx.font = `900 ${this.size}px "JetBrains Mono", monospace`;
+            ctx.fillStyle = this.color;
+            ctx.fillText(this.text, this.x, this.y);
+        }
+    }
+
+    for (let i = 0; i < 50; i++) stars.push(new Star());
+    for (let i = 0; i < 30; i++) particles.push(new Particle());
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        stars.forEach(s => { s.update(); s.draw(); });
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+    }
+    animate();
 });

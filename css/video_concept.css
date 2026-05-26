@@ -1,5 +1,4 @@
-
-        /* 🎨 테마 변수 (남색 계열로 변경) */
+/* 🎨 테마 변수 (남색 계열로 변경) */
         :root {
             --multi-navy: #192a56;
             --multi-navy-light: #487eb0;
@@ -24,7 +23,9 @@
             --glass-border: rgba(255, 255, 255, 0.8);
 
             /* 버튼용 부드러운 붉은색 추가 */
-            --soft-red: #e63946; 
+            --soft-red: #e63946;
+            /* concept_common.js 팝업 버튼 색상 */
+            --teal-main: #192a56;
         }
 
         /* 폰트 및 초기화 */
@@ -54,7 +55,7 @@
 
         html, body { 
             margin: 0; padding: 0; height: 100%; 
-            font-family: 'Pretendard', 'Inter', sans-serif; 
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif; 
             background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
             color: var(--text-main);
             display: flex; flex-direction: column; overflow: hidden; 
@@ -79,8 +80,13 @@
         
         .main-title { font-size: 1.4rem; font-weight: 900; margin: 0; letter-spacing: -0.02em; color: var(--text-main); cursor: pointer; transition: 0.3s; }
         .main-title:hover { 
-            background: linear-gradient(135deg, var(--multi-navy-light) 0%, var(--multi-navy) 100%);
+           background: linear-gradient(135deg, #a4b5e6 0%, #748fd8 100%);
             -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+            filter: drop-shadow(0 0 10px rgba(164, 181, 230, 0.7));
+        }
+       .main-title:active {
+            /* 클릭 시 살짝 더 짙은 남색으로 쫀득하게 눌리는 효과 */
+            filter: drop-shadow(0 0 5px rgba(116, 143, 216, 0.9));
         }
 
         .status-controller { display: flex; gap: 8px; }
@@ -181,7 +187,7 @@
         .memo-area::placeholder, 
         .reflection-area::placeholder {
             color: #64748b;
-            font-weight: 400; 
+            font-weight: 700; 
             opacity: 1; 
         }
 
@@ -189,12 +195,12 @@
             flex: 1; border: none; background: transparent; resize: none; font-size: 0.95rem; line-height: 1.8; outline: none; 
             /* 줄무늬 색상도 남색 톤으로 은은하게 적용 */
             background-image: linear-gradient(rgba(25, 42, 86, 0.2) 1px, transparent 1px); 
-            background-size: 100% 1.8rem; cursor: text !important; font-family: 'Pretendard', sans-serif;
+            background-size: 100% 1.8rem; cursor: text !important; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif;
             color: #1d1d1f; -webkit-user-select: text; -moz-user-select: text; user-select: text;
         }
         .reflection-area { 
             flex: 1; border: 1px solid rgba(255,255,255,0.9); border-radius: 14px; background: rgba(255,255,255,0.7); 
-            resize: none; padding: 15px; font-size: 0.9rem; line-height: 1.6; outline: none; margin-bottom: 12px; cursor: text !important; font-family: 'Pretendard', sans-serif; 
+            resize: none; padding: 15px; font-size: 0.9rem; line-height: 1.6; outline: none; margin-bottom: 12px; cursor: text !important; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif; 
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
             transition: 0.3s; -webkit-user-select: text; -moz-user-select: text; user-select: text;
         }
@@ -219,10 +225,28 @@
         .action-btn:hover { background: var(--multi-navy-light); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(25, 42, 86, 0.4); }
 
         .concept-wrap { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; text-align: left; }
-        .concept-row { background: #fafafa; border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; padding: 20px 25px; display: flex; align-items: flex-start; gap: 15px; line-height: 1.7; font-size: 1.05rem; color: #343a40; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .concept-row { background: #fafafa; border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; padding: 20px 25px; display: flex; align-items: flex-start; gap: 15px; line-height: 1.7; font-size: 1.05rem; color: #343a40; font-weight: 700; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .concept-icon { font-size: 1.8rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
-        .pill-btn { background: linear-gradient(135deg, var(--multi-navy-light), #74b9ff); color: white; border: none; border-radius: 12px; padding: 4px 12px; font-size: 0.95rem; font-weight: 900; cursor: pointer !important; box-shadow: 0 3px 6px rgba(9, 132, 227, 0.3); display: inline-flex; align-items: center; gap: 4px; vertical-align: baseline; transition: 0.2s;}
-        .pill-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(9, 132, 227, 0.4); }
+       .pill-btn { 
+    background: linear-gradient(135deg, var(--multi-navy), #273c75); 
+    color: white; 
+    border: none; 
+    border-radius: 12px; 
+    padding: 4px 12px; 
+    font-size: 0.95rem; 
+    font-weight: 900; 
+    cursor: pointer !important; 
+    box-shadow: 0 3px 6px rgba(25, 42, 86, 0.3); 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 4px; 
+    vertical-align: baseline; 
+    transition: 0.2s;
+}
+.pill-btn:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 15px rgba(25, 42, 86, 0.4); 
+}
 
         /* ⭐ 4단계 퀴즈 영역 타이머 및 제어 버튼 ⭐ */
         .quiz-controls-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 25px; }
@@ -246,8 +270,59 @@
         .reset-timer-btn { background: white; color: var(--multi-navy-light); border: 2px solid var(--multi-navy-light); border-radius: 14px; padding: 10px 20px; font-size: 1.05rem; font-weight: 900; cursor: pointer !important; transition: 0.2s; box-shadow: 0 4px 10px rgba(72, 126, 176, 0.15); }
         .reset-timer-btn:hover { background: #f1f5f9; transform: translateY(-2px); }
 
-        .submit-quiz-btn { background: var(--success-green); color: white; border: none; border-radius: 14px; padding: 15px 40px; font-size: 1.2rem; font-weight: 900; cursor: pointer !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); transition: 0.2s; margin-top: 20px; display: inline-block;}
-        .submit-quiz-btn:hover { transform: translateY(-2px); background: #059669; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+        /* =========================================================
+   🎯 퀴즈 채점 버튼 - 밝고 아담한 '빨간 색연필' 채점 스타일
+========================================================= */
+.submit-quiz-btn {
+    display: block;
+    width: 100%;
+    
+    /* 💡 가로 길이를 대폭 줄였습니다 (기존 320px -> 200px) */
+    max-width: 150px; 
+    
+    margin: 30px auto 10px auto;
+    padding: 12px 18px; /* 줄어든 가로 폭에 맞춰 위아래 여백도 최적화 */
+    
+    /* 1. 평소 배경: 선생님께서 원하신 마우스 올렸을 때의 화사한 핑크베이지 색상 */
+    background-color: #fef2f2; 
+    
+    /* 2. 글자 및 테두리: 채점을 상징하는 클래식 다크 레드 */
+    color: #dc2626; 
+    border: 2px solid #dc2626;
+    border-radius: 12px;
+    
+    /* 3. 기본 타이포그래피 */
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: -0.3px;
+    cursor: pointer !important;
+    
+    /* 부드러운 전환 효과 */
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.05); /* 평소에도 살짝 귀엽게 떠있는 느낌 */
+}
+
+/* 🖱️ 마우스를 올렸을 때 (Hover): 튀지 않고 은은하게 반응 */
+.submit-quiz-btn:hover {
+    /* 바탕이 한 단계만 아주 살짝 짙은 포근한 핑크로 변함 */
+    background-color: #fee2e2; 
+    
+    color: #b91c1c; 
+    border-color: #b91c1c;
+    
+    box-shadow: 0 6px 12px rgba(220, 38, 38, 0.12);
+    transform: translateY(-1.5px);
+}
+
+/* ⚡ 클릭했을 때 (Active): 꾹 눌리는 느낌 */
+.submit-quiz-btn:active {
+    transform: translateY(1px);
+    background-color: #fca5a5; /* 클릭 순간 확실하게 눌리는 반응 */
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.04);
+}
+
 
         .word-score-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 30px; width: 100%; }
         .word-bank { background: #f8fafc; border: 1px solid rgba(25, 42, 86, 0.2); padding: 15px 25px; border-radius: 18px; display: flex; gap: 15px; flex: 1; justify-content: center; flex-wrap: wrap; transition: 0.3s;}
@@ -257,7 +332,7 @@
         .quiz-active .word-item:hover { transform: translateY(-2px); box-shadow: 0 6px 10px rgba(25, 42, 86, 0.15); border-color: var(--multi-navy); }
         .quiz-active .word-item:active { cursor: grabbing !important; }
 
-        .quiz-box { font-size: 1.05rem; line-height: 2.3; color: var(--text-main); font-weight: 600; background: #fafafa; padding: 25px 30px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 15px; text-align: left; transition: 0.3s; }
+        .quiz-box { font-size: 1.05rem; line-height: 2.3; color: var(--text-main); font-weight: 700; background: #fafafa; padding: 25px 30px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 15px; text-align: left; transition: 0.3s; }
         .quiz-box:hover { background: white; border-color: rgba(25, 42, 86, 0.15); box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
         
         .blank { box-sizing: border-box; display: inline-block; width: 105px; height: 38px; background: white; border: 2px dashed rgba(25, 42, 86, 0.4); border-radius: 10px; vertical-align: middle; padding: 0 5px; text-align: center; line-height: 34px; font-size: 1.05rem; font-weight: 800; color: var(--multi-navy); margin: 0 6px; transition: all 0.2s ease; outline: none; }
@@ -294,7 +369,7 @@
         footer { 
             padding: 15px 40px; background: rgba(255,255,255,0.5); 
             color: var(--apple-gray); border-top: 1px solid rgba(0,0,0,0.05); 
-            font-size: 0.8rem; font-weight: 600; flex-shrink: 0; 
+            font-size: 0.8rem; font-weight: 700; flex-shrink: 0; 
             display: flex; justify-content: space-between; align-items: center; 
         }
 
@@ -309,12 +384,21 @@
             -webkit-backdrop-filter: blur(12px);
         }
 
+        /* ⭐ 모달 오버레이 ⭐ */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--overlay); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9000; align-items: center; justify-content: center; }
+        @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         /* ⭐ 커스텀 알림/에러 모달 ⭐ */
-        .alert-box { background: white; border-radius: 28px; border: 2px solid var(--apple-red) !important; width: 600px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.3) !important; padding: 30px 27px; text-align: center; }
-    
-        .modal-content { background: white; padding: 32px 28px; border-radius: 28px; width: 400px; max-width: 92vw; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s ease-out; }
+        .alert-box { background: white; border-radius: 28px; border: 2px solid var(--apple-red) !important; width: 400px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.3) !important; padding: 30px 40px; text-align: center; animation: popUp 0.3s ease-out; }
+        .alert-box h3 { color: var(--apple-red); font-size: 1.5rem; margin-top: 0; margin-bottom: 15px; font-weight: 900; }
+        .alert-message { color: var(--text-main); font-size: 1.05rem; line-height: 1.6; margin-bottom: 25px; word-break: keep-all; font-weight: 700; white-space: pre-line; }
+
+        .modal-content { background: white; padding: 32px 28px; border-radius: 28px; width: 600px; max-width: 92vw; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s ease-out; }
+
+        /* ⭐ 팝업 버튼 클릭 보장 ⭐ */
+        .modal-overlay button, .modal-content button, .alert-box button { cursor: pointer !important; pointer-events: auto !important; }
         .erase-section { background: rgba(255,255,255,0.5); border-radius: 28px 0 0 28px; border: 1px solid rgba(239,68,68,0.15); border-right: none; padding: 14px 20px 14px 18px; display: flex; align-items: center; }
-        .erase-btn { flex:1; background: transparent; border: 1.5px solid rgba(239,68,68,0.3); color: rgba(239,68,68,0.7); border-radius: 12px; padding: 9px 14px; font-size: 0.8rem; font-weight: 800; cursor: pointer !important; transition: all 0.2s ease; font-family: 'Pretendard','Inter',sans-serif; line-height: 1.4; text-align: center; }
+        .erase-btn { flex:1; background: transparent; border: 1.5px solid rgba(239,68,68,0.3); color: rgba(239,68,68,0.7); border-radius: 12px; padding: 9px 14px; font-size: 0.8rem; font-weight: 800; cursor: pointer !important; transition: all 0.2s ease; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif; line-height: 1.4; text-align: center; }
         .erase-btn:hover { background: #fef2f2; border-color: #ef4444; color: #ef4444; box-shadow: 0 4px 12px rgba(239,68,68,0.12); }
 
         .modal-content-small { background: white; padding: 32px 28px; border-radius: 28px; width: 400px; max-width: 92vw; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s ease-out; }

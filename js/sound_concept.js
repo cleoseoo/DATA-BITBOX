@@ -672,7 +672,7 @@ window.checkLabInput = function(inp) {
     }
 
     let animFrame = null;
-    function cancelAnim() { if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; } }
+    function cancelAnim() { if (animFrame) { clearTimeout(animFrame); cancelAnimationFrame(animFrame); animFrame = null; } }
 
     // ── 표본화: 점+세로선이 왼쪽→오른쪽으로 하나씩 등장 ──
     function drawStep1() {
@@ -763,12 +763,15 @@ window.checkLabInput = function(inp) {
     }
 
     window.pcmStep = function(n) {
-        const colors = ['#0984e3', '#6c5ce7', '#00b894'];
+        // 인라인 스타일 대신 CSS 클래스로 활성/비활성 전환
         ['pcmBtn1','pcmBtn2','pcmBtn3'].forEach((id, idx) => {
             const btn = document.getElementById(id);
             if (!btn) return;
-            if (idx + 1 === n) { btn.style.background = colors[idx]; btn.style.borderColor = colors[idx]; btn.style.color = '#fff'; }
-            else { btn.style.background = '#fff'; btn.style.borderColor = colors[idx]; btn.style.color = colors[idx]; }
+            if (idx + 1 === n) {
+                btn.classList.add('pcm-active');
+            } else {
+                btn.classList.remove('pcm-active');
+            }
         });
         if (n === 1) drawStep1(); else if (n === 2) drawStep2(); else drawStep3();
     };

@@ -2,7 +2,7 @@
 // [7단원: 동영상의 디지털 표현] 전용 스크립트
 
 // 🌟 [설정] 7단원 고유 정보
-const THIS_STEP = 8; // (원본 인덱스 유지)
+const THIS_STEP = 7; // (원본 인덱스 유지)
 const STEP_TITLE = "7. 동영상의 디지털 표현";
 const FILE_NAME_PREFIX = "동영상_개념";
 const PASS_SCORE = 70;

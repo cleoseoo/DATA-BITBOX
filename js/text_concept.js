@@ -27,20 +27,31 @@ function typeChar(btnEl, char, dec, bin, standard) {
     const elChar = document.getElementById('dispChar');
     const elDec = document.getElementById('dispDec');
     const elBin = document.getElementById('dispBin');
-    const elStdLabel = document.getElementById('codeStandardLabel'); 
+    const elStdLabel = document.getElementById('codeStandardLabel');
 
+    // 출력 박스 참조
+    const boxChar = elChar ? elChar.closest('.process-box') : null;
+    const boxDec  = elDec  ? elDec.closest('.process-box')  : null;
+    const boxBin  = elBin  ? elBin.closest('.process-box')  : null;
+
+    // 초기화: 활성 상태 제거, 값 리셋
+    [boxChar, boxDec, boxBin].forEach(b => b && b.classList.remove('active'));
     [elChar, elDec, elBin, elStdLabel].forEach(el => {
         if(el) { el.classList.remove('pop-anim'); }
     });
     elChar.innerText = '-'; elDec.innerText = '-'; elBin.innerText = '-';
     if(elStdLabel) elStdLabel.innerHTML = '약속된 번호표';
 
+    // ① 입력된 문자 박스 활성화
     setTimeout(() => {
+        if(boxChar) boxChar.classList.add('active');
         elChar.innerText = `'${char}'`;
         elChar.classList.add('pop-anim');
     }, 50);
 
+    // ② 약속된 번호표 박스 활성화
     setTimeout(() => {
+        if(boxDec) boxDec.classList.add('active');
         if(standard === 'ASCII') {
             elStdLabel.innerHTML = '<span style="color:#0284c7;">🇺🇸 아스키코드</span>';
         } else {
@@ -52,7 +63,9 @@ function typeChar(btnEl, char, dec, bin, standard) {
         elDec.classList.add('pop-anim');
     }, 300);
 
+    // ③ 이진수 박스 활성화
     setTimeout(() => {
+        if(boxBin) boxBin.classList.add('active');
         elBin.innerHTML = bin.includes(' ') ? bin.replace(/ /g, '<br>') : bin;
         elBin.style.fontSize = bin.length > 8 ? '1.1rem' : '1.3rem';
         elBin.classList.add('pop-anim');
