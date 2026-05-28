@@ -94,45 +94,136 @@
                 <div class="panel">
                     <h2 class="panel-title"><span class="step-badge">2</span> 이미지 그리기 (Image to Binary)</h2>
                     
-                    <div class="instruction">👉 [실습] 20x20 눈금 도화지 위에 나만의 픽셀 이미지를 5장 그려보세요.</div>
+                    <div class="instruction">👉 [실습] 도화지 위에 나만의 이미지를 10장 그리거나, 이미지 파일(PNG/JPG/GIF)을 업로드해 프레임으로 사용하세요.</div>
                     <div class="speech-bubble">
                         💬 <strong>이미지의 디지털 표현</strong><br>
 			해상도를 낮춰 캔버스를 총 400(20*20)개의 네모 칸(픽셀)으로 나누었습니다.<br>
                         마우스로 점을 찍을 때마다 내가 칠한 칸(X, Y 좌표)의 색상이 빛의 삼원색인 <strong>빨강(R), 초록(G), 파랑(B)</strong>의 8비트 데이터로 추출되어 모니터에 기록됩니다.
                     </div>
                     
-                    <div class="drawing-layout">
-                        <div class="canvas-area">
-                            <div class="canvas-wrapper">
-                                <canvas id="drawCanvas" width="450" height="450"></canvas>
-                                <canvas id="gridCanvas" width="450" height="450"></canvas>
+                    <!--
+                        1:1 레이아웃
+                        왼쪽(편집+미리보기) = 오른쪽(코드창) = 각 50%
+                        편집캔버스: 100% 너비, aspect-ratio 1:1
+                        미리보기:   100% 너비, 높이 = 편집의 1/3
+                    -->
+                    <div style="display:flex; gap:16px; align-items:flex-start;">
+
+                        <!-- 왼쪽 50%: 편집 캔버스 (미리보기도 이 캔버스에서 재생) -->
+                        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:8px;">
+
+                            <!-- 캔버스 래퍼: 편집↔미리보기 토글 -->
+                            <div id="canvasWrap" style="position:relative; width:100%; aspect-ratio:1/1; box-shadow:0 5px 20px rgba(0,0,0,0.5);">
+                                <!-- 편집 캔버스 -->
+                                <canvas id="drawCanvas" width="450" height="450"
+                                    style="position:absolute; top:0; left:0; width:100%; height:100%; background:white; border-radius:4px; cursor:crosshair;"></canvas>
+                                <canvas id="gridCanvas" width="450" height="450"
+                                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; border-radius:4px; border:2px solid #334155; box-sizing:border-box;"></canvas>
+
+                                <!-- 미리보기 오버레이 캔버스 (재생 시에만 표시) -->
+                                <canvas id="previewOverlay" width="450" height="450"
+                                    style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius:4px; display:none; cursor:default;"></canvas>
+
+                                <!-- 재생 중 상단 배지 -->
+                                <div id="previewBadge" style="display:none; position:absolute; top:8px; left:8px;
+                                    background:rgba(255,0,229,0.85); color:#fff; font-size:0.75rem; font-weight:900;
+                                    padding:3px 10px; border-radius:20px; pointer-events:none; z-index:10;">
+                                    ▶ 미리보기 재생 중
+                                </div>
+
+                                <!-- 프레임 번호 배지 (재생 중) -->
+                                <div id="previewFrameNum" style="display:none; position:absolute; top:8px; right:8px;
+                                    background:rgba(0,0,0,0.6); color:#00F0FF; font-size:0.72rem; font-weight:900;
+                                    padding:3px 8px; border-radius:20px; pointer-events:none; z-index:10; font-family:monospace;">
+                                </div>
                             </div>
-                            <div class="frame-selector">
-                                <button class="frame-btn active" onclick="selectFrame(0)">#1</button>
-                                <button class="frame-btn" onclick="selectFrame(1)">#2</button>
-                                <button class="frame-btn" onclick="selectFrame(2)">#3</button>
-                                <button class="frame-btn" onclick="selectFrame(3)">#4</button>
-                                <button class="frame-btn" onclick="selectFrame(4)">#5</button>
+
+                            <!-- 프레임 그리드(좌) + 버튼(우) 가로 배치 -->
+                            <div style="display:flex; gap:6px; align-items:stretch;">
+                                <!-- 좌: 프레임 버튼 5개씩 2줄 (position:relative로 툴팁 기준점) -->
+                                <div style="flex:1; min-width:0; position:relative;">
+                                    <div id="frameBtnList"></div>
+                                    <div id="minFrameTooltip" style="
+                                        display:none; position:absolute;
+                                        top:-40px; left:0; z-index:9999;
+                                        background:#1e293b; border:1.5px solid #ef4444;
+                                        border-radius:7px; padding:5px 11px;
+                                        font-size:0.72rem; font-weight:700; color:#ef4444;
+                                        white-space:nowrap; pointer-events:none;
+                                        box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+                                        ⚠️ 최소 1장은 유지해야 합니다
+                                        <div style="position:absolute; bottom:-6px; left:14px;
+                                            width:0; height:0;
+                                            border-left:5px solid transparent;
+                                            border-right:5px solid transparent;
+                                            border-top:6px solid #ef4444;"></div>
+                                    </div>
+                                </div>
+                                <!-- 우: 추가·미리보기 버튼 세로로 -->
+                                <div style="display:flex; flex-direction:column; gap:4px; flex-shrink:0;">
+                                    <button id="addFrameBtn"
+                                        onclick="addFrame()"
+                                        style="flex:1; padding:0 10px; font-size:0.72rem; font-weight:900;
+                                            border-radius:6px; border:1.5px solid #00F0FF;
+                                            background:#0a1a1a; color:#00F0FF; cursor:pointer; white-space:nowrap;">
+                                        ＋ 추가
+                                    </button>
+                                    <button id="previewToggleBtn"
+                                        onclick="togglePreviewMode()"
+                                        style="flex:1; padding:0 10px; font-size:0.72rem; font-weight:900;
+                                            border-radius:6px; border:1.5px solid var(--primary);
+                                            background:#0a1a2a; color:var(--primary); cursor:pointer; white-space:nowrap;">
+                                        ▶ 미리보기
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- FPS 슬라이더 (항상 표시) -->
+                            <div style="display:flex; align-items:center; gap:8px; background:#0B0F19; padding:6px 10px; border-radius:6px; border:1px solid #334155;">
+                                <span style="color:#94A3B8; font-size:0.78rem; font-weight:bold; white-space:nowrap;">🎞️ 속도</span>
+                                <input type="range" id="fpsSliderEdit" min="1" max="24" value="5"
+                                    style="flex:1; accent-color:var(--secondary);"
+                                    oninput="syncFPS(this.value)">
+                                <span id="fpsValueEdit" style="color:var(--secondary); font-weight:bold; font-size:0.88rem; min-width:44px; text-align:right;">5 fps</span>
+                            </div>
+
+                            <!-- 이미지 업로드 -->
+                            <div style="display:flex; align-items:center; gap:6px; background:#0B0F19; padding:5px 10px; border-radius:6px; border:1px solid #334155;">
+                                <span style="color:#94A3B8; font-size:0.75rem; font-weight:bold; white-space:nowrap;">📁 업로드</span>
+                                <input type="file" id="frameImageInput" accept="image/png,image/jpeg,image/gif,image/webp"
+                                    style="flex:1; font-size:0.75rem; padding:2px 4px; cursor:pointer; min-width:0;"
+                                    onchange="uploadFrameImage(this)">
                             </div>
                         </div>
-                        
-                        <div class="tools-area">
-                            <div class="tool-row">
+
+                        <!-- 오른쪽 50%: 도구 + 이진코드 -->
+                        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:8px;">
+
+                            <!-- 도구 버튼 -->
+                            <div class="tool-row" style="flex-wrap:wrap; flex-shrink:0;">
                                 <input type="color" id="penColor" value="#00F0FF" title="펜 색상">
-                                <button class="btn" style="background: #334155; color: white;" onclick="setEraser()">🧽 지우개</button>
+                                <button class="btn" style="background:#334155; color:white;" onclick="setEraser()">🧽 지우개</button>
                                 <button class="btn" onclick="undo()">↩️ 되돌리기</button>
-                                <button class="btn" style="background: #ef4444; color: white;" onclick="clearCanvas()">🗑️ 비우기</button>
+                                <button class="btn" style="background:#ef4444; color:white;" onclick="clearCanvas()">🗑️ 지우기</button>
+                                <button class="btn" style="background:#7f1d1d; color:white;" onclick="clearAllFrames()">🗑️ 전체 지우기</button>
                             </div>
-                            <div style="display:flex; align-items:center; gap:10px; background:#0B0F19; padding:10px 14px; border-radius:6px; border:1px solid #334155;">
-                                <span style="color:#94A3B8; font-size:0.85rem; font-weight:bold; white-space:nowrap;">🖌️ 브러시</span>
+
+                            <!-- 브러시 슬라이더 -->
+                            <div style="flex-shrink:0; display:flex; align-items:center; gap:8px; background:#0B0F19; padding:8px 12px; border-radius:6px; border:1px solid #334155;">
+                                <span style="color:#94A3B8; font-size:0.82rem; font-weight:bold; white-space:nowrap;">🖌️ 브러시</span>
                                 <input type="range" id="brushSize" min="2" max="60" value="12"
                                     style="flex:1; accent-color:var(--primary);"
-                                    oninput="updateBrushPreview()">
-                                <span id="brushSizeVal" style="color:var(--primary); font-weight:bold; font-size:0.9rem; min-width:36px; text-align:right;">12px</span>
+                                    oninput="updateBrushPreview(); if(isEraser) updateEraserCursor();">
+                                <span id="brushSizeVal" style="color:var(--primary); font-weight:bold; font-size:0.85rem; min-width:34px; text-align:right;">12px</span>
                                 <canvas id="brushPreviewCanvas" width="40" height="40"
                                     style="border-radius:50%; border:1px solid #334155; background:#1e293b; flex-shrink:0;"></canvas>
                             </div>
-                            <div class="binary-screen" id="imageBinary" style="flex: 1; color: var(--accent);">[시스템 대기] 이미지를 그리고 이진 코드를 확인하세요.</div>
+
+                            <!-- 이진코드 창: 남은 높이 전부 -->
+                            <div class="binary-screen" id="imageBinary"
+                                style="flex:1; overflow-y:auto; min-height:200px; color:var(--accent);">
+                                [시스템 대기] 이미지를 그리고 이진 코드를 확인하세요.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -185,9 +276,10 @@
                             <canvas id="previewCanvas" width="450" height="450" style="width: 450px; height: 450px;"></canvas>
                             <div class="fps-control">
                                 <span style="font-size: 0.8rem; color: #E2E8F0;">속도(FPS)</span>
-                                <input type="range" id="fpsSlider" min="1" max="15" value="5" oninput="updateFPS()">
+                                <input type="range" id="fpsSlider" min="1" max="24" value="5" oninput="updateFPS()">
                                 <span id="fpsValue" style="color: var(--secondary); font-weight: bold; width: 20px;">5</span>
                             </div>
+
                         </div>
 
                         <div class="result-box" id="resultBox">
@@ -234,12 +326,18 @@
         const dCtx = drawCanvas.getContext('2d', {willReadFrequently: true});
         const gCtx = gridCanvas.getContext('2d');
         
-        const PIXEL_SIZE = 22; // 이진코드 좌표 표시용으로만 유지
-        const frames = Array(5).fill(null);
-        let currentFrame = 0, isDrawing = false, isEraser = false;
+        const PIXEL_SIZE = 22;
+        const MAX_FRAMES = 10;
+        // frames: 실제 존재하는 프레임만 담는 동적 배열
+        // 인덱스 = 순서 그대로 (0,1,2...), 삭제하면 splice로 제거
+        let frames = [];
+        let currentFrame = 0;  // frames[] 인덱스
+        let isDrawing = false, isEraser = false;
         let undoStack = [];
         let lastDrawnCell = null;
-        let lastBrushX = null, lastBrushY = null; // 부드러운 선 연결용
+        let lastBrushX = null, lastBrushY = null;
+        let thumbInterval = null; // 썸네일 미리보기 타이머
+        let thumbFrame = 0;       // 현재 썸네일 재생 인덱스
 
         function drawGrid() {
             gCtx.clearRect(0, 0, 450, 450);
@@ -268,7 +366,7 @@
             ctx.fill();
         }
         updateBrushPreview();
-        document.getElementById('penColor').addEventListener('input', () => { isEraser = false; updateBrushPreview(); });
+        document.getElementById('penColor').addEventListener('input', () => { isEraser = false; updateBrushPreview(); resetPenCursor(); });
 
         function saveState() {
             if(undoStack.length > 20) undoStack.shift(); 
@@ -291,27 +389,102 @@
             return { rgb: `rgb(${r},${g},${b})`, r, g, b };
         }
 
+        // 흰 ImageData 1장 생성 헬퍼
+        function makeBlankFrame() {
+            const tmp = document.createElement('canvas');
+            tmp.width = 450; tmp.height = 450;
+            const tc = tmp.getContext('2d');
+            tc.fillStyle = 'white'; tc.fillRect(0, 0, 450, 450);
+            return tc.getImageData(0, 0, 450, 450);
+        }
+
         function initCanvas() {
+            // 시작: 프레임 1장으로 시작
+            frames = [makeBlankFrame()];
+            currentFrame = 0;
             dCtx.fillStyle = "white"; dCtx.fillRect(0, 0, 450, 450);
-            for(let i=0; i<5; i++) frames[i] = dCtx.getImageData(0, 0, 450, 450);
+            renderFrameUI();
         }
         initCanvas();
 
         function selectFrame(index) {
+            // 현재 캔버스 저장
             frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
             currentFrame = index;
             dCtx.putImageData(frames[currentFrame], 0, 0);
-            document.querySelectorAll('.frame-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
             undoStack = [];
+            renderFrameUI();
         }
 
-        function setEraser() { isEraser = true; updateBrushPreview(); }
+        function setEraser() {
+            isEraser = true;
+            updateBrushPreview();
+            updateEraserCursor();
+        }
+
+        // 브러시 크기에 맞는 흰 원형 커서 생성 (SVG → data URI)
+        function updateEraserCursor() {
+            if (!isEraser) return;
+            const size = parseInt(document.getElementById('brushSize').value);
+            // 캔버스 표시 크기 기준으로 커서 반지름 계산
+            const displayW = drawCanvas.getBoundingClientRect().width || 300;
+            const scale    = displayW / drawCanvas.width; // 표시↔실제 비율
+            const r = Math.max(4, Math.round((size / 2) * scale));
+            const d = r * 2 + 4; // 여백 2px
+            const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${d}' height='${d}'>
+                <circle cx='${d/2}' cy='${d/2}' r='${r}'
+                    fill='white' stroke='#888' stroke-width='1.5'
+                    opacity='0.92'/>
+            </svg>`;
+            const uri = 'data:image/svg+xml;base64,' + btoa(svg);
+            drawCanvas.style.cursor = `url('${uri}') ${d/2} ${d/2}, cell`;
+            gridCanvas.style.cursor = `url('${uri}') ${d/2} ${d/2}, cell`;
+        }
+
+        function resetPenCursor() {
+            drawCanvas.style.cursor = 'crosshair';
+            gridCanvas.style.cursor = 'crosshair';
+        }
         // penColor listener → drawGrid 초기화 블록에서 통합 관리
 
         function clearCanvas() { 
             saveState();
-            dCtx.fillStyle = "white"; dCtx.fillRect(0, 0, 450, 450); 
+            dCtx.fillStyle = "white"; dCtx.fillRect(0, 0, 450, 450);
+            frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
             document.getElementById('imageBinary').innerHTML = "[시스템 대기] 도화지가 초기화 되었습니다.";
+        }
+
+        let _confirmResolve = null;
+
+        function showConfirm(msg) {
+            return new Promise(resolve => {
+                _confirmResolve = (ok) => {
+                    const p = document.getElementById('confirmPopup');
+                    p.style.display = 'none';
+                    resolve(ok);
+                };
+                const p = document.getElementById('confirmPopup');
+                document.getElementById('confirmMsg').textContent = msg;
+                // display:flex + 중앙 정렬 명시적으로 설정
+                p.style.display = 'flex';
+                p.style.alignItems = 'center';
+                p.style.justifyContent = 'center';
+            });
+        }
+
+        // 팝업 버튼에서 호출
+        window.confirmResolve = (ok) => { if (_confirmResolve) _confirmResolve(ok); };
+
+        async function clearAllFrames() {
+            const ok = await showConfirm('모든 프레임을 비울까요?\n이 작업은 되돌릴 수 없습니다.');
+            if (!ok) return;
+            frames = [makeBlankFrame()];
+            currentFrame = 0;
+            dCtx.fillStyle = 'white'; dCtx.fillRect(0, 0, 450, 450);
+            undoStack = [];
+            document.getElementById('imageBinary').innerHTML = "[시스템 대기] 전체 프레임이 초기화 되었습니다.";
+            renderFrameUI();
+            saveAllToLocal();
         }
 
         drawCanvas.addEventListener('mousedown', (e) => {
@@ -341,36 +514,26 @@
             const y = (e.clientY - rect.top)  * scaleY;
             const size = parseInt(document.getElementById('brushSize').value);
 
-            dCtx.lineCap     = 'round';
-            dCtx.lineJoin    = 'round';
-            dCtx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
-
-            if (isEraser) {
-                dCtx.strokeStyle = 'rgba(0,0,0,1)';
-                dCtx.lineWidth   = size;
-            } else {
-                const rawColor   = document.getElementById('penColor').value;
-                dCtx.strokeStyle = rawColor;
-                dCtx.lineWidth   = size;
-            }
+            dCtx.lineCap  = 'round';
+            dCtx.lineJoin = 'round';
+            // 지우개: 흰색으로 덧칠 (destination-out 금지 — 투명→검정 버그)
+            const paintColor = isEraser ? '#ffffff' : document.getElementById('penColor').value;
+            dCtx.globalCompositeOperation = 'source-over';
+            dCtx.strokeStyle = paintColor;
+            dCtx.lineWidth   = size;
 
             dCtx.beginPath();
             if (lastBrushX === null) {
-                // 첫 점: 점만 찍기
                 dCtx.arc(x, y, size / 2, 0, Math.PI * 2);
-                dCtx.fillStyle = isEraser ? 'rgba(0,0,0,1)' : document.getElementById('penColor').value;
+                dCtx.fillStyle = paintColor;
                 dCtx.fill();
             } else {
-                // 이전 점에서 현재 점까지 이어 그리기
                 dCtx.moveTo(lastBrushX, lastBrushY);
                 dCtx.lineTo(x, y);
                 dCtx.stroke();
             }
             lastBrushX = x;
             lastBrushY = y;
-
-            // 지우개 후 composite 복원
-            dCtx.globalCompositeOperation = 'source-over';
 
             // 이진코드 로그: 현재 마우스 위치 픽셀 색상 샘플링
             const cellX = Math.floor(x / PIXEL_SIZE);
@@ -445,17 +608,31 @@
         let currentFps = 5;
         let previewInterval;
 
-        function updateFPS() {
-            currentFps = document.getElementById('fpsSlider').value;
-            document.getElementById('fpsValue').innerText = currentFps;
+        // 두 슬라이더 동기화
+        function syncFPS(val) {
+            currentFps = parseInt(val);
+            const sl1 = document.getElementById('fpsSlider');
+            const sl2 = document.getElementById('fpsSliderEdit');
+            const v1  = document.getElementById('fpsValue');
+            const v2  = document.getElementById('fpsValueEdit');
+            if (sl1) sl1.value = val;
+            if (sl2) sl2.value = val;
+            if (v1)  v1.innerText = val;
+            if (v2)  v2.innerText = val + ' fps';
             startPreview();
+            refreshPreviewIfActive();
+        }
+
+        function updateFPS() {
+            syncFPS(document.getElementById('fpsSlider').value);
         }
 
         function startPreview() {
             clearInterval(previewInterval);
             previewInterval = setInterval(() => {
                 frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
-                pCtx.putImageData(frames[previewFrame], 0, 0);
+                const fi = previewFrame % frames.length;
+                if (frames[fi]) pCtx.putImageData(frames[fi], 0, 0);
                 
                 const text = document.getElementById('textInput').value;
                 if(text) {
@@ -466,11 +643,9 @@
                     pCtx.textAlign = "center";
                     pCtx.fillText(text, 225, 415, 420);
                 }
-                previewFrame = (previewFrame + 1) % 5;
+                previewFrame = (previewFrame + 1) % frames.length;
             }, 1000 / currentFps);
         }
-        startPreview(); 
-
         async function renderVideo() {
             const btn = document.getElementById('renderBtn');
             const format = document.getElementById('formatSelect').value;
@@ -524,6 +699,360 @@
             recorder.start();
             setTimeout(() => recorder.stop(), 10000); 
         }
+
+        // ══════════════════════════════════════════════════════
+        // 1) 이미지 업로드 → 현재 프레임에 적용
+        // ══════════════════════════════════════════════════════
+        function uploadFrameImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = function() {
+                saveState();
+                dCtx.fillStyle = 'white';
+                dCtx.fillRect(0, 0, 450, 450);
+                // 비율 유지하며 450x450에 맞게 그리기
+                const scale = Math.min(450 / img.width, 450 / img.height);
+                const w = img.width * scale, h = img.height * scale;
+                dCtx.drawImage(img, (450 - w) / 2, (450 - h) / 2, w, h);
+                frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+                URL.revokeObjectURL(url);
+                input.value = '';
+                saveAllToLocal();
+                renderDeleteList();
+            };
+            img.src = url;
+        }
+
+        // ══════════════════════════════════════════════════════
+        // 3) 프레임 삭제 버튼 렌더링
+        // ══════════════════════════════════════════════════════
+        // ── 프레임 UI 통합 렌더링 ──────────────────────────────────
+        // frameBtnList: 각 프레임 선택 버튼 + ✕ 삭제 + ➕ 추가
+        // thumbStrip:   썸네일 미리보기 스트립
+        function renderFrameUI() {
+            renderFrameBtns();
+            renderThumbStrip();
+        }
+
+        function renderFrameBtns() {
+            const wrap = document.getElementById('frameBtnList');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+
+            // 5개씩 최대 2줄 그리드
+            wrap.style.cssText = 'display:grid; grid-template-columns:repeat(5,1fr); gap:3px; width:100%;';
+
+            frames.forEach((_, i) => {
+                const grp = document.createElement('div');
+                grp.style.cssText = 'display:flex; align-items:stretch;';
+
+                const isActive = i === currentFrame;
+                const btn = document.createElement('button');
+                btn.style.cssText = `
+                    flex:1; height:22px; font-size:0.65rem; font-weight:700;
+                    border-radius:4px 0 0 4px;
+                    border:1px solid ${isActive ? 'var(--secondary)' : '#334155'}; border-right:none;
+                    background:${isActive ? 'var(--secondary)' : '#0B0F19'};
+                    color:${isActive ? '#fff' : '#94A3B8'};
+                    cursor:pointer; white-space:nowrap;
+                    box-shadow:${isActive ? '0 0 5px rgba(255,0,229,0.35)' : 'none'};
+                `;
+                btn.textContent = '#' + (i + 1);
+                btn.onclick = () => selectFrame(i);
+                grp.appendChild(btn);
+
+                const del = document.createElement('button');
+                del.style.cssText = `
+                    width:13px; height:22px; font-size:0.52rem; font-weight:900;
+                    border-radius:0 4px 4px 0;
+                    border:1px solid #ef4444; border-left:none;
+                    background:#1a0a0a; color:#ef4444; cursor:pointer; padding:0; line-height:1;
+                `;
+                del.title = '#' + (i+1) + ' 삭제';
+                del.textContent = '✕';
+                del.onclick = () => deleteFrame(i);
+                grp.appendChild(del);
+
+                wrap.appendChild(grp);
+            });
+
+            // addFrameBtn 표시/숨김 업데이트
+            const addBtn = document.getElementById('addFrameBtn');
+            if (addBtn) addBtn.style.display = frames.length < MAX_FRAMES ? '' : 'none';
+        }
+
+                // 프레임 순서 변경: dir=-1(앞으로) / dir=1(뒤로)
+        function moveFrame(i, dir) {
+            const j = i + dir;
+            if (j < 0 || j >= frames.length) return;
+            // 현재 캔버스 저장
+            frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+            // swap
+            [frames[i], frames[j]] = [frames[j], frames[i]];
+            // currentFrame 따라가기
+            if (currentFrame === i) currentFrame = j;
+            else if (currentFrame === j) currentFrame = i;
+            renderFrameUI();
+            saveAllToLocal();
+        }
+
+        function addFrame() {
+            if (frames.length >= MAX_FRAMES) return;
+            // 현재 캔버스 저장 후 새 흰 프레임 추가
+            frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+            frames.push(makeBlankFrame());
+            currentFrame = frames.length - 1;
+            dCtx.fillStyle = 'white'; dCtx.fillRect(0, 0, 450, 450);
+            undoStack = [];
+            renderFrameUI();
+            saveAllToLocal();
+        }
+
+        function deleteFrame(i) {
+            if (frames.length <= 1) {
+                const tip = document.getElementById('minFrameTooltip');
+                if (tip) {
+                    tip.style.display = 'block';
+                    clearTimeout(tip._timer);
+                    tip._timer = setTimeout(() => { tip.style.display = 'none'; }, 2000);
+                }
+                return;
+            }
+            frames.splice(i, 1);
+            // currentFrame 보정
+            if (currentFrame >= frames.length) currentFrame = frames.length - 1;
+            dCtx.putImageData(frames[currentFrame], 0, 0);
+            undoStack = [];
+            renderFrameUI();
+            saveAllToLocal();
+        }
+
+        // ── 편집 화면 미리보기 캔버스 재생 ─────────────────────────
+        // 썸네일 스트립 대신 단일 캔버스에 동영상처럼 재생
+        // ── 슬라이드쇼 미리보기 모드 ────────────────────────────────
+        function renderThumbStrip() { /* 슬라이드쇼 모드에서 미사용 */ }
+        function startThumbPreview() { /* 슬라이드쇼 모드에서 미사용 */ }
+
+        let isPreviewMode = false;
+
+        function togglePreviewMode() {
+            isPreviewMode ? stopPreviewMode() : startPreviewMode();
+        }
+
+        function startPreviewMode() {
+            if (!frames.length) return;
+            frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+            isPreviewMode = true;
+
+            const overlay    = document.getElementById('previewOverlay');
+            const badge      = document.getElementById('previewBadge');
+            const frameNum   = document.getElementById('previewFrameNum');
+            const toggleBtn  = document.getElementById('previewToggleBtn');
+            const gridCvs    = document.getElementById('gridCanvas');
+
+            overlay.style.display   = 'block';
+            badge.style.display     = 'block';
+            frameNum.style.display  = 'block';
+            gridCvs.style.display   = 'none';
+            drawCanvas.style.pointerEvents = 'none';
+            drawCanvas.style.cursor = 'default';
+            toggleBtn.textContent   = '⏹ 정지';
+            toggleBtn.style.borderColor = '#ef4444';
+            toggleBtn.style.color       = '#ef4444';
+            toggleBtn.style.background  = '#1a0a0a';
+
+            if (thumbInterval) { clearTimeout(thumbInterval); thumbInterval = null; }
+            thumbFrame = 0;
+            const octx = overlay.getContext('2d');
+
+            function playFrame() {
+                if (!isPreviewMode) return;
+                const fi = thumbFrame % frames.length;
+                const f  = frames[fi];
+                if (f) {
+                    const tmp = document.createElement('canvas');
+                    tmp.width = 450; tmp.height = 450;
+                    tmp.getContext('2d').putImageData(f, 0, 0);
+                    octx.clearRect(0, 0, overlay.width, overlay.height);
+                    octx.drawImage(tmp, 0, 0, overlay.width, overlay.height);
+                    // 자막
+                    const text = document.getElementById('textInput')?.value;
+                    if (text) {
+                        octx.fillStyle = 'rgba(0,0,0,0.6)';
+                        octx.fillRect(0, overlay.height - 52, overlay.width, 52);
+                        octx.fillStyle = '#fff';
+                        octx.font = 'bold 22px Pretendard,sans-serif';
+                        octx.textAlign = 'center';
+                        octx.fillText(text, overlay.width/2, overlay.height - 18, overlay.width - 20);
+                    }
+                    if (frameNum) frameNum.textContent = `F${fi+1}/${frames.length}`;
+                }
+                thumbFrame++;
+                const fps = parseInt(document.getElementById('fpsSliderEdit')?.value || 5);
+                thumbInterval = setTimeout(playFrame, 1000 / fps);
+            }
+            playFrame();
+        }
+
+        function stopPreviewMode() {
+            isPreviewMode = false;
+            if (thumbInterval) { clearTimeout(thumbInterval); thumbInterval = null; }
+
+            const overlay   = document.getElementById('previewOverlay');
+            const badge     = document.getElementById('previewBadge');
+            const frameNum  = document.getElementById('previewFrameNum');
+            const toggleBtn = document.getElementById('previewToggleBtn');
+            const gridCvs   = document.getElementById('gridCanvas');
+
+            overlay.style.display  = 'none';
+            badge.style.display    = 'none';
+            frameNum.style.display = 'none';
+            gridCvs.style.display  = '';
+            drawCanvas.style.pointerEvents = '';
+            drawCanvas.style.cursor = isEraser ? 'none' : 'crosshair';
+            toggleBtn.textContent   = '▶ 미리보기';
+            toggleBtn.style.borderColor = 'var(--primary)';
+            toggleBtn.style.color       = 'var(--primary)';
+            toggleBtn.style.background  = '#0a1a2a';
+
+            if (frames[currentFrame]) dCtx.putImageData(frames[currentFrame], 0, 0);
+        }
+
+        function refreshPreviewIfActive() {
+            if (isPreviewMode) { stopPreviewMode(); startPreviewMode(); }
+        }
+
+        function updateFrameBtnHighlight() { renderFrameUI(); }
+
+
+
+        // ══════════════════════════════════════════════════════
+        // 4) 로컬스토리지 저장 / 불러오기
+        // ══════════════════════════════════════════════════════
+        const LS_KEY = 'dbb_video_play_v1';
+
+        function saveAllToLocal() {
+            try {
+                // 현재 캔버스 상태 저장
+                frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+
+                frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
+                const frameData = frames.map(f => {
+                    if (!f) return null;
+                    const tmp = document.createElement('canvas');
+                    tmp.width = 450; tmp.height = 450;
+                    tmp.getContext('2d').putImageData(f, 0, 0);
+                    return tmp.toDataURL('image/jpeg', 0.7);
+                });
+
+                const data = {
+                    frames: frameData,
+                    currentFrame: currentFrame,
+                    text: document.getElementById('textInput')?.value || '',
+                    fps: document.getElementById('fpsSlider')?.value || '5',
+                };
+                localStorage.setItem(LS_KEY, JSON.stringify(data));
+            } catch(e) {
+                console.warn('저장 실패 (용량 초과 가능):', e);
+            }
+        }
+
+        function loadFromLocal() {
+            try {
+                const raw = localStorage.getItem(LS_KEY);
+                if (!raw) return false;
+                const data = JSON.parse(raw);
+
+                // 텍스트 복원
+                if (data.text && document.getElementById('textInput')) {
+                    document.getElementById('textInput').value = data.text;
+                    updateTextBinary();
+                }
+
+                // fps 복원
+                if (data.fps) {
+                    const sl = document.getElementById('fpsSlider');
+                    if (sl) { sl.value = data.fps; document.getElementById('fpsValue').innerText = data.fps; currentFps = parseInt(data.fps); }
+                }
+
+                // 프레임 배열 복원
+                if (data.frames && data.frames.length > 0) {
+                    frames = new Array(data.frames.length).fill(null);
+                    let loaded = 0;
+                    data.frames.forEach((src, i) => {
+                        if (!src) { loaded++; if (loaded === data.frames.length) afterLoad(data); return; }
+                        const img = new Image();
+                        img.onload = function() {
+                            const tmp = document.createElement('canvas');
+                            tmp.width = 450; tmp.height = 450;
+                            tmp.getContext('2d').drawImage(img, 0, 0);
+                            frames[i] = tmp.getContext('2d').getImageData(0, 0, 450, 450);
+                            loaded++;
+                            if (loaded === data.frames.length) afterLoad(data);
+                        };
+                        img.onerror = () => { loaded++; if (loaded === data.frames.length) afterLoad(data); };
+                        img.src = src;
+                    });
+                    return true;
+                }
+            } catch(e) {
+                console.warn('불러오기 실패:', e);
+            }
+            return false;
+        }
+
+        function afterLoad(data) {
+            currentFrame = data.currentFrame || 0;
+            if (currentFrame >= frames.length) currentFrame = 0;
+            if (frames[currentFrame]) dCtx.putImageData(frames[currentFrame], 0, 0);
+            renderFrameUI();
+            startPreview();
+            console.log('✅ 이전 작업 불러오기 완료 — ' + frames.length + '장');
+        }
+
+        // 자동저장: 드로잉 끝날 때마다
+        window.addEventListener('mouseup', saveAllToLocal);
+        // 자동저장: 페이지 떠날 때
+        window.addEventListener('beforeunload', saveAllToLocal);
+
+        // 초기화 후 로컬 불러오기 시도
+        const loaded = loadFromLocal();
+        if (!loaded) {
+            renderFrameUI();
+            startPreview();
+        }
     </script>
+
+<!-- ── 전체 지우기 확인 팝업 ── -->
+<div id="confirmPopup" style="
+    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    z-index:99999; background:rgba(0,0,0,0.72);
+    align-items:center; justify-content:center;">
+    <div style="
+        background:#171E2E; border:1px solid #ef4444; border-radius:16px;
+        padding:30px 34px; max-width:320px; width:88%; text-align:center;
+        box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+        <div style="font-size:2rem; margin-bottom:12px;">🗑️</div>
+        <div id="confirmMsg" style="
+            color:#F8FAFC; font-size:0.95rem; font-weight:700;
+            line-height:1.7; margin-bottom:22px; white-space:pre-line;"></div>
+        <div style="display:flex; gap:10px;">
+            <button onclick="confirmResolve(false)" style="
+                flex:1; padding:10px 0; border-radius:8px;
+                border:1.5px solid #334155; background:#0B0F19;
+                color:#94A3B8; font-weight:700; font-size:0.9rem; cursor:pointer;">
+                취소
+            </button>
+            <button onclick="confirmResolve(true)" style="
+                flex:1; padding:10px 0; border-radius:8px;
+                border:none; background:#ef4444;
+                color:#fff; font-weight:900; font-size:0.9rem; cursor:pointer;">
+                전체 비우기
+            </button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
