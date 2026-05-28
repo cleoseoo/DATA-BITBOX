@@ -265,148 +265,197 @@ function getPengDir(tick) {
     return phase < span ? 1 : -1;
 }
 
-// ─── 귀여운 펭귄 그리기 (크고 역동적) ─────────────────────────────
+// ─── 귀여운 펭귄 그리기 (섬세한 걷기 애니메이션) ────────────────
+// 걷기 4단계 키프레임:
+//   0.00~0.25: 양발 모음  → 왼발 앞으로 벌림
+//   0.25~0.50: 왼발 앞    → 양발 모음
+//   0.50~0.75: 양발 모음  → 오른발 앞으로 벌림
+//   0.75~1.00: 오른발 앞  → 양발 모음
 function drawPenguin(ctx, x, tick, dir) {
     const walkPhase = (tick % WALK_CYCLE) / WALK_CYCLE; // 0~1
-    const wobble    = Math.sin(walkPhase * Math.PI * 2) * 7 * dir; // 뒤뚱 (더 크게)
-    const bobY      = Math.abs(Math.sin(walkPhase * Math.PI * 2)) * 5; // 위아래 통통
 
-    // 날개 펄럭임: 걷는 주기에 맞춰 위아래로 크게 (±45도)
-    const wingFlap  = Math.sin(walkPhase * Math.PI * 2) * 45;
+    // ── 4단계 키프레임으로 다리 각도 계산 ──────────────────────────
+    // t: 각 구간 내 진행률 (0~1), eased로 부드럽게
+    function easeInOut(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
 
-    // 다리 스윙: 좌우 교대로 앞뒤 크게 (±40도)
-    const legSwingL = Math.sin(walkPhase * Math.PI * 2) * 40;
-    const legSwingR = -legSwingL;
+    let legL, legR; // 각각의 다리 각도 (도), 앞=양수, 뒤=음수
+    const SPREAD = 35; // 최대 벌림 각도
 
+    if (walkPhase < 0.25) {
+        // 구간1: 양발 모음(0도) → 왼발 앞(+SPREAD), 오른발 뒤(-SPREAD)
+        const t = easeInOut(walkPhase / 0.25);
+        legL =  SPREAD * t;
+        legR = -SPREAD * t;
+    } else if (walkPhase < 0.50) {
+        // 구간2: 왼발 앞 → 양발 다시 모음
+        const t = easeInOut((walkPhase - 0.25) / 0.25);
+        legL =  SPREAD * (1 - t);
+        legR = -SPREAD * (1 - t);
+    } else if (walkPhase < 0.75) {
+        // 구간3: 양발 모음 → 오른발 앞(+SPREAD), 왼발 뒤(-SPREAD)
+        const t = easeInOut((walkPhase - 0.50) / 0.25);
+        legL = -SPREAD * t;
+        legR =  SPREAD * t;
+    } else {
+        // 구간4: 오른발 앞 → 양발 모음
+        const t = easeInOut((walkPhase - 0.75) / 0.25);
+        legL = -SPREAD * (1 - t);
+        legR =  SPREAD * (1 - t);
+    }
+    // 뒤/앞 판별용 원본 각도 저장 (dir 곱하기 전 부호)
+    const legL_raw = legL, legR_raw = legR;
+    // 진행 방향에 따라 다리 각도 반전
+    legL *= dir; legR *= dir;
+
+    // ── 뒤뚱·통통 ────────────────────────────────────────────────
+    const wobble = Math.sin(walkPhase * Math.PI * 2) * 6 * dir;
+    const bobY   = Math.abs(Math.sin(walkPhase * Math.PI)) * 4;
+
+    // ── 날개 펄럭: 다리와 반대 리듬으로 위아래 ──────────────────
+    const wingFlap = Math.sin(walkPhase * Math.PI * 2) * 40;
+
+    // 펭귄 전체 기준점: 몸통 하단(y=-2)이 GROUND_Y에 닿도록
     const py = GROUND_Y - bobY;
 
     ctx.save();
     ctx.translate(x, py);
     ctx.rotate((wobble * Math.PI) / 180);
 
-    // ══ 그리기 순서: 날개(뒤) → 다리 → 몸통 → 날개(앞) → 머리 ══
-    // 다리가 몸통에 안 묻히고, 앞날개가 몸통 위에 보이도록
+    // ── 다리 그리기 헬퍼 ────────────────────────────────────────
+    // ox: 다리 뿌리 x 오프셋 (몸통 하단 좌우)
+    // legAngle: 회전 각도(도) — 회전 기준은 몸통 하단(0, -2)
+    function drawLeg(ox, legAngle) {
+        ctx.save();
+        // 회전 기준: 몸통 하단(y=-2)에서 좌우로 ox
+        ctx.translate(ox, -2);
+        ctx.rotate((legAngle * Math.PI) / 180);
 
-    // ── 뒤쪽 날개 (몸통보다 먼저) ──
+        // 다리
+        ctx.fillStyle = '#FF8C00';
+        ctx.beginPath();
+        ctx.rect(-5, 0, 10, 22);
+        ctx.fill();
+        // 다리 음영
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.beginPath();
+        ctx.rect(2, 0, 3, 22);
+        ctx.fill();
+
+        // 발: 다리가 앞으로 기울면(legAngle>0) 발도 앞, 뒤면 뒤
+        // 회전 좌표계 안에서 "앞"은 항상 양의 x 방향
+        const footDir = legAngle >= 0 ? 1 : -1;
+        ctx.fillStyle = '#FF8C00';
+        ctx.beginPath();
+        ctx.ellipse(footDir * 8, 24, 15, 6, footDir * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        // 발 음영
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath();
+        ctx.ellipse(footDir * 8, 25, 12, 4, footDir * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        // 발가락 3선
+        ctx.strokeStyle = '#cc5500';
+        ctx.lineWidth = 1.8;
+        [-1, 0, 1].forEach(t => {
+            ctx.beginPath();
+            ctx.moveTo(footDir * 8, 22);
+            ctx.lineTo(footDir * 8 + t * 11, 30);
+            ctx.stroke();
+        });
+        ctx.restore();
+    }
+
+    // ══ 그리기 순서 ══════════════════════════════════════════════
+    // 1) 뒤쪽 날개
     ctx.fillStyle = '#2c2c4e';
     ctx.save();
-    ctx.translate(dir > 0 ? -26 : 26, -42);
-    ctx.rotate(((dir > 0 ? -20 - wingFlap : 20 + wingFlap) * Math.PI) / 180);
+    ctx.translate(dir > 0 ? -22 : 22, -44);
+    ctx.rotate(((dir > 0 ? -15 - wingFlap * 0.7 : 15 + wingFlap * 0.7) * Math.PI) / 180);
     ctx.beginPath();
-    ctx.ellipse(0, 10, 9, 22, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 12, 9, 24, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // ── 왼쪽 다리 + 발 ──
-    ctx.save();
-    ctx.translate(-13, -4);
-    ctx.rotate((legSwingL * Math.PI) / 180);
-    // 다리 (굵고 잘 보이게)
-    ctx.fillStyle = '#FF8C00';
-    ctx.beginPath();
-    ctx.rect(-5, 0, 10, 20);
-    ctx.fill();
-    // 발 (크고 납작하게)
-    ctx.beginPath();
-    ctx.ellipse(dir > 0 ? 4 : -4, 22, 14, 6, dir > 0 ? 0.2 : -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    // 발가락 선
-    ctx.strokeStyle = '#cc6600';
-    ctx.lineWidth = 1.5;
-    for (let t = -1; t <= 1; t++) {
-        ctx.beginPath();
-        ctx.moveTo(dir > 0 ? 4 : -4, 20);
-        ctx.lineTo((dir > 0 ? 4 : -4) + t * 10, 27);
-        ctx.stroke();
-    }
-    ctx.restore();
+    // 2) 뒤쪽 다리: raw 각도가 음수(뒤로 간) 쪽을 먼저 그림
+    if (legL_raw <= 0) drawLeg(-11, legL);
+    if (legR_raw <= 0) drawLeg( 11, legR);
 
-    // ── 오른쪽 다리 + 발 ──
-    ctx.save();
-    ctx.translate(13, -4);
-    ctx.rotate((legSwingR * Math.PI) / 180);
-    ctx.fillStyle = '#FF8C00';
-    ctx.beginPath();
-    ctx.rect(-5, 0, 10, 20);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(dir > 0 ? 4 : -4, 22, 14, 6, dir > 0 ? 0.2 : -0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#cc6600';
-    ctx.lineWidth = 1.5;
-    for (let t = -1; t <= 1; t++) {
-        ctx.beginPath();
-        ctx.moveTo(dir > 0 ? 4 : -4, 20);
-        ctx.lineTo((dir > 0 ? 4 : -4) + t * 10, 27);
-        ctx.stroke();
-    }
-    ctx.restore();
-
-    // ── 몸통 ──
+    // 3) 몸통
     ctx.fillStyle = '#1a1a2e';
     ctx.beginPath();
     ctx.ellipse(0, -36, 24, 34, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // ── 배 (흰색) ──
+    // 4) 배
     ctx.fillStyle = '#eef2ff';
     ctx.beginPath();
-    ctx.ellipse(0, -34, 15, 24, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, -34, 15, 23, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // ── 앞쪽 날개 (몸통 위에) ──
+    // 배 하단 둥근 그라디언트 느낌
+    ctx.fillStyle = 'rgba(200,210,255,0.4)';
+    ctx.beginPath();
+    ctx.ellipse(0, -22, 9, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 5) 앞쪽 다리: raw 각도가 양수(앞으로 간) 쪽을 나중에 그림
+    if (legL_raw > 0) drawLeg(-11, legL);
+    if (legR_raw > 0) drawLeg( 11, legR);
+
+    // 6) 앞쪽 날개
     ctx.fillStyle = '#1a1a2e';
     ctx.save();
-    ctx.translate(dir > 0 ? 24 : -24, -42);
-    ctx.rotate(((dir > 0 ? 20 + wingFlap : -20 - wingFlap) * Math.PI) / 180);
+    ctx.translate(dir > 0 ? 22 : -22, -44);
+    ctx.rotate(((dir > 0 ? 15 + wingFlap : -15 - wingFlap) * Math.PI) / 180);
     ctx.beginPath();
-    ctx.ellipse(0, 10, 9, 22, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 12, 9, 24, 0, 0, Math.PI * 2);
     ctx.fill();
     // 날개 끝 하이라이트
-    ctx.fillStyle = '#3a3a5e';
+    ctx.fillStyle = '#4a4a7e';
     ctx.beginPath();
-    ctx.ellipse(0, 18, 5, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 20, 5, 9, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // ── 머리 ──
+    // 7) 머리
     ctx.fillStyle = '#1a1a2e';
     ctx.beginPath();
     ctx.arc(0, -70, 20, 0, Math.PI * 2);
     ctx.fill();
 
-    // ── 얼굴 흰 부분 ──
+    // 8) 얼굴 흰 부분
     ctx.fillStyle = '#eef2ff';
     ctx.beginPath();
     ctx.ellipse(0, -69, 13, 14, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // ── 눈 ──
+    // 9) 눈
     const eyeX = dir > 0 ? 7 : -7;
     ctx.fillStyle = '#1a1a2e';
     ctx.beginPath();
-    ctx.arc(eyeX, -74, 4, 0, Math.PI * 2);
+    ctx.arc(eyeX, -74, 4.5, 0, Math.PI * 2);
     ctx.fill();
+    // 눈 하이라이트
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(eyeX + dir * 1.5, -75, 1.8, 0, Math.PI * 2);
+    ctx.arc(eyeX + dir * 1.5, -76, 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // ── 부리 ──
+    // 10) 부리
     ctx.fillStyle = '#FF8C00';
     ctx.beginPath();
     if (dir > 0) {
-        ctx.moveTo(10, -71); ctx.lineTo(22, -68); ctx.lineTo(10, -65);
+        ctx.moveTo(10, -71); ctx.lineTo(23, -68); ctx.lineTo(10, -65);
     } else {
-        ctx.moveTo(-10, -71); ctx.lineTo(-22, -68); ctx.lineTo(-10, -65);
+        ctx.moveTo(-10, -71); ctx.lineTo(-23, -68); ctx.lineTo(-10, -65);
     }
     ctx.closePath();
     ctx.fill();
 
-    // ── 볼터치 ──
-    ctx.fillStyle = 'rgba(255, 140, 140, 0.6)';
+    // 11) 볼터치
+    ctx.fillStyle = 'rgba(255, 130, 130, 0.65)';
     ctx.beginPath();
-    ctx.ellipse(dir > 0 ? 9 : -9, -65, 6, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(dir > 0 ? 9 : -9, -65, 7, 4, 0, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
