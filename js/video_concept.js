@@ -250,7 +250,7 @@ let fpsFrameIdx = 0;
 let fpsLastTime = 0;
 
 // ─── 펭귄 걷기 시뮬 ──────────────────────────────────────────────
-const WALK_CYCLE = 28;    // 한 걸음 사이클(틱)
+const WALK_CYCLE = 24;    // JOURNEY_TICKS(120)과 약수 관계 → fps별 균등 분포
 const GROUND_Y   = FH - 36 - 35; // 진행 바(36px) + 다리·발(35px) 위
 
 // tick → 펭귄 x 위치 (항상 동일한 왕복 경로)
@@ -274,9 +274,26 @@ function drawPenguin(ctx, x, tick, dir) {
     // 날개 펄럭임: 걷는 주기에 맞춰 위아래로 크게 (±45도)
     const wingFlap  = Math.sin(walkPhase * Math.PI * 2) * 45;
 
-    // 다리 스윙: 좌우 교대로 앞뒤 크게 (±40도)
-    const legSwingL = Math.sin(walkPhase * Math.PI * 2) * 40;
-    const legSwingR = -legSwingL;
+    // 다리 스윙: 4단계 키프레임 — 붙였다 벌렸다
+    // 0.00~0.25: 모음→왼앞/오른뒤  0.25~0.50: 벌림→모음
+    // 0.50~0.75: 모음→오른앞/왼뒤  0.75~1.00: 벌림→모음
+    function eio(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+    const SPREAD = 36;
+    let legSwingL, legSwingR;
+    if (walkPhase < 0.25) {
+        const t = eio(walkPhase / 0.25);
+        legSwingL =  SPREAD * t;  legSwingR = -SPREAD * t;
+    } else if (walkPhase < 0.50) {
+        const t = eio((walkPhase - 0.25) / 0.25);
+        legSwingL =  SPREAD * (1-t); legSwingR = -SPREAD * (1-t);
+    } else if (walkPhase < 0.75) {
+        const t = eio((walkPhase - 0.50) / 0.25);
+        legSwingL = -SPREAD * t;  legSwingR =  SPREAD * t;
+    } else {
+        const t = eio((walkPhase - 0.75) / 0.25);
+        legSwingL = -SPREAD * (1-t); legSwingR =  SPREAD * (1-t);
+    }
+    legSwingL *= dir; legSwingR *= dir;
 
     const py = GROUND_Y - bobY;
 
@@ -299,12 +316,12 @@ function drawPenguin(ctx, x, tick, dir) {
 
     // ── 왼쪽 다리 + 발 ──
     ctx.save();
-    ctx.translate(-13, -4);
+    ctx.translate(-13, -2);
     ctx.rotate((legSwingL * Math.PI) / 180);
-    // 다리 (굵고 잘 보이게)
+    // 다리: y=-8에서 시작해 몸통 안으로 파고들어 연결처럼 보임
     ctx.fillStyle = '#FF8C00';
     ctx.beginPath();
-    ctx.rect(-5, 0, 10, 20);
+    ctx.rect(-5, -8, 10, 28);
     ctx.fill();
     // 발 (크고 납작하게)
     ctx.beginPath();
@@ -323,11 +340,12 @@ function drawPenguin(ctx, x, tick, dir) {
 
     // ── 오른쪽 다리 + 발 ──
     ctx.save();
-    ctx.translate(13, -4);
+    ctx.translate(13, -2);
     ctx.rotate((legSwingR * Math.PI) / 180);
+    // 다리: y=-8에서 시작해 몸통 안으로 파고들어 연결처럼 보임
     ctx.fillStyle = '#FF8C00';
     ctx.beginPath();
-    ctx.rect(-5, 0, 10, 20);
+    ctx.rect(-5, -8, 10, 28);
     ctx.fill();
     ctx.beginPath();
     ctx.ellipse(dir > 0 ? 4 : -4, 22, 14, 6, dir > 0 ? 0.2 : -0.2, 0, Math.PI * 2);
@@ -475,14 +493,24 @@ function snapshotFrame(tick) {
 // ── 핵심 원칙 ──────────────────────────────────────────────────
 // fps가 달라도 펭귄은 항상 JOURNEY_TICKS(고정 거리)를 이동.
 // 그 구간을 fps 등분해서 각 위치를 스냅샷 → 프레임 수만 달라짐.
-const JOURNEY_TICKS = 240; // 항상 이 틱 길이의 여정을 1초에 담음
+const JOURNEY_TICKS = 240; // 끝에서 끝까지 이동 거리 (원래값 유지)
 
 function buildFrames(fps) {
+    // 24fps 기준 전체 프레임을 먼저 생성
+    // fps가 낮을수록 그 중에서 균등하게 샘플링
+    const BASE_FPS = 24;
+    const baseFrames = [];
+    for (let f = 0; f < BASE_FPS; f++) {
+        const t = Math.round((f / BASE_FPS) * JOURNEY_TICKS);
+        baseFrames.push(snapshotFrame(t));
+    }
+    if (fps === BASE_FPS) return baseFrames;
+
+    // fps만큼 균등 샘플링
     const frames = [];
     for (let f = 0; f < fps; f++) {
-        // 0 ~ JOURNEY_TICKS 를 fps 등분 → f번째 스냅샷 위치
-        const t = Math.round((f / fps) * JOURNEY_TICKS);
-        frames.push(snapshotFrame(t));
+        const idx = Math.round((f / fps) * BASE_FPS);
+        frames.push(baseFrames[Math.min(idx, BASE_FPS - 1)]);
     }
     return frames;
 }
