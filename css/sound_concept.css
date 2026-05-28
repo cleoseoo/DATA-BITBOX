@@ -85,7 +85,7 @@
         .concept-wrap { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; text-align: left; }
         .concept-row { background: #fafafa; border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; padding: 20px 25px; display: flex; align-items: flex-start; gap: 15px; line-height: 1.7; font-size: 1.05rem; color: #343a40; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .concept-icon { font-size: 1.8rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
-        .pill-btn { background: linear-gradient(135deg, #0984e3, #74b9ff); color: white; border: none; border-radius: 12px; padding: 4px 12px; font-size: 0.95rem; font-weight: 900; cursor: pointer !important; box-shadow: 0 3px 6px rgba(9, 132, 227, 0.3); display: inline-flex; align-items: center; gap: 4px; vertical-align: baseline; transition: 0.2s;}
+        .pill-btn { background: linear-gradient(135deg, #0984e3, #74b9ff); color: white; border: none; border-radius: 12px; padding: 4px 30px; font-size: 0.95rem; font-weight: 900; cursor: pointer !important; box-shadow: 0 3px 6px rgba(9, 132, 227, 0.3); display: inline-flex; align-items: center; gap: 4px; vertical-align: baseline; transition: 0.2s;}
         .pill-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(9, 132, 227, 0.4); }
         .pop-anim { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-block; vertical-align: middle; margin: 0 4px;}
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -327,4 +327,16 @@
 .pcm-btn.pcm-active .pcm-badge {
     background: rgba(255,255,255,0.25);
     color: #fff;
+}
+
+/* =========================================================
+   🖱️ [마우스 커서 일괄 수정] 모든 클릭 요소에 손가락(pointer) 강제 적용
+========================================================= */
+button, button *, 
+a, a *, 
+.nav-arrow, .nav-arrow *, 
+.pill-btn, .pill-btn *,
+.submit-quiz-btn, .submit-quiz-btn *,
+[onclick], [onclick] * {
+    cursor: pointer !important;
 }

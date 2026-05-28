@@ -353,3 +353,15 @@ main { flex: 1; display: flex; flex-direction: column; align-items: center; padd
 #tb-overlay.show-box #tb-box { animation: floatUp 1.8s ease-in-out infinite 0.5s; }
 #tb-overlay.open-lid #tb-box { animation: none; }
 @media (prefers-reduced-motion: reduce) { .pillar, .hero { animation: none; opacity: 1; } .typed-cursor { animation: none; } }
+
+/* =========================================================
+   🖱️ [마우스 커서 일괄 수정] 모든 클릭 요소에 손가락(pointer) 강제 적용
+========================================================= */
+button, button *, 
+a, a *, 
+.nav-arrow, .nav-arrow *, 
+.pill-btn, .pill-btn *,
+.submit-quiz-btn, .submit-quiz-btn *,
+[onclick], [onclick] * {
+    cursor: pointer !important;
+}

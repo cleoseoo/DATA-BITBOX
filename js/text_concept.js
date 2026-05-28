@@ -49,17 +49,17 @@ function typeChar(btnEl, char, dec, bin, standard) {
         elChar.classList.add('pop-anim');
     }, 50);
 
-    // ② 약속된 번호표 박스 활성화
+    // ② 약속된 번호표 박스 활성화 (네이비 배경에 어울리는 색상으로 교체)
     setTimeout(() => {
         if(boxDec) boxDec.classList.add('active');
         if(standard === 'ASCII') {
-            elStdLabel.innerHTML = '<span style="color:#0284c7;">🇺🇸 아스키코드</span>';
+            elStdLabel.innerHTML = '<span style="color:#38bdf8;">🇺🇸 아스키코드</span>';
         } else {
-            elStdLabel.innerHTML = '<span style="color:#10b981;">🌍 유니코드</span>';
+            elStdLabel.innerHTML = '<span style="color:#34d399;">🌍 유니코드</span>';
         }
         elStdLabel.classList.add('pop-anim');
         elDec.innerText = dec;
-        elDec.style.color = standard === 'ASCII' ? 'var(--ocean-blue)' : 'var(--success-green)';
+        elDec.style.color = standard === 'ASCII' ? '#38bdf8' : '#34d399';
         elDec.classList.add('pop-anim');
     }, 300);
 
@@ -107,7 +107,7 @@ function renderAsciiTable() {
         let innerHtml = `<div class="ascii-dec">${i}</div><div class="ascii-bin">${binStr}</div>`;
         
         if(hiddenDecimals.includes(i)) {
-            innerHtml = `<button class="reveal-btn small yellow" onclick="revealCode(this, '${i}', '${binStr}', '#1d1d1f')">❓</button>`;
+            innerHtml = `<button class="reveal-btn small yellow" onclick="revealCode(this, '${i}', '${binStr}', '#1d1d1f')">❔</button>`;
         }
         
         html += `

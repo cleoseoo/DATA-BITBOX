@@ -127,69 +127,83 @@
 
         .slide-section { background: linear-gradient(135deg, #f8fbff 0%, #ebf4ff 100%); border-radius: 22px; padding: 30px; margin-bottom: 25px; border: 1px solid rgba(0,113,227,0.1); box-shadow: inset 0 0 20px rgba(0,113,227,0.03); width: 100%; box-sizing: border-box; text-align: center; }
         .visual-title { font-size: 1.3rem; font-weight: 900; color: var(--apple-blue); margin-bottom: 10px; }
+        
         .converter-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 25px; padding: 25px; background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.03);}
         
         .keyboard-area { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .key-btn { width: 60px; height: 60px; border-radius: 14px; background: #fdfdfd; border: 2px solid #e5e5ea; font-size: 1.5rem; font-weight: 900; color: var(--text-main); box-shadow: 0 4px 0 #d2d2d7; cursor: pointer !important; transition: 0.1s; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono'; }
-        .key-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #d2d2d7; }
-        .key-btn.pressed { background: var(--apple-blue); color: white; border-color: var(--apple-blue); box-shadow: 0 4px 0 #005bb5; }
-        .key-btn.korean { color: var(--indigo-blue); font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif; }
-        .key-btn.korean.pressed { background: var(--indigo-blue); border-color: var(--indigo-blue); box-shadow: 0 4px 0 #4338ca; color: white; }
+        
+        /* ⌨️ 기계식 키보드 스타일 입력 버튼 */
+        .key-btn { 
+            width: 60px; height: 60px; border-radius: 14px; 
+            background: #ffffff; 
+            border: 2px solid #e2e8f0; 
+            border-bottom: 6px solid #cbd5e1; /* 묵직한 하단 테두리 */
+            font-size: 1.5rem; font-weight: 900; color: #1e293b; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            cursor: pointer !important; transition: all 0.1s ease; 
+            display: flex; align-items: center; justify-content: center; 
+            font-family: 'JetBrains Mono', monospace; 
+        }
+        .key-btn:hover { 
+            background: #f8fafc; transform: translateY(1px); border-bottom: 5px solid #cbd5e1; 
+        }
+        .key-btn:active, .key-btn.pressed { 
+            transform: translateY(4px); border-bottom: 2px solid #cbd5e1; 
+            background: #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+            color: var(--apple-blue); 
+        }
+        .key-btn.korean { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif; color: var(--indigo-blue); }
+        .key-btn.korean.pressed { color: var(--indigo-blue); }
 
-        .process-arrow { font-size: 2rem; color: #a1a1a6; font-weight: 900; }
+        /* ➡️ 화살표 스타일 (파란색 버튼 형태) */
+        .process-arrow { 
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; background: #3b82f6; color: white; 
+            border-radius: 8px; font-size: 1.3rem; font-weight: 900; 
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); text-shadow: none; 
+        }
 
-        /* 출력 패널 공통 */
+        /* 📺 출력 패널 (딥 네이비 디지털 계기판) */
         .process-box {
             flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: #f0f4f8; padding: 15px; border-radius: 16px;
-            border: 1.5px dashed #c8d3df;
+            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); 
+            padding: 15px; border-radius: 16px;
+            border: 2px solid #334155;
             min-width: 120px; min-height: 130px; position: relative;
-            transition: background 0.35s, border-color 0.35s, box-shadow 0.35s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.05);
+            transition: all 0.35s; overflow: hidden;
         }
-
+        
         /* 비활성 상태 — 출력 대기 중임을 표시하는 OUTPUT 워터마크 */
         .process-box::after {
-            content: 'OUTPUT';
-            position: absolute; bottom: 8px; right: 10px;
+            content: 'OUTPUT'; position: absolute; bottom: 8px; right: 10px;
             font-size: 0.6rem; font-weight: 900; letter-spacing: 1.5px;
-            color: #c0cad4; font-family: 'JetBrains Mono', monospace;
+            color: rgba(255, 255, 255, 0.06); font-family: 'JetBrains Mono', monospace;
             pointer-events: none;
         }
-
-        /* 활성 상태 (키를 눌렀을 때 JS로 .active 클래스 추가) */
+        
+        /* 활성 상태 */
         .process-box.active {
-            background: #ffffff;
-            border: 2px solid var(--apple-blue);
-            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.08), 0 8px 24px rgba(0, 113, 227, 0.1);
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3), inset 0 2px 4px rgba(255,255,255,0.1);
         }
-        .process-box.active::after { color: var(--apple-blue); opacity: 0.4; }
+        .process-box.active::after { color: rgba(56, 189, 248, 0.2); }
 
-        /* 출력 중임을 나타내는 상단 컬러 바 */
-        .process-box.active::before {
-            content: '';
-            position: absolute; top: 0; left: 10%; width: 80%; height: 3px;
-            background: linear-gradient(90deg, var(--apple-blue), var(--sky-blue));
-            border-radius: 0 0 4px 4px;
-        }
+        .process-label { font-size: 0.85rem; font-weight: 800; color: #64748b; margin-bottom: 8px; transition: color 0.3s; }
+        .process-box.active .process-label { color: #94a3b8; }
 
-        .process-label {
-            font-size: 0.85rem; font-weight: 800; color: #9aaab8; margin-bottom: 8px;
-            transition: color 0.3s;
-        }
-        .process-box.active .process-label { color: var(--apple-blue); }
+        .process-value { font-size: 1.8rem; font-weight: 900; font-family: 'JetBrains Mono'; color: #334155; transition: color 0.3s, text-shadow 0.3s; }
+        .process-box.active .process-value { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
 
-        .process-value {
-            font-size: 1.8rem; font-weight: 900; font-family: 'JetBrains Mono';
-            color: #c0cad4; transition: color 0.3s;
-        }
-        .process-box.active .process-value { color: var(--text-main); }
+        /* 자바스크립트 인라인 스타일 오버라이드 및 보정 */
+        .process-box.active #dispDec { text-shadow: 0 0 10px currentColor; }
 
         .bin-value { font-size: 1.1rem; color: var(--ocean-blue); letter-spacing: 1px; line-height: 1.8; text-align: center; }
 
         .pop-anim { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: inline-block;}
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        .inline-reveal-btn { background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--sky-blue) 100%); color: white; border: none; border-radius: 12px; padding: 4px 12px; font-size: 0.95rem; font-weight: 900; cursor: pointer !important; transition: 0.2s; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); vertical-align: baseline; }
+        .inline-reveal-btn { background: linear-gradient(135deg, var(--ocean-blue) 0%, var(--sky-blue) 100%); color: white; border: none; border-radius: 12px; padding: 4px 27px; font-size: 0.95rem; font-weight: 900; cursor: pointer !important; transition: 0.2s; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); vertical-align: baseline; }
         .inline-reveal-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(2, 132, 199, 0.4); }
         .inline-reveal-btn.purple { background: linear-gradient(135deg, var(--indigo-blue) 0%, #818cf8 100%); box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
         .inline-reveal-btn.purple:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4); }
@@ -262,59 +276,15 @@
         .reset-timer-btn { background: white; color: var(--apple-red); border: 2px solid var(--apple-red); border-radius: 14px; padding: 10px 20px; font-size: 1.05rem; font-weight: 900; cursor: pointer !important; transition: 0.2s; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15); }
         .reset-timer-btn:hover { background: #fef2f2; transform: translateY(-2px); }
 
-          /* =========================================================
-   🎯 퀴즈 채점 버튼 - 밝고 아담한 '빨간 색연필' 채점 스타일
-========================================================= */
 .submit-quiz-btn {
-    display: block;
-    width: 100%;
-    
-    /* 💡 가로 길이를 대폭 줄였습니다 (기존 320px -> 200px) */
-    max-width: 150px; 
-    
-    margin: 30px auto 10px auto;
-    padding: 12px 18px; /* 줄어든 가로 폭에 맞춰 위아래 여백도 최적화 */
-    
-    /* 1. 평소 배경: 선생님께서 원하신 마우스 올렸을 때의 화사한 핑크베이지 색상 */
-    background-color: #fef2f2; 
-    
-    /* 2. 글자 및 테두리: 채점을 상징하는 클래식 다크 레드 */
-    color: #dc2626; 
-    border: 2px solid #dc2626;
-    border-radius: 12px;
-    
-    /* 3. 기본 타이포그래피 */
+    display: block; width: 100%; max-width: 150px; margin: 30px auto 10px auto; padding: 12px 18px;
+    background-color: #fef2f2; color: #dc2626; border: 2px solid #dc2626; border-radius: 12px;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif;
-    font-size: 1.05rem;
-    font-weight: 800;
-    text-align: center;
-    letter-spacing: -0.3px;
-    cursor: pointer !important;
-    
-    /* 부드러운 전환 효과 */
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.05); /* 평소에도 살짝 귀엽게 떠있는 느낌 */
+    font-size: 1.05rem; font-weight: 800; text-align: center; letter-spacing: -0.3px; cursor: pointer !important;
+    transition: all 0.2s ease-in-out; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.05);
 }
-
-/* 🖱️ 마우스를 올렸을 때 (Hover): 튀지 않고 은은하게 반응 */
-.submit-quiz-btn:hover {
-    /* 바탕이 한 단계만 아주 살짝 짙은 포근한 핑크로 변함 */
-    background-color: #fee2e2; 
-    
-    color: #b91c1c; 
-    border-color: #b91c1c;
-    
-    box-shadow: 0 6px 12px rgba(220, 38, 38, 0.12);
-    transform: translateY(-1.5px);
-}
-
-/* ⚡ 클릭했을 때 (Active): 꾹 눌리는 느낌 */
-.submit-quiz-btn:active {
-    transform: translateY(1px);
-    background-color: #fca5a5; /* 클릭 순간 확실하게 눌리는 반응 */
-    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.04);
-}
-
+.submit-quiz-btn:hover { background-color: #fee2e2; color: #b91c1c; border-color: #b91c1c; box-shadow: 0 6px 12px rgba(220, 38, 38, 0.12); transform: translateY(-1.5px); }
+.submit-quiz-btn:active { transform: translateY(1px); background-color: #fca5a5; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.04); }
 
         .word-score-container { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; width: 100%; }
         .word-bank { background: #f0f9ff; border: 1px solid rgba(0, 113, 227, 0.2); padding: 15px 25px; border-radius: 18px; display: flex; gap: 15px; flex: 1; justify-content: center; flex-wrap: wrap; transition: 0.3s; }
@@ -334,7 +304,6 @@
         .blank.correct { background: #e0f2fe; color: var(--ocean-blue); border: 2px solid var(--ocean-blue); box-shadow: none; pointer-events: none; }
         .blank:disabled { opacity: 1; cursor: default !important; }
 
-        /* ⭐ 텍스트 저장 버튼 CSS ⭐ */
         .report-btn { background: linear-gradient(135deg, var(--apple-blue), var(--sky-blue)); color: white !important; box-shadow: 0 4px 15px rgba(0, 113, 227, 0.3); }
         .report-btn div { color: white !important; }
         .report-btn:hover { background: linear-gradient(135deg, #005bb5, var(--apple-blue)); color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 113, 227, 0.4); }
@@ -369,3 +338,14 @@
         .erase-btn { flex:1; background: transparent; border: 1.5px solid rgba(239,68,68,0.3); color: rgba(239,68,68,0.7); border-radius: 12px; padding: 9px 14px; font-size: 0.8rem; font-weight: 800; cursor: pointer !important; transition: all 0.2s ease; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', 'Nanum Gothic', system-ui, sans-serif; line-height: 1.4; text-align: center; }
         .erase-btn:hover { background: #fef2f2; border-color: #ef4444; color: #ef4444; box-shadow: 0 4px 12px rgba(239,68,68,0.12); }
         .modal-content-small { background: white; padding: 32px 28px; border-radius: 28px; width: 400px; max-width: 92vw; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); animation: popUp 0.3s ease-out; }
+/* =========================================================
+   🖱️ [마우스 커서 일괄 수정] 모든 클릭 요소에 손가락(pointer) 강제 적용
+========================================================= */
+button, button *, 
+a, a *, 
+.nav-arrow, .nav-arrow *, 
+.pill-btn, .pill-btn *,
+.submit-quiz-btn, .submit-quiz-btn *,
+[onclick], [onclick] * {
+    cursor: pointer !important;
+}

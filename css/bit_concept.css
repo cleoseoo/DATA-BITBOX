@@ -242,7 +242,7 @@
 
         .pill-btn {
             background: linear-gradient(135deg, var(--teal-main) 0%, var(--teal-light) 100%);
-            color: white; border: none; border-radius: 20px; padding: 4px 14px; font-size: 0.95rem; font-weight: 900;
+            color: white; border: none; border-radius: 20px; padding: 4px 30px; font-size: 0.95rem; font-weight: 900;
             cursor: pointer !important; box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
             display: inline-flex; align-items: center; gap: 4px; vertical-align: middle; transition: all 0.2s ease; margin: 0 4px;
         }
@@ -401,4 +401,206 @@
 }
 #byteDetailBox {
     pointer-events: auto !important;
+}
+/* ══════════════════════════════════════════════
+   step1 비트 여정 — 스위치→트랜지스터→CPU→비트값
+══════════════════════════════════════════════ */
+.bit-journey {
+    width: 100%;
+    background: linear-gradient(135deg, #f0fdfa 0%, #f5f3ff 100%);
+    border: 2px solid rgba(15,118,110,0.15);
+    border-radius: 24px;
+    padding: 22px 20px 18px;
+    box-shadow: 0 6px 28px rgba(15,118,110,0.07);
+}
+
+/* 상단 레이블 행 */
+.bj-labels {
+    display: flex; align-items: center; justify-content: space-around;
+    margin-bottom: 16px;
+}
+.bj-label {
+    font-size: 0.82rem; font-weight: 900; color: var(--teal-main);
+    background: rgba(15,118,110,0.09); border-radius: 20px;
+    padding: 4px 14px; white-space: nowrap;
+}
+.bj-label-arrow {
+    flex: 1; height: 2px; max-width: 40px;
+    background: rgba(15,118,110,0.2); border-radius: 1px;
+}
+
+/* 메인 행 — stretch로 모든 블록 같은 높이 */
+.bj-main {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 0; width: 100%;
+}
+
+/* 공통 블록 — 내부는 세로 중앙 정렬 */
+.bj-block {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; flex-shrink: 0;
+}
+
+/* 도선 — 세로 중앙에 배치 */
+.bj-wire-wrap {
+    flex: 1; display: flex;
+    align-items: center;   /* 도선을 수직 중앙에 */
+    padding: 0 4px; min-width: 40px;
+}
+.bj-wire {
+    width: 100%; height: 8px;
+    background: #e0e8f0; border-radius: 4px;
+    position: relative; overflow: hidden;
+}
+.bj-signal {
+    position: absolute; top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--teal-light), var(--teal-main));
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+/* ON 상태: 신호 흐름 애니메이션 */
+.bj-main.on .bj-signal {
+    opacity: 1;
+    animation: wireFlow 0.9s infinite linear;
+}
+@keyframes wireFlow {
+    0%   { left: -55%; }
+    100% { left: 105%; }
+}
+
+/* ── ① 스위치 블록 ── */
+.bj-switch-block { min-width: 100px; padding: 8px 0; }
+.bj-state-wrap { text-align: center; }
+.bj-state { font-size: 0.72rem; font-weight: 800; display: none; }
+.bj-state.active { display: block; }
+.off-state { color: #8e8e93; }
+.on-state  { color: var(--teal-main); }
+.bj-click-hint {
+    font-size: 0.78rem; font-weight: 900; color: var(--teal-main);
+    background: rgba(15,118,110,0.1); border-radius: 12px;
+    padding: 3px 10px; animation: hintPulse 1.5s infinite alternate;
+}
+@keyframes hintPulse {
+    from { opacity: 0.6; transform: scale(0.97); }
+    to   { opacity: 1;   transform: scale(1.03); }
+}
+/* 전구 크기 확대 */
+.bj-switch-block .bulb-container { width: 72px; height: 72px; }
+
+/* ── ② 트랜지스터 블록 ── */
+.bj-trans-block { min-width: 90px; padding: 8px 0; }
+.trans-svg { width: 80px; height: 90px; }
+/* OFF: 회색 */
+.trans-svg line, .trans-svg polygon { transition: stroke 0.4s, fill 0.4s; }
+/* ON: 초록으로 변경 (JS에서 클래스 토글) */
+/* 밸브 도선: ON 시 초록 */
+.bj-main.on #tBase, .bj-main.on #tEmitter { stroke: var(--teal-main) !important; }
+.trans-state-badge {
+    font-size: 0.78rem; font-weight: 900;
+    padding: 3px 12px; border-radius: 12px;
+    background: #f0f0f5; color: #8e8e93;
+    transition: 0.4s;
+}
+.bj-main.on .trans-state-badge {
+    background: rgba(15,118,110,0.12); color: var(--teal-main);
+}
+.trans-desc {
+    font-size: 0.68rem; font-weight: 700; color: #aaa;
+    text-align: center; transition: 0.4s;
+}
+.bj-main.on .trans-desc { color: var(--teal-main); }
+
+/* ── ③ CPU 블록 ── */
+.bj-cpu-block { min-width: 100px; padding: 8px 0; }
+.bj-cpu-chip {
+    display: flex; flex-direction: column; align-items: center;
+    background: #1e293b; border-radius: 12px;
+    padding: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: box-shadow 0.4s;
+}
+.bj-main.on .bj-cpu-chip {
+    box-shadow: 0 4px 20px rgba(15,118,110,0.4), 0 0 0 2px var(--teal-main);
+}
+.bj-cpu-top-pins, .bj-cpu-bot-pins { display: flex; gap: 8px; padding: 4px 0; }
+.bj-pin {
+    width: 6px; height: 14px; background: #475569;
+    border-radius: 2px; transition: background 0.3s;
+}
+.bj-main.on .bj-pin { background: var(--teal-light); }
+.bj-cpu-body {
+    background: #0f172a; border-radius: 8px;
+    padding: 10px 14px; text-align: center;
+}
+.bj-cpu-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem; font-weight: 900; color: #64748b;
+    letter-spacing: 2px; margin-bottom: 8px;
+}
+.bj-main.on .bj-cpu-name { color: var(--teal-light); }
+.bj-cpu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.bj-cpu-cell {
+    width: 16px; height: 16px; border-radius: 3px;
+    background: #1e293b; transition: background 0.2s, box-shadow 0.2s;
+}
+.bj-main.on .bj-cpu-cell {
+    background: var(--teal-main);
+    box-shadow: 0 0 6px rgba(15,118,110,0.6);
+    animation: cellBlink 0.6s infinite alternate;
+}
+.bj-cpu-cell:nth-child(2) { animation-delay: 0.15s !important; }
+.bj-cpu-cell:nth-child(3) { animation-delay: 0.3s !important; }
+.bj-cpu-cell:nth-child(4) { animation-delay: 0.45s !important; }
+@keyframes cellBlink {
+    from { opacity: 0.6; }
+    to   { opacity: 1; }
+}
+.bj-cpu-state {
+    font-size: 0.72rem; font-weight: 800; color: #8e8e93;
+    margin-top: 6px; transition: 0.4s;
+}
+.bj-main.on .bj-cpu-state { color: var(--teal-main); }
+
+/* ── ④ 비트값 블록 ── */
+.bj-result-block { min-width: 90px; padding: 8px 0; }
+.bj-result-label {
+    font-size: 0.72rem; font-weight: 800; color: #8e8e93;
+    text-align: center; line-height: 1.4;
+}
+.bj-result-sub {
+    font-size: 0.72rem; font-weight: 700;
+    color: #8e8e93; text-align: center;
+    transition: color 0.4s;
+}
+.bj-main.on .bj-result-sub { color: var(--teal-main); }
+
+/* 하단 흐름 설명 */
+.bj-explain {
+    margin-top: 18px;
+    text-align: center;
+}
+.bje-step {
+    font-size: 0.88rem; font-weight: 700;
+    padding: 10px 18px; border-radius: 14px;
+    display: inline-block;
+}
+.bje-off { background: #f5f5f7; color: #6e6e73; border: 1.5px solid #e0e0e8; }
+.bje-on  { background: rgba(15,118,110,0.08); color: var(--teal-dark); border: 1.5px solid rgba(15,118,110,0.25); }
+
+
+
+/* =========================================================
+   🖱️ [마우스 커서 일괄 수정] 모든 클릭 요소에 손가락(pointer) 강제 적용
+========================================================= */
+button, button *, 
+a, a *, 
+.nav-arrow, .nav-arrow *, 
+.pill-btn, .pill-btn *,
+.submit-quiz-btn, .submit-quiz-btn *,
+[onclick], [onclick] * {
+    cursor: pointer !important;
 }

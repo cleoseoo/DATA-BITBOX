@@ -16,37 +16,55 @@ const stepDotMap = {
     'step3-quiz': 2
 };
 
-// 🌟 [개별 기능] 2단원 전용 스크립트 (전구 스위치 작동)
+// 🌟 [개별 기능] 2단원 전용 스크립트 (전구 스위치 + CPU 여정 애니메이션)
 function toggleBit() {
-    const parent = document.getElementById('switchParent');
-    const sw = document.getElementById('bitSwitch');
-    const knob = document.getElementById('knobText');
+    const sw     = document.getElementById('bitSwitch');
+    const parent = document.getElementById('switchParent');  // bj-main
+    const knob   = document.getElementById('knobText');
     const result = document.getElementById('resultBit');
     const offText = document.getElementById('offText');
-    const onText = document.getElementById('onText');
+    const onText  = document.getElementById('onText');
     const bulbOff = document.getElementById('bulbOff');
-    const bulbOn = document.getElementById('bulbOn');
+    const bulbOn  = document.getElementById('bulbOn');
+    const cpuState   = document.getElementById('cpuState');
+    const resultSub  = document.getElementById('resultSub');
+    const bjeOff = document.getElementById('bjeOff');
+    const bjeOn  = document.getElementById('bjeOn');
 
     if (sw.classList.contains('on')) {
+        // ── OFF 상태로 전환 ──
         sw.classList.remove('on');
         parent.classList.remove('on');
-        knob.innerText = "0";
-        result.innerText = "0";
+        knob.innerText = '0';
+        result.innerText = '0';
         result.classList.remove('on');
         offText.classList.add('active');
         onText.classList.remove('active');
-        bulbOff.style.display = "block";
-        bulbOn.style.display = "none";
+        bulbOff.style.display = 'block';
+        bulbOn.style.display  = 'none';
+
+        if (cpuState)   { cpuState.innerText   = '✔️ 0인식'; }
+        if (resultSub)  { resultSub.innerHTML  = '전기 없음 → <b>0</b>'; }
+        if (bjeOff) { bjeOff.style.display = 'inline-block'; }
+        if (bjeOn)  { bjeOn.style.display  = 'none'; }
     } else {
+        // ── ON 상태로 전환 ──
         sw.classList.add('on');
         parent.classList.add('on');
-        knob.innerText = "1";
-        result.innerText = "1";
+        knob.innerText = '1';
+        result.innerText = '1';
         result.classList.add('on');
         offText.classList.remove('active');
         onText.classList.add('active');
-        bulbOff.style.display = "none";
-        bulbOn.style.display = "block";
+        bulbOff.style.display = 'none';
+        bulbOn.style.display  = 'block';
+
+        setTimeout(function() {
+            if (cpuState) { cpuState.innerText = '⚡1 인식'; }
+        }, 500);
+        if (resultSub)  { resultSub.innerHTML  = '전기 있음 → <b>1</b>'; }
+        if (bjeOff) { bjeOff.style.display = 'none'; }
+        if (bjeOn)  { bjeOn.style.display  = 'inline-block'; }
     }
 }
 

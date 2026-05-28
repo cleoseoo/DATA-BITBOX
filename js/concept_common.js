@@ -3,12 +3,11 @@
    - 퀴즈 타이머, 채점, 드래그 앤 드롭, 리포트 출력, 노트 저장
 ========================================================= */
 
-// ✅ 진행 점 업데이트 (동적 처리로 개선)
+// ✅ 진행 점 업데이트
 function updateDots(stepIndex) {
-    // 최대 10단계까지 넉넉하게 돌면서, 화면에 있는 점(dot)만 찾아서 색칠합니다.
     for (var i = 0; i < 10; i++) {
         var dot = document.getElementById('dot' + i);
-        if (!dot) continue; // 점이 없으면(예: 3단계 페이지) 알아서 무시함
+        if (!dot) continue; 
         
         if (i < stepIndex) dot.className = 'prog-dot done';
         else if (i === stepIndex) dot.className = 'prog-dot cur';
@@ -48,7 +47,6 @@ function revealInline(btn, text, color = 'var(--teal-main)') {
     btn.parentNode.replaceChild(span, btn);
 }
 
-// ✅ 화면 전환 및 진행 점 연동
 function goToStep(currentId, nextId) {
     const currentStep = document.getElementById(currentId);
     const nextStep = document.getElementById(nextId);
@@ -102,15 +100,28 @@ function markStepDone(finalScore) {
 
 function startQuizTimer() {
     isQuizStarted = true;
+    
+    // 🌟 [수정] 퀴즈 시작 시 복원되어 있던 기존 정답과 점수 모두 날리기 (새 출발)
+    score = 0;
+    correctAnswers = 0;
+    scored.clear();
+    elapsedSeconds = 0;
+    if (typeof THIS_STEP !== 'undefined') localStorage.removeItem('quiz_state_step' + THIS_STEP);
+
     const btn = document.getElementById('startQuizBtn');
     if(btn) btn.style.display = 'none';
     document.getElementById('submitQuizBtnWrap').style.display = 'block';
     document.getElementById('wordBank').style.opacity = '1';
     document.getElementById('wordBank').style.pointerEvents = 'auto';
     document.getElementById('quizForm').classList.add('quiz-active');
+    
+    // 빈칸 초기화
     document.querySelectorAll('.blank').forEach(el => {
-        if(!el.classList.contains('correct')) el.disabled = false;
+        el.value = ''; // 텍스트 지우기
+        el.classList.remove('correct'); // 파란색 정답 테두리 지우기
+        el.disabled = false; // 다시 입력 가능하도록 활성화
     });
+
     timerInterval = setInterval(() => {
         elapsedSeconds++;
         const m = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
@@ -138,6 +149,15 @@ function resetQuiz() {
     document.getElementById('wordBank').style.opacity = '0.4';
     document.getElementById('wordBank').style.pointerEvents = 'none';
     document.getElementById('quizForm').classList.remove('quiz-active');
+    
+    if (typeof THIS_STEP !== 'undefined') localStorage.removeItem('quiz_state_step' + THIS_STEP);
+}
+
+function saveQuizState() {
+    if (typeof THIS_STEP === 'undefined') return;
+    const blanks = document.querySelectorAll('.blank');
+    const state = Array.from(blanks).map(el => el.value);
+    localStorage.setItem('quiz_state_step' + THIS_STEP, JSON.stringify(state));
 }
 
 function check(el) {
@@ -153,11 +173,16 @@ function check(el) {
         score += parseInt(el.getAttribute('data-score') || '10');
         correctAnswers++;
     }
+    // 실시간 자동 저장 로직 삭제됨 (이제 채점 버튼을 누를 때만 저장)
 }
 
 function submitQuiz() {
     if(!isQuizStarted) return;
     clearInterval(timerInterval); 
+    
+    // 🌟 [수정] 채점하기 버튼을 눌렀을 때만 퀴즈 상태를 1회 저장!
+    saveQuizState();
+    
     showSuccess();
 }
 
@@ -195,7 +220,6 @@ function showSuccess() {
     const content = document.getElementById('modalContent');
     content.className = 'modal-content';
     
-    // HTML에서 설정한 단원명 불러오기 (예: "1. 디지털 데이터의 가치" -> "디지털 데이터의 가치")
     let titleText = typeof STEP_TITLE !== 'undefined' ? STEP_TITLE.replace(/^[0-9]+\.\s*/, '') : '탐구';
 
     content.innerHTML = `
@@ -212,7 +236,6 @@ function showSuccess() {
     
    const pass = typeof PASS_SCORE !== 'undefined' ? PASS_SCORE : 70;
     if(finalScore >= pass) {
-        // 현재 페이지의 마지막 점 번호를 자동으로 찾아냅니다!
         let maxIndex = 2; 
         if (typeof stepDotMap !== 'undefined') {
             maxIndex = Math.max(...Object.values(stepDotMap));
@@ -378,6 +401,29 @@ window.onload = function() {
         memoInput.addEventListener('input', function() { localStorage.setItem(mKey, this.value); });
         reflectionInput.addEventListener('input', function() { localStorage.setItem(rKey, this.value); });
     }
+
+    // 🌟 페이지 진입 시 [채점 완료된] 저장된 퀴즈 상태 복원
+    try {
+        if (typeof THIS_STEP !== 'undefined') {
+            const savedQuiz = localStorage.getItem('quiz_state_step' + THIS_STEP);
+            if (savedQuiz) {
+                const state = JSON.parse(savedQuiz);
+                const blanks = document.querySelectorAll('.blank');
+                
+                const tempStarted = isQuizStarted; 
+                isQuizStarted = true; 
+                
+                blanks.forEach((el, idx) => {
+                    if (state[idx]) {
+                        el.value = state[idx];
+                        check(el); 
+                    }
+                });
+                
+                isQuizStarted = tempStarted; 
+            }
+        }
+    } catch(e) {}
 };
 
 // ✅ 단원 기록 지우기
@@ -404,6 +450,8 @@ function doEraseContent() {
         if (typeof THIS_STEP !== 'undefined') {
             localStorage.removeItem('score_step' + THIS_STEP);
             localStorage.removeItem('score_step' + THIS_STEP + '_date');
+            localStorage.removeItem('quiz_state_step' + THIS_STEP);
+            
             const done = JSON.parse(localStorage.getItem('completedSteps') || '[]');
             localStorage.setItem('completedSteps', JSON.stringify(done.filter(s => s !== THIS_STEP)));
             localStorage.removeItem('status_step' + THIS_STEP);
@@ -450,29 +498,24 @@ window.addEventListener('DOMContentLoaded', () => {
     const header = document.querySelector('header');
     if (!header) return;
 
-    // 0. 현재 페이지 테마 자동 판별 (선택된 메뉴 텍스트 기준)
-    let theme = 'mint'; // 기본값 (1단원, 2단원)
+    let theme = 'mint'; 
     const activeMenu = document.querySelector('.menu-link.active');
     if (activeMenu) {
         const text = activeMenu.textContent;
-        // 3, 4단원: 파란색 테마
         if (text.includes('숫자') || text.includes('문자')) {
             theme = 'blue';
         }
-        // 5, 6단원: 보라색 테마
         else if (text.includes('이미지') || text.includes('소리')) {
             theme = 'violet';
         }
-        // 7단원: 회색빛 남색 테마 (수정 완료!)
         else if (text.includes('동영상')) {
             theme = 'navy';
         }
     }
 
-    // 테마별 색상 팔레트 (인덱스 화면과 100% 일치)
     const palette = {
         mint: {
-            main: '#00f5c4', // 네온 민트
+            main: '#00f5c4',
             bg: 'rgba(0, 245, 196, 0.12)',
             border: 'rgba(0, 245, 196, 0.2)',
             badgeBg: 'rgba(0, 245, 196, 0.15)',
@@ -481,7 +524,7 @@ window.addEventListener('DOMContentLoaded', () => {
             particle2: '10, 132, 255'
         },
         blue: {
-            main: '#5ac8fa', // 네온 블루
+            main: '#5ac8fa',
             bg: 'rgba(10, 132, 255, 0.12)',
             border: 'rgba(10, 132, 255, 0.2)',
             badgeBg: 'rgba(10, 132, 255, 0.15)',
@@ -490,7 +533,7 @@ window.addEventListener('DOMContentLoaded', () => {
             particle2: '90, 200, 250'
         },
         violet: {
-            main: '#d08ef7', // 네온 보라
+            main: '#d08ef7',
             bg: 'rgba(191, 90, 242, 0.12)',
             border: 'rgba(191, 90, 242, 0.2)',
             badgeBg: 'rgba(191, 90, 242, 0.15)',
@@ -499,7 +542,7 @@ window.addEventListener('DOMContentLoaded', () => {
             particle2: '208, 142, 247'
         },
         navy: {
-            main: '#748fd8', // 🌟 세련된 회색빛 남색 (Slate Blue)
+            main: '#748fd8',
             bg: 'rgba(116, 143, 216, 0.12)',
             border: 'rgba(116, 143, 216, 0.2)',
             badgeBg: 'rgba(116, 143, 216, 0.15)',
@@ -511,7 +554,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const colors = palette[theme];
 
-    // 1. 헤더 배경색 및 테마 테두리선 동적 적용
     header.style.position = 'relative';
     header.style.background = '#03050d'; 
     header.style.borderBottom = `1px solid ${colors.border}`;
@@ -521,31 +563,22 @@ window.addEventListener('DOMContentLoaded', () => {
         child.style.zIndex = '10';
     });
 
-    // 2. CSS '우선순위' 극대화 및 동적 테마 주입
     const style = document.createElement('style');
     style.innerHTML = `
         html body header .main-title { color: #ffffff !important; text-shadow: 0 0 12px ${colors.shadow} !important; }
         
-        /* 타겟 배지도 테마 색상으로 자동 변환 */
         html body header .target-badge { background: ${colors.badgeBg} !important; color: ${colors.main} !important; border: 1px solid ${colors.border} !important; }
         
-        /* =======================================================
-           🌟 프로그래스 바(진행 점) 테마 색상 자동 연동 추가! 🌟
-        ======================================================= */
-        /* 1. 현재 진행 중인 점 (현재 위치) */
         html body .progress .prog-dot.cur { 
             background: ${colors.main} !important; 
             box-shadow: 0 0 12px ${colors.shadow}, 0 0 20px ${colors.shadow} !important; 
         }
         
-        /* 2. 이미 완료한 점 */
         html body .progress .prog-dot.done { 
             background: ${colors.main} !important; 
-            opacity: 0.7; /* 완료된 점은 살짝 투명하게 해서 현재 위치와 구분 */
+            opacity: 0.7; 
         }
-        /* ======================================================= */
 
-        /* 기본 버튼 (초기화) */
         html body header .status-btn { 
             background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 100%) !important; 
             color: #ffffff !important; 
@@ -558,26 +591,22 @@ window.addEventListener('DOMContentLoaded', () => {
         html body header .status-btn:hover { background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.05) 100%) !important; transform: translateY(-1px) !important; }
         html body header .status-btn:active { transform: translateY(2px) !important; border-bottom-width: 1px !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.2) !important; }
 
-        /* SOS 요청 버튼 */
         html body header .status-btn.btn-help { 
             color: #ff453a !important; background: linear-gradient(180deg, rgba(255,69,58,0.15) 0%, rgba(255,69,58,0.02) 100%) !important; 
             border-color: rgba(255,69,58,0.3) !important; border-bottom: 2.5px solid rgba(120,20,15,0.7) !important;
             box-shadow: inset 0 1px 1px rgba(255,100,100,0.3), 0 2px 5px rgba(0,0,0,0.4) !important;
         }
 
-        /* 미션 완료 버튼 */
         html body header .status-btn.btn-done { 
             color: #34c759 !important; background: linear-gradient(180deg, rgba(52,199,89,0.15) 0%, rgba(52,199,89,0.02) 100%) !important; 
             border-color: rgba(52,199,89,0.3) !important; border-bottom: 2.5px solid rgba(20,80,30,0.7) !important;
             box-shadow: inset 0 1px 1px rgba(100,255,150,0.3), 0 2px 5px rgba(0,0,0,0.4) !important;
         }
         
-        /* 메뉴 링크 기본 상태 */
         html body header nav .menu-item .menu-link { color: rgba(255,255,255,0.6) !important; background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
         html body header nav .menu-item:hover > .menu-link,
         html body header nav .menu-item:hover > .menu-link:not(.active) { color: #ffffff !important; background: rgba(255,255,255,0.05) !important; border-color: transparent !important; }
         
-        /* 🌟 선택된 메뉴 (active) - 테마 팔레트 색상으로 자동 적용! 🌟 */
         html body header nav .menu-item .menu-link.active,
         html body header nav .menu-item:hover > .menu-link.active { 
             background: ${colors.bg} !important; 
@@ -586,14 +615,12 @@ window.addEventListener('DOMContentLoaded', () => {
             border-color: transparent !important; 
         }
         
-        /* 하위 드롭다운 메뉴 호버 시 🌟 */
         html body header .dropdown { background: rgba(10, 15, 30, 0.95) !important; border: 1px solid ${colors.border} !important; backdrop-filter: blur(10px) !important; }
         html body header .dropdown li a { color: rgba(255,255,255,0.8) !important; background: transparent !important; }
         html body header .dropdown li a:hover { background: ${colors.badgeBg} !important; color: ${colors.main} !important; }
     `;
     document.head.appendChild(style);
 
-    // 3. 애니메이션 도화지(Canvas) 삽입
     const canvasContainer = document.createElement('div');
     canvasContainer.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden;';
     const canvas = document.createElement('canvas');
@@ -601,7 +628,6 @@ window.addEventListener('DOMContentLoaded', () => {
     canvasContainer.appendChild(canvas);
     header.insertBefore(canvasContainer, header.firstChild);
 
-    // 4. 파티클(0과 1) 및 별빛 그리기 엔진
     const ctx = canvas.getContext('2d');
     let width, height;
     let particles = [], stars = [];
@@ -644,7 +670,6 @@ window.addEventListener('DOMContentLoaded', () => {
             this.text = Math.random() > 0.5 ? '0' : '1';
             this.size = Math.random() * 12 + 10;
             this.opacity = Math.random() * 0.5 + 0.1;
-            // 0과 1 숫자 색상도 테마에 맞춰서 자동으로 그려집니다!
             this.color = Math.random() > 0.5 ? `rgba(${colors.particle1}, ${this.opacity})` : `rgba(${colors.particle2}, ${this.opacity})`;
         }
         update() {
