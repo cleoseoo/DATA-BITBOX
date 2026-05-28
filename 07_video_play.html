@@ -114,9 +114,14 @@
 
                             <!-- 캔버스 래퍼: 편집↔미리보기 토글 -->
                             <div id="canvasWrap" style="position:relative; width:100%; aspect-ratio:1/1; box-shadow:0 5px 20px rgba(0,0,0,0.5);">
+                                <!-- 레이어1: 흰 배경 -->
+                                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:white; border-radius:4px;"></div>
+                                <!-- 레이어2: 어니언 스킨 (이전 프레임 35% 투명도) -->
+                                <canvas id="onionCanvas" width="450" height="450"
+                                    style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius:4px; pointer-events:none; opacity:0.35;"></canvas>
                                 <!-- 편집 캔버스 -->
                                 <canvas id="drawCanvas" width="450" height="450"
-                                    style="position:absolute; top:0; left:0; width:100%; height:100%; background:white; border-radius:4px; cursor:crosshair;"></canvas>
+                                    style="position:absolute; top:0; left:0; width:100%; height:100%; background:transparent; border-radius:4px; cursor:crosshair;"></canvas>
                                 <canvas id="gridCanvas" width="450" height="450"
                                     style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; border-radius:4px; border:2px solid #334155; box-sizing:border-box;"></canvas>
 
@@ -394,7 +399,7 @@
             const tmp = document.createElement('canvas');
             tmp.width = 450; tmp.height = 450;
             const tc = tmp.getContext('2d');
-            tc.fillStyle = 'white'; tc.fillRect(0, 0, 450, 450);
+            // 투명 캔버스 — 흰 배경은 배경 div가 담당
             return tc.getImageData(0, 0, 450, 450);
         }
 
@@ -402,8 +407,9 @@
             // 시작: 프레임 1장으로 시작
             frames = [makeBlankFrame()];
             currentFrame = 0;
-            dCtx.fillStyle = "white"; dCtx.fillRect(0, 0, 450, 450);
+            dCtx.clearRect(0, 0, 450, 450);
             renderFrameUI();
+            drawOnionSkin();
         }
         initCanvas();
 
@@ -414,6 +420,27 @@
             dCtx.putImageData(frames[currentFrame], 0, 0);
             undoStack = [];
             renderFrameUI();
+            drawOnionSkin();
+        }
+
+        // 어니언 스킨: 현재 프레임 바로 이전 프레임을 연하게 표시
+        function drawOnionSkin() {
+            const oc = document.getElementById('onionCanvas');
+            if (!oc) return;
+            const octx = oc.getContext('2d');
+            octx.clearRect(0, 0, 450, 450);
+
+            // currentFrame이 0이면 이전 프레임 없음 → 빈 캔버스
+            if (currentFrame <= 0) return;
+
+            const prevFrame = frames[currentFrame - 1];
+            if (!prevFrame) return;
+
+            // 이전 프레임을 임시 canvas에 그려서 onionCanvas에 복사
+            const tmp = document.createElement('canvas');
+            tmp.width = 450; tmp.height = 450;
+            tmp.getContext('2d').putImageData(prevFrame, 0, 0);
+            octx.drawImage(tmp, 0, 0);
         }
 
         function setEraser() {
@@ -447,9 +474,9 @@
         }
         // penColor listener → drawGrid 초기화 블록에서 통합 관리
 
-        function clearCanvas() { 
+        function clearCanvas() {
             saveState();
-            dCtx.fillStyle = "white"; dCtx.fillRect(0, 0, 450, 450);
+            dCtx.clearRect(0, 0, 450, 450);
             frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
             document.getElementById('imageBinary').innerHTML = "[시스템 대기] 도화지가 초기화 되었습니다.";
         }
@@ -480,7 +507,7 @@
             if (!ok) return;
             frames = [makeBlankFrame()];
             currentFrame = 0;
-            dCtx.fillStyle = 'white'; dCtx.fillRect(0, 0, 450, 450);
+            dCtx.clearRect(0, 0, 450, 450);
             undoStack = [];
             document.getElementById('imageBinary').innerHTML = "[시스템 대기] 전체 프레임이 초기화 되었습니다.";
             renderFrameUI();
@@ -710,8 +737,7 @@
             const url = URL.createObjectURL(file);
             img.onload = function() {
                 saveState();
-                dCtx.fillStyle = 'white';
-                dCtx.fillRect(0, 0, 450, 450);
+                dCtx.clearRect(0, 0, 450, 450);
                 // 비율 유지하며 450x450에 맞게 그리기
                 const scale = Math.min(450 / img.width, 450 / img.height);
                 const w = img.width * scale, h = img.height * scale;
@@ -804,7 +830,7 @@
             frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
             frames.push(makeBlankFrame());
             currentFrame = frames.length - 1;
-            dCtx.fillStyle = 'white'; dCtx.fillRect(0, 0, 450, 450);
+            dCtx.clearRect(0, 0, 450, 450);
             undoStack = [];
             renderFrameUI();
             saveAllToLocal();
@@ -1009,6 +1035,7 @@
             if (frames[currentFrame]) dCtx.putImageData(frames[currentFrame], 0, 0);
             renderFrameUI();
             startPreview();
+            drawOnionSkin();
             console.log('✅ 이전 작업 불러오기 완료 — ' + frames.length + '장');
         }
 
