@@ -136,88 +136,96 @@ function getBallState(time) {
 
 function drawVideoVisual() {
     if (!vCtx) return;
-    vCtx.clearRect(0, 0, 600, 300);
 
     if (isDissected) {
-        // ── 분해 뷰: 필름 스트립 스타일 ──────────────────────────
-        // 배경
+        // ── 분해 뷰 (정적, RAF 없음) ─────────────────────────────
+        const CW = 600, CH = 300;
+        const FRAMES  = 5;
+        const LABEL_H = 32;
+        const NUM_H   = 22;
+        const CARD_H  = CH - LABEL_H - NUM_H - 10; // ≈236px
+        const CARD_W  = 94;
+        const GAP     = (CW - FRAMES * CARD_W) / (FRAMES + 1);
+        const IMG_PAD = 4;
+        const IMG_W   = CARD_W - IMG_PAD * 2;
+        const IMG_H   = CARD_H - IMG_PAD * 2;
+        // 여유 맵핑: 공 반지름(25px)이 절대 잘리지 않도록 30px 여백
+        const BY_MIN  = 50, BY_MAX = 260;
+
+        // 5개 time 포인트: 모두 다른 위치, 공이 잘 보이도록 선택
+        // F1: 막 떨어지기 시작, F2: 중간 낙하, F3: 바닥 찌그러짐,
+        // F4: 튀어 오르는 중, F5: 많이 올라온 상태
+        const TIMES = [0.08, 0.28, 0.50, 0.60, 0.88]; // F4: 0.68→0.60 (더 아래)
+
+        vCtx.clearRect(0, 0, CW, CH);
         vCtx.fillStyle = '#1a1a2e';
-        vCtx.fillRect(0, 0, 600, 300);
+        vCtx.fillRect(0, 0, CW, CH);
 
         // 상단 레이블
         vCtx.fillStyle = '#ffd32a';
-        vCtx.font      = 'bold 13px "Pretendard", sans-serif';
-        vCtx.textAlign = 'left';
-        vCtx.fillText('🎞️ 프레임 분해 — 5장의 정지 이미지가 모여 1초 움직임이 됩니다', 12, 18);
-
-        const FRAMES = 5;
-        const FW = 100, FH = 210;
-        const startX = 10;
+        vCtx.font      = 'bold 12px "Pretendard", sans-serif';
+        vCtx.textAlign = 'center';
+        vCtx.fillText('🎞️ 프레임 분해 — 5장의 정지 이미지가 모여 1초 움직임이 됩니다', CW / 2, 20);
 
         for (let i = 0; i < FRAMES; i++) {
-            const fx = startX + i * 118;
-            const fy = 26;
+            const fx = Math.round(GAP + i * (CARD_W + GAP));
+            const fy = LABEL_H + 4;
 
-            // 필름 홀 (상단)
-            vCtx.fillStyle = '#ffd32a';
-            for (let h = 0; h < 3; h++) {
-                vCtx.beginPath();
-                vCtx.arc(fx + 18 + h * 32, fy + 7, 5, 0, Math.PI * 2);
-                vCtx.fill();
-            }
-
-            // 프레임 카드
-            vCtx.fillStyle = '#ffffff';
-            vCtx.shadowColor   = 'rgba(0,0,0,0.25)';
-            vCtx.shadowBlur    = 10;
-            vCtx.shadowOffsetY = 4;
-            vCtx.fillRect(fx, fy + 18, FW, FH);
-            vCtx.shadowColor = 'transparent';
+            // 카드 (흰색)
+            vCtx.fillStyle     = '#ffffff';
+            vCtx.shadowColor   = 'rgba(0,0,0,0.28)';
+            vCtx.shadowBlur    = 8;
+            vCtx.shadowOffsetY = 3;
+            vCtx.fillRect(fx, fy, CARD_W, CARD_H);
+            vCtx.shadowBlur = 0; vCtx.shadowColor = 'transparent';
 
             // 이미지 영역
+            const ix = fx + IMG_PAD, iy = fy + IMG_PAD;
             vCtx.fillStyle = '#eef0f5';
-            vCtx.fillRect(fx + 5, fy + 23, FW - 10, FH - 30);
+            vCtx.fillRect(ix, iy, IMG_W, IMG_H);
 
-            // 공 위치 (각 프레임별 타임라인 0~1)
-            const time  = i / (FRAMES - 1);
-            const state = getBallState(time);
-            // 프레임 클립
+            // 공 위치: 선택된 time 포인트 → 모두 다른 위치
+            const state = getBallState(TIMES[i]);
+            const ballY = iy + ((state.bounceY - BY_MIN) / (BY_MAX - BY_MIN)) * IMG_H;
+
             vCtx.save();
             vCtx.beginPath();
-            vCtx.rect(fx + 5, fy + 23, FW - 10, FH - 30);
+            vCtx.rect(ix, iy, IMG_W, IMG_H);
             vCtx.clip();
-            drawBall(vCtx, fx + 50, fy + 23 + (state.bounceY - 55), state.sx, state.sy);
+            drawBall(vCtx, ix + IMG_W / 2, ballY, state.sx, state.sy);
             vCtx.restore();
 
-            // 프레임 번호
-            vCtx.fillStyle  = '#2f3542';
-            vCtx.font       = 'bold 12px "Pretendard", sans-serif';
-            vCtx.textAlign  = 'center';
-            vCtx.fillText(`${i + 1}번 프레임`, fx + 50, fy + FH + 12);
-
-            // 화살표 (마지막 제외)
+            // 화살표
             if (i < FRAMES - 1) {
-                vCtx.fillStyle = '#a0a0b0';
-                vCtx.font      = 'bold 18px sans-serif';
-                vCtx.fillText('→', fx + FW + 7, fy + FH / 2 + 18);
+                vCtx.fillStyle = '#7a7a9a';
+                vCtx.font      = 'bold 15px sans-serif';
+                vCtx.textAlign = 'center';
+                vCtx.fillText('→', fx + CARD_W + GAP / 2, fy + CARD_H / 2 + 5);
             }
+
+            // 프레임 번호
+            vCtx.fillStyle = '#ffd32a';
+            vCtx.font      = 'bold 11px "Pretendard", sans-serif';
+            vCtx.textAlign = 'center';
+            vCtx.fillText(`${i + 1}번 프레임`, fx + CARD_W / 2, fy + CARD_H + 15);
         }
         vCtx.textAlign = 'left';
 
     } else {
         // ── 재생 뷰 ──────────────────────────────────────────────
+        vCtx.clearRect(0, 0, 600, 300);
         const time  = (vTick % 60) / 60;
         const state = getBallState(time);
         vCtx.fillStyle = '#f1f2f6';
         vCtx.fillRect(0, 0, 600, 300);
         drawBall(vCtx, 300, state.bounceY, state.sx, state.sy);
-        vCtx.fillStyle  = 'rgba(0,0,0,0.4)';
-        vCtx.font       = '800 18px Pretendard';
-        vCtx.textAlign  = 'center';
+        vCtx.fillStyle = 'rgba(0,0,0,0.4)';
+        vCtx.font      = '800 18px Pretendard';
+        vCtx.textAlign = 'center';
         vCtx.fillText('연속으로 빠르게 재생하면 움직이는 것처럼 보입니다!', 300, 40);
+        vTick++;
+        requestAnimationFrame(drawVideoVisual);
     }
-    vTick++;
-    requestAnimationFrame(drawVideoVisual);
 }
 if (vCanvas) drawVideoVisual();
 
@@ -227,9 +235,11 @@ window.toggleFilmScan = function() {
     if (isDissected) {
         btn.innerText        = '▶️ 연속 재생하기 (애니메이션 확인)';
         btn.style.background = 'var(--soft-red)';
+        drawVideoVisual();                          // 즉시 정적 렌더
     } else {
         btn.innerText        = '🎞️ 프레임 분해하기 (정지 이미지 확인)';
         btn.style.background = 'var(--multi-navy)';
+        requestAnimationFrame(drawVideoVisual);     // 애니메이션 재시작
     }
 };
 
@@ -250,8 +260,9 @@ let fpsFrameIdx = 0;
 let fpsLastTime = 0;
 
 // ─── 펭귄 걷기 시뮬 ──────────────────────────────────────────────
-const WALK_CYCLE = 24;    // JOURNEY_TICKS(120)과 약수 관계 → fps별 균등 분포
-const GROUND_Y   = FH - 36 - 35; // 진행 바(36px) + 다리·발(35px) 위
+function eio(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; } // easeInOut (전역)
+const WALK_CYCLE = 37;    // 최적값 — 1~24 모든 fps에서 자세 다양 (나쁜fps=0)
+const GROUND_Y   = FH - 36 - 40; // 진행 바(36px) + 다리·발(40px) 위 — 진행바 겹침 방지
 
 // tick → 펭귄 x 위치 (항상 동일한 왕복 경로)
 function getPengX(tick) {
@@ -263,6 +274,199 @@ function getPengDir(tick) {
     const span  = FW - 80;
     const phase = (tick * 1.8) % (span * 2);
     return phase < span ? 1 : -1;
+}
+
+// ─── 새끼 펭귄 그리기 ─────────────────────────────────────────
+// 엄마의 절반 크기, 이글루 앞에서 엄마를 기다림
+function drawBabyPenguin(ctx, x, gy) {
+    const S = 0.52; // 크기 스케일 (엄마의 절반)
+    ctx.save();
+    ctx.translate(x, gy);
+
+    // 그림자
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 14 * S, 4 * S, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 다리 + 발
+    ctx.fillStyle = '#FF8C00';
+    [-7 * S, 7 * S].forEach(ox => {
+        ctx.beginPath();
+        ctx.rect(ox - 4 * S, -3 * S, 8 * S, 14 * S);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(ox, 12 * S, 10 * S, 4 * S, 0, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // 몸통
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath();
+    ctx.ellipse(0, -20 * S, 18 * S, 24 * S, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 배
+    ctx.fillStyle = '#eef2ff';
+    ctx.beginPath();
+    ctx.ellipse(0, -18 * S, 11 * S, 17 * S, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 왼쪽 날개 (엄마 방향으로 살짝 들어올림)
+    ctx.fillStyle = '#2c2c4e';
+    ctx.save();
+    ctx.translate(-14 * S, -22 * S);
+    ctx.rotate(-0.6); // 들어올린 날개
+    ctx.beginPath();
+    ctx.ellipse(0, 8 * S, 6 * S, 16 * S, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 오른쪽 날개
+    ctx.fillStyle = '#1a1a2e';
+    ctx.save();
+    ctx.translate(14 * S, -22 * S);
+    ctx.rotate(0.3);
+    ctx.beginPath();
+    ctx.ellipse(0, 8 * S, 6 * S, 16 * S, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 머리 (더 동그랗게 — 아기 특징)
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath();
+    ctx.arc(0, -44 * S, 16 * S, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 얼굴 흰 부분
+    ctx.fillStyle = '#eef2ff';
+    ctx.beginPath();
+    ctx.ellipse(0, -43 * S, 10 * S, 11 * S, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 눈 (왼쪽 방향 — 엄마 보는 방향)
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath();
+    ctx.arc(-5 * S, -47 * S, 3.5 * S, 0, Math.PI * 2);
+    ctx.fill();
+    // 눈 하이라이트
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-6 * S, -48 * S, 1.5 * S, 0, Math.PI * 2);
+    ctx.fill();
+    // 반짝이는 눈 (아기라 더 빛남)
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.beginPath();
+    ctx.arc(-3.5 * S, -46 * S, 1 * S, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 부리 (작고 귀엽게)
+    ctx.fillStyle = '#FF8C00';
+    ctx.beginPath();
+    ctx.moveTo(-7 * S, -44 * S);
+    ctx.lineTo(-14 * S, -42 * S);
+    ctx.lineTo(-7 * S, -40 * S);
+    ctx.closePath();
+    ctx.fill();
+
+    // 볼터치 (핑크)
+    ctx.fillStyle = 'rgba(255,160,160,0.65)';
+    ctx.beginPath();
+    ctx.ellipse(-6 * S, -39 * S, 5 * S, 3 * S, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 머리 위 삐죽 털 (아기 특징)
+    ctx.strokeStyle = '#1a1a2e';
+    ctx.lineWidth = 2 * S;
+    ctx.beginPath();
+    ctx.moveTo(-2 * S, -60 * S);
+    ctx.lineTo( 0 * S, -68 * S);
+    ctx.lineTo( 3 * S, -62 * S);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+// ─── 이글루 그리기 ────────────────────────────────────────────
+// ix: 이글루 중심 x, gy: 바닥 y
+function drawIgloo(ctx, ix, gy) {
+    const iw = 72; // 이글루 반너비 (크게)
+    const ih = 58; // 이글루 높이 (크게)
+
+    // ── 눈 쌓인 언덕 (이글루 아래 둔덕) ──
+    ctx.fillStyle = '#daeeff';
+    ctx.beginPath();
+    ctx.ellipse(ix, gy + 5, iw + 14, 16, 0, Math.PI, 0);
+    ctx.fill();
+
+    // ── 이글루 본체 (반구) ──
+    const bodyGrad = ctx.createRadialGradient(ix - 14, gy - ih * 0.6, 6, ix, gy, iw);
+    bodyGrad.addColorStop(0, '#ffffff');
+    bodyGrad.addColorStop(0.6, '#e8f4fd');
+    bodyGrad.addColorStop(1, '#b8d8f0');
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.ellipse(ix, gy, iw, ih, 0, Math.PI, 0);
+    ctx.fill();
+
+    // ── 이글루 윤곽선 ──
+    ctx.strokeStyle = '#a0c4e0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(ix, gy, iw, ih, 0, Math.PI, 0);
+    ctx.stroke();
+
+    // ── 입구 (아치형 터널) ──
+    ctx.fillStyle = '#6aa8cc';
+    ctx.beginPath();
+    ctx.ellipse(ix, gy + 3, 18, 26, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = '#2c6e99';
+    ctx.beginPath();
+    ctx.ellipse(ix, gy + 3, 13, 21, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.strokeStyle = '#a0c4e0';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(ix, gy + 3, 18, 26, 0, Math.PI, 0);
+    ctx.stroke();
+
+    // ── 눈 블록 라인 (이글루 질감) ──
+    ctx.strokeStyle = 'rgba(160,196,224,0.5)';
+    ctx.lineWidth = 1.2;
+    for (let row = 1; row <= 3; row++) {
+        const ratio = row / 4;
+        const ry = gy - ih * Math.sin(Math.PI * ratio);
+        const rx = iw * Math.cos(Math.PI * ratio);
+        ctx.beginPath();
+        ctx.moveTo(ix - rx, ry);
+        ctx.lineTo(ix + rx, ry);
+        ctx.stroke();
+    }
+
+    // ── 지붕 눈 (반짝임) ──
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.ellipse(ix - 18, gy - ih * 0.75, 11, 6, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ── 고드름 4개 ──
+    ctx.fillStyle = '#a8d4f0';
+    [ix - 28, ix - 10, ix + 10, ix + 28].forEach((gx, gi) => {
+        const glen = 7 + gi * 2;
+        ctx.beginPath();
+        ctx.moveTo(gx - 3, gy - 2);
+        ctx.lineTo(gx + 3, gy - 2);
+        ctx.lineTo(gx, gy - 2 + glen);
+        ctx.closePath();
+        ctx.fill();
+    });
+
+    // ── 집 이모지 ──
+    ctx.font = 'bold 11px "Pretendard", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏠', ix, gy - ih - 8);
+    ctx.textAlign = 'left';
 }
 
 // ─── 귀여운 펭귄 그리기 (크고 역동적) ─────────────────────────────
@@ -277,7 +481,6 @@ function drawPenguin(ctx, x, tick, dir) {
     // 다리 스윙: 4단계 키프레임 — 붙였다 벌렸다
     // 0.00~0.25: 모음→왼앞/오른뒤  0.25~0.50: 벌림→모음
     // 0.50~0.75: 모음→오른앞/왼뒤  0.75~1.00: 벌림→모음
-    function eio(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
     const SPREAD = 36;
     let legSwingL, legSwingR;
     if (walkPhase < 0.25) {
@@ -483,7 +686,17 @@ function snapshotFrame(tick) {
         mctx.fill();
     }
 
-    // 펭귄 그리기
+    // 이글루 (오른쪽 고정 — 펭귄의 목적지)
+    drawIgloo(mctx, FW - 115, GROUND_Y);
+
+    // 새끼 펭귄 (이글루 앞에서 엄마를 기다림)
+    // 엄마 펭귄이 가까워질수록 새끼가 살짝 흥분해서 앞뒤로 흔들림
+    const babyX   = FW - 115 - 48; // 이글루 입구 앞
+    const distToMom = Math.abs(px - babyX);
+    const excite  = distToMom < 80 ? Math.sin(tick * 1.2) * 3 : Math.sin(tick * 0.4) * 1.5;
+    drawBabyPenguin(mctx, babyX + excite, GROUND_Y);
+
+    // 엄마 펭귄 그리기
     drawPenguin(mctx, px, tick, pdir);
 
     return mc;
@@ -493,25 +706,23 @@ function snapshotFrame(tick) {
 // ── 핵심 원칙 ──────────────────────────────────────────────────
 // fps가 달라도 펭귄은 항상 JOURNEY_TICKS(고정 거리)를 이동.
 // 그 구간을 fps 등분해서 각 위치를 스냅샷 → 프레임 수만 달라짐.
-const JOURNEY_TICKS = 240; // 끝에서 끝까지 이동 거리 (원래값 유지)
+const JOURNEY_TICKS = 152; // 도달x≈314px(새끼 앞), WC=37과 조합 → 전 fps 다양
+
+// ── 스냅샷 캐시: fps별로 한 번 만들면 재사용 ──────────────────
+const _framesCache = {}; // { fps: [canvas, ...] }
 
 function buildFrames(fps) {
-    // 24fps 기준 전체 프레임을 먼저 생성
-    // fps가 낮을수록 그 중에서 균등하게 샘플링
-    const BASE_FPS = 24;
-    const baseFrames = [];
-    for (let f = 0; f < BASE_FPS; f++) {
-        const t = Math.round((f / BASE_FPS) * JOURNEY_TICKS);
-        baseFrames.push(snapshotFrame(t));
-    }
-    if (fps === BASE_FPS) return baseFrames;
+    if (_framesCache[fps]) return _framesCache[fps]; // 이미 만든 것 재사용
 
-    // fps만큼 균등 샘플링
+    // JOURNEY_TICKS를 fps 등분 → 각 tick에서 직접 스냅샷
+    // JOURNEY_TICKS=120, WALK_CYCLE=24(=120/5)라
+    // 어떤 fps든 walkPhase가 사이클 전체에 균등 분포
     const frames = [];
     for (let f = 0; f < fps; f++) {
-        const idx = Math.round((f / fps) * BASE_FPS);
-        frames.push(baseFrames[Math.min(idx, BASE_FPS - 1)]);
+        const t = Math.round((f / fps) * JOURNEY_TICKS);
+        frames.push(snapshotFrame(t));
     }
+    _framesCache[fps] = frames;
     return frames;
 }
 
@@ -521,38 +732,39 @@ function buildFrames(fps) {
 let fpsWaiting = false;
 
 function startFPSLoop() {
-    if (fpsRAF) cancelAnimationFrame(fpsRAF);
+    if (fpsRAF) { cancelAnimationFrame(fpsRAF); fpsRAF = null; }
     fpsFrameIdx = 0;
     fpsWaiting  = false;
 
     function loop(now) {
-        fpsRAF = requestAnimationFrame(loop);
-        if (fpsPaused || !fCtx) return;
-
-        // 대기 구간: 마지막 프레임 유지 후 재시작
-        if (fpsWaiting) {
-            if (now - fpsLastTime >= 700) {
-                fpsFrameIdx = 0;
-                fpsWaiting  = false;
-                fpsLastTime = now;
-            }
+        if (fpsPaused || !fCtx) {
+            fpsRAF = requestAnimationFrame(loop); // 일시정지 중에도 resume 대기
             return;
         }
 
         // 재생 구간: 1000/fps ms 간격
         const interval = 1000 / currentFps;
-        if (now - fpsLastTime < interval) return;
+        if (now - fpsLastTime < interval) {
+            fpsRAF = requestAnimationFrame(loop);
+            return;
+        }
         fpsLastTime = now;
 
-        // 마지막 프레임 후 대기 전환
+        // 마지막 프레임 후 → RAF 중단 + setTimeout 700ms 대기
         if (fpsFrameIdx >= fpsFrames.length) {
-            fpsWaiting  = true;
-            fpsLastTime = now;
+            fpsRAF = null;
+            setTimeout(() => {
+                if (fpsPaused) { fpsRAF = requestAnimationFrame(loop); return; }
+                fpsFrameIdx = 0;
+                fpsLastTime = performance.now();
+                fpsRAF = requestAnimationFrame(loop);
+            }, 700);
             return;
         }
 
         const frame = fpsFrames[fpsFrameIdx];
         fpsFrameIdx++;
+        fpsRAF = requestAnimationFrame(loop);
 
         fCtx.clearRect(0, 0, FW, FH);
         fCtx.drawImage(frame, 0, 0, FW, FH);
@@ -609,7 +821,11 @@ function startFPSLoop() {
 
 // ─── FPS 실험실 초기화 (step3 진입 시 1회) ───────────────────────
 function initFPSLab() {
-    if (fpsLabReady) return;
+    // 재진입 시 재생 루프만 재시작 (슬라이더·캐시는 유지)
+    if (fpsLabReady) {
+        if (!fpsRAF) startFPSLoop(); // 루프가 꺼져있으면 재시작
+        return;
+    }
     fpsLabReady = true;
 
     currentFps  = 8;
