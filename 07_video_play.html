@@ -85,8 +85,28 @@
                     <!-- ✅ 수정: 입력창과 출력창을 가로로 배치하고 세로 160px(약 5cm)로 고정, 하단 여백 추가 -->
                     <!-- ✅ 수정: 오른쪽 모니터 창에 box-sizing: border-box; 를 추가하여 높이를 완벽히 맞춤 -->
 <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: stretch; margin-bottom: 20px;">
-    <textarea id="textInput" placeholder="자막 입력 (예: 학교폭력 NO!)" oninput="updateTextBinary()" style="flex: 1; min-width: 250px; height: 160px; margin: 0; padding: 15px; background: #0B0F19; border: 1px solid #334155; color: white; border-radius: 6px; box-sizing: border-box; font-size: 1.05rem; font-family: 'Pretendard', sans-serif; resize: none; line-height: 1.5;"></textarea>
-    
+    <div style="flex:1; min-width:250px; display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:#0f1624; padding:7px 12px; border-radius:6px; border:1px solid #334155;">
+            <span id="captionFrameLabel" style="font-size:0.82rem; font-weight:900; color:var(--secondary); white-space:nowrap;">📝 #1 프레임 자막</span>
+            <span style="font-size:0.75rem; color:#475569; flex:1;">— 프레임마다 다른 자막 입력 가능</span>
+            <label style="display:flex; align-items:center; gap:5px; font-size:0.78rem; color:#94A3B8; font-weight:700; cursor:pointer; white-space:nowrap;">🎨 자막색
+                <input type="color" id="captionColor" value="#ffffff"
+                    style="width:28px; height:24px; padding:0; border:none; border-radius:4px; cursor:pointer;"
+                    oninput="saveCaptionColorForFrame()">
+            </label>
+            <label style="display:flex; align-items:center; gap:5px; font-size:0.78rem; color:#94A3B8; font-weight:700; white-space:nowrap;">🔤 크기
+                <select id="captionSize" onchange="saveCaptionSizeForFrame()"
+                    style="padding:2px 6px; height:24px; background:#0B0F19; border:1px solid #334155; color:white; border-radius:4px; font-size:0.78rem; cursor:pointer;">
+                    <option value="10">1</option>
+                    <option value="16">2</option>
+                    <option value="24" selected>3</option>
+                    <option value="32">4</option>
+                    <option value="48">5</option>
+                </select>
+            </label>
+        </div>
+        <textarea id="textInput" placeholder="이 프레임의 자막 입력 (비워두면 자막 없음)" oninput="updateTextBinary(); saveCaptionForFrame()" style="height:120px; margin:0; padding:12px; background:#0B0F19; border:1px solid #334155; color:white; border-radius:6px; box-sizing:border-box; font-size:1.05rem; font-family:'Pretendard',sans-serif; resize:none; line-height:1.5; -webkit-user-select:text; user-select:text;"></textarea>
+    </div>
     <div class="binary-screen" id="textBinary" style="flex: 1; min-width: 250px; height: 160px; margin: 0; box-sizing: border-box;">[시스템 대기] 문자를 입력하고 이진 코드를 확인하세요.</div>
 </div>
                 </div>
@@ -268,7 +288,7 @@
                     
                     <div style="display: flex; gap: 10px; align-items: center; background: #171E2E; padding: 15px; border-radius: 8px; border: 1px solid #334155; flex-wrap: wrap;">
                         <span style="font-weight: bold; color: #94A3B8; white-space: nowrap;">저장 포맷:</span>
-                        <select id="formatSelect" style="width: 150px; margin-bottom: 0;">
+                        <select id="formatSelect" style="width: 150px; margin-bottom: 0; cursor: pointer;">
                             <option value="video/webm">WebM (권장)</option>
                             <option value="video/mp4">MP4 (호환)</option>
                         </select>
@@ -336,6 +356,9 @@
         // frames: 실제 존재하는 프레임만 담는 동적 배열
         // 인덱스 = 순서 그대로 (0,1,2...), 삭제하면 splice로 제거
         let frames = [];
+        let frameCaptions      = ['']; // 프레임별 자막 텍스트
+        let frameCaptionColors = ['#ffffff']; // 프레임별 자막 색상
+        let frameCaptionSizes  = [24];        // 프레임별 자막 크기(1~5단계, 기본=3)
         let currentFrame = 0;  // frames[] 인덱스
         let isDrawing = false, isEraser = false;
         let undoStack = [];
@@ -414,13 +437,13 @@
         initCanvas();
 
         function selectFrame(index) {
-            // 현재 캔버스 저장 전에 순수 그림만 저장
-            // (어니언 합성 전 상태를 저장하기 위해 현재 프레임 픽셀만 추출)
             saveCurrentFramePixels();
+            saveCaptionForFrame(); // 현재 프레임 자막 저장
             currentFrame = index;
             undoStack = [];
+            loadCaptionForFrame(); // 선택 프레임 자막 불러오기
             renderFrameUI();
-            renderFrame(); // 흰배경 + 어니언 + 현재프레임 합성
+            renderFrame();
         }
 
         // 현재 dCtx에서 순수 그림만 frames[]에 저장
@@ -472,6 +495,46 @@
 
         // 하위 호환용 (기존 코드에서 drawOnionSkin() 호출하는 곳)
         function drawOnionSkin() { renderFrame(); }
+
+        // ── 프레임별 자막 저장/불러오기 ──────────────────────────
+        let copiedCaption = '';
+
+        function saveCaptionForFrame() {
+            const ta = document.getElementById('textInput');
+            if (!ta) return;
+            while (frameCaptions.length <= currentFrame) frameCaptions.push('');
+            frameCaptions[currentFrame] = ta.value;
+        }
+
+        function loadCaptionForFrame() {
+            const ta  = document.getElementById('textInput');
+            const cc  = document.getElementById('captionColor');
+            const lbl = document.getElementById('captionFrameLabel');
+            if (!ta) return;
+            while (frameCaptions.length      <= currentFrame) frameCaptions.push('');
+            while (frameCaptionColors.length <= currentFrame) frameCaptionColors.push('#ffffff');
+            ta.value = frameCaptions[currentFrame] || '';
+            if (cc)  cc.value = frameCaptionColors[currentFrame] || '#ffffff';
+            const sz = document.getElementById('captionSize');
+            while (frameCaptionSizes.length <= currentFrame) frameCaptionSizes.push(24);
+            if (sz)  sz.value = frameCaptionSizes[currentFrame] || 24;
+            if (lbl) lbl.textContent = `📝 #${currentFrame + 1} 프레임 자막`;
+            updateTextBinary();
+        }
+
+        function saveCaptionColorForFrame() {
+            const cc = document.getElementById('captionColor');
+            if (!cc) return;
+            while (frameCaptionColors.length <= currentFrame) frameCaptionColors.push('#ffffff');
+            frameCaptionColors[currentFrame] = cc.value;
+        }
+
+        function saveCaptionSizeForFrame() {
+            const sz = document.getElementById('captionSize');
+            if (!sz) return;
+            while (frameCaptionSizes.length <= currentFrame) frameCaptionSizes.push(24);
+            frameCaptionSizes[currentFrame] = parseInt(sz.value);
+        }
 
         // ── 프레임 복사/붙여넣기 ─────────────────────────────────
         let copiedFrame = null; // 복사된 프레임 ImageData
@@ -577,9 +640,13 @@
             const ok = await showConfirm('모든 프레임을 비울까요?\n이 작업은 되돌릴 수 없습니다.');
             if (!ok) return;
             frames = [makeBlankFrame()];
+            frameCaptions      = [''];
+            frameCaptionColors = ['#ffffff'];
+            frameCaptionSizes  = [24];
             currentFrame = 0;
             dCtx.fillStyle = 'white'; dCtx.fillRect(0, 0, 450, 450);
             undoStack = [];
+            loadCaptionForFrame();
             document.getElementById('imageBinary').innerHTML = "[시스템 대기] 전체 프레임이 초기화 되었습니다.";
             renderFrameUI();
             saveAllToLocal();
@@ -741,13 +808,17 @@
                 const fi = previewFrame % frames.length;
                 if (frames[fi]) pCtx.putImageData(frames[fi], 0, 0);
                 
-                const text = document.getElementById('textInput').value;
-                if(text) {
-                    pCtx.fillStyle = "rgba(0,0,0,0.6)";
-                    pCtx.fillRect(0, 360, 450, 90);
-                    pCtx.fillStyle = "white";
-                    pCtx.font = "bold 30px Pretendard";
+                const text = frameCaptions[fi] || '';
+                if (text) {
+                    const col  = (frameCaptionColors && frameCaptionColors[fi]) || '#ffffff';
+                    const fpt  = (frameCaptionSizes  && frameCaptionSizes[fi])  || 24;
+                    const fsz  = Math.round(fpt * 1.333);
+                    pCtx.font      = fsz + "px 'Apple SD Gothic Neo', '맑은 고딕', 'Malgun Gothic', 'Noto Sans KR', sans-serif";
                     pCtx.textAlign = "center";
+                    pCtx.strokeStyle = "rgba(0,0,0,0.75)";
+                    pCtx.lineWidth   = 5;
+                    pCtx.strokeText(text, 225, 415, 420);
+                    pCtx.fillStyle = col;
                     pCtx.fillText(text, 225, 415, 420);
                 }
                 previewFrame = (previewFrame + 1) % frames.length;
@@ -907,12 +978,16 @@
 
         function addFrame() {
             if (frames.length >= MAX_FRAMES) return;
-            // 현재 캔버스 저장 후 새 흰 프레임 추가
+            saveCaptionForFrame(); // 현재 자막 저장
             frames[currentFrame] = dCtx.getImageData(0, 0, 450, 450);
             frames.push(makeBlankFrame());
+            frameCaptions.push('');
+            frameCaptionColors.push('#ffffff');
+            frameCaptionSizes.push(24);
             currentFrame = frames.length - 1;
             dCtx.fillStyle = 'white'; dCtx.fillRect(0, 0, 450, 450);
             undoStack = [];
+            loadCaptionForFrame(); // 빈 자막 표시
             renderFrameUI();
             saveAllToLocal();
         }
@@ -928,10 +1003,17 @@
                 return;
             }
             frames.splice(i, 1);
+            frameCaptions.splice(i, 1);
+            frameCaptionColors.splice(i, 1);
+            frameCaptionSizes.splice(i, 1);
+            while (frameCaptions.length      < frames.length) frameCaptions.push('');
+            while (frameCaptionColors.length < frames.length) frameCaptionColors.push('#ffffff');
+            while (frameCaptionSizes.length  < frames.length) frameCaptionSizes.push(24);
             if (currentFrame >= frames.length) currentFrame = frames.length - 1;
             undoStack = [];
+            loadCaptionForFrame();
             renderFrameUI();
-            renderFrame(); // 삭제 후 깔끔하게 재렌더
+            renderFrame();
             saveAllToLocal();
         }
 
@@ -984,13 +1066,14 @@
                     octx.clearRect(0, 0, overlay.width, overlay.height);
                     octx.drawImage(tmp, 0, 0, overlay.width, overlay.height);
                     // 자막
-                    const text = document.getElementById('textInput')?.value;
+                    const text = frameCaptions[fi] || '';
                     if (text) {
-                        octx.fillStyle = 'rgba(0,0,0,0.6)';
-                        octx.fillRect(0, overlay.height - 52, overlay.width, 52);
-                        octx.fillStyle = '#fff';
-                        octx.font = 'bold 22px Pretendard,sans-serif';
+                        const col  = (frameCaptionColors && frameCaptionColors[fi]) || '#ffffff';
+                        const fpt  = (frameCaptionSizes  && frameCaptionSizes[fi])  || 24;
+                        const fsz  = Math.round(fpt * 1.333);
+                        octx.font      = fsz + "px 'Apple SD Gothic Neo', '맑은 고딕', 'Malgun Gothic', 'Noto Sans KR', sans-serif";
                         octx.textAlign = 'center';
+                        octx.fillStyle = col;
                         octx.fillText(text, overlay.width/2, overlay.height - 18, overlay.width - 20);
                     }
                     if (frameNum) frameNum.textContent = `F${fi+1}/${frames.length}`;
@@ -1056,7 +1139,9 @@
                 const data = {
                     frames: frameData,
                     currentFrame: currentFrame,
-                    text: document.getElementById('textInput')?.value || '',
+                    captions: frameCaptions,
+                    captionColors: frameCaptionColors,
+                    captionSizes:  frameCaptionSizes,
                     fps: document.getElementById('fpsSlider')?.value || '5',
                 };
                 localStorage.setItem(LS_KEY, JSON.stringify(data));
@@ -1072,9 +1157,13 @@
                 const data = JSON.parse(raw);
 
                 // 텍스트 복원
-                if (data.text && document.getElementById('textInput')) {
-                    document.getElementById('textInput').value = data.text;
-                    updateTextBinary();
+                // 프레임별 자막 복원
+                if (data.captions) {
+                    frameCaptions = data.captions;
+                }
+                if (data.captionColors) frameCaptionColors = data.captionColors;
+                if (data.captionSizes)  frameCaptionSizes  = data.captionSizes; else if (data.text) {
+                    frameCaptions = [data.text]; // 구버전 호환
                 }
 
                 // fps 복원
