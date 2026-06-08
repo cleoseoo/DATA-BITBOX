@@ -503,7 +503,7 @@
                 6px 6px 0 rgba(0,113,227,0.06),
                 0 20px 50px rgba(0,0,0,0.3);
             border: 1.5px solid rgba(0,113,227,0.15);
-            position: relative; width: 530px; margin-bottom: 16px;
+            position: relative; width: 660px; margin-bottom: 16px;
         }
         #bb-bubble::after {
             content: ''; position: absolute; bottom: -13px; left: 32px;
@@ -611,7 +611,7 @@
             { plain:'▪우리가 쓰는 숫자는 0~9를 쓰는 십진법이야.', html:'▪우리가 쓰는 숫자는 <em>0~9</em>를 쓰는 <em>십진법</em>이야.' },
             { plain:'▪컴퓨터는 0과 1만 쓰는 이진법으로 숫자를 표현해.', html:'▪컴퓨터는 <em>0과 1</em>만 쓰는 <em>이진법</em>으로 숫자를 표현해.' },
             { plain:'▪예를 들어 십진수 5는 이진수로 101이야.', html:'▪예를 들어 십진수 <em>5</em>는 이진수로 <strong>101</strong>이야.' },
-            { plain:'▪자릿수마다 2의 거듭제곱 값이 있어서 변환할 수 있지.', html:'▪자릿수마다 <em>2의 거듭제곱</em> 값이 있어서 변환할 수 있지.<br>' },
+            { plain:'▪반대로 이진수는 자릿수마다 2의 거듭제곱 값이 있어서 10진수로 변환할 수 있지.', html:'▪반대로 이진수 자릿수마다 <em>2의 거듭제곱</em> 값이 있어서 10진수로 변환할 수 있지.<br>' },
              { plain:'➤ 그럼 직접 숫자가 디지털로 변환되는 원리를 탐구해볼까?', html:'<em>➤ 그럼 직접 숫자가 디지털로 변환되는 원리를 탐구해볼까?</em>' },
 
         ];
@@ -650,6 +650,7 @@
 
         window.addEventListener('load',()=>setTimeout(bbType,600));
     </script>
-
+<script src="./js/search_data.js"></script> 
+<script src="./js/concept_common.js"></script>
 </body>
 </html>
