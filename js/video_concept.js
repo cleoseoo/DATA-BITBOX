@@ -261,7 +261,7 @@ let fpsLastTime = 0;
 
 // ─── 펭귄 걷기 시뮬 ──────────────────────────────────────────────
 function eio(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; } // easeInOut (전역)
-const WALK_CYCLE = 37;    // 최적값 — 1~24 모든 fps에서 자세 다양 (나쁜fps=0)
+const WALK_CYCLE = 22;    // 최적값 — 4·8fps 포함 전 fps 다리 각도 다양 (최소 30°↑)
 const GROUND_Y   = FH - 36 - 40; // 진행 바(36px) + 다리·발(40px) 위 — 진행바 겹침 방지
 
 // tick → 펭귄 x 위치 (항상 동일한 왕복 경로)
@@ -706,7 +706,7 @@ function snapshotFrame(tick) {
 // ── 핵심 원칙 ──────────────────────────────────────────────────
 // fps가 달라도 펭귄은 항상 JOURNEY_TICKS(고정 거리)를 이동.
 // 그 구간을 fps 등분해서 각 위치를 스냅샷 → 프레임 수만 달라짐.
-const JOURNEY_TICKS = 152; // 도달x≈314px(새끼 앞), WC=37과 조합 → 전 fps 다양
+const JOURNEY_TICKS = 139; // 도달x≈290px(아기와 47px 간격), WC=22 조합 최적
 
 // ── 스냅샷 캐시: fps별로 한 번 만들면 재사용 ──────────────────
 const _framesCache = {}; // { fps: [canvas, ...] }

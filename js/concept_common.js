@@ -694,3 +694,293 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     animate();
 });
+
+
+// ==========================================================================
+// [데이터 비트박스] 사이드바 내부 정렬형 비트봇 시스템 (테두리 상자 축소 및 말풍선 다이어트)
+// ==========================================================================
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. 챗봇 전용 CSS 스타일 동적 주입
+    const chatbotStyle = document.createElement('style');
+    chatbotStyle.textContent = `
+        /* 챗봇 창 (사이드바 내부 버튼을 누르면 화면 기준으로 안전하게 팝업) */
+        #chatbot-window {
+            position: fixed;
+            bottom: 90px; 
+            right: 25px;
+            width: 330px;
+            height: 460px;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999;
+            display: none; /* 초기 상태 숨김 */
+            flex-direction: column;
+            overflow: hidden;
+            border: 2px solid #0f766e;
+            font-family: 'Pretendard', sans-serif;
+        }
+        .chatbot-header {
+            background-color: #0f766e;
+            color: white;
+            padding: 12px 16px;
+            font-weight: bold;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chatbot-body {
+            flex: 1;
+            padding: 14px;
+            overflow-y: auto;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chat-msg {
+            max-width: 85%;
+            padding: 9px 12px;
+            border-radius: 12px;
+            font-size: 13.5px;
+            line-height: 1.45;
+            word-break: break-all;
+        }
+        .bot-msg {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            border: 1px solid #e2e8f0;
+        }
+        .user-msg {
+            background-color: #0f766e;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+        .chatbot-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #e2e8f0;
+            background: white;
+            gap: 6px;
+        }
+        .chatbot-input-area input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+            font-size: 13px;
+        }
+        .chatbot-input-area button {
+            padding: 0 14px;
+            background-color: #0f766e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        /* ---------------------------------------------------- */
+        /* 사이드바 최하단 지우기 상자 + 비트봇 정렬 레이아웃 */
+        .erase-section {
+            display: flex !important;
+            gap: 10px !important;
+            align-items: center !important;
+            width: 100% !important;
+        }
+
+        /* 🎯 얇은 빨간 테두리 상자 가로 크기 축소 (자동 양보) */
+        .erase-section .erase-btn {
+            flex: 1 !important; /* 전체 너비에서 비트봇 자리를 제외하고 늘어남 */
+            margin: 0 !important;
+        }
+
+        #chatbot-toggle-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0; /* 크기가 찌그러지지 않도록 고정 */
+        }
+        #chatbot-toggle-btn {
+            width: 44px; /* 지우기 상자 높이와 딱 정렬되도록 조정 */
+            height: 44px;
+            border-radius: 50%;
+            background-color: #0f766e;
+            color: white;
+            font-size: 22px; 
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #chatbot-toggle-btn:hover {
+            transform: scale(1.05);
+            background-color: #0d635c;
+        }
+        
+        /* 💡 [대수술] 콤팩트하고 귀엽게 다이어트한 빨간 말풍선 */
+        .chatbot-tooltip {
+            position: absolute;
+            bottom: 54px; /* 버튼 바로 위 배치 */
+            right: 0px; 
+            background-color: #ff5e5e; 
+            color: white;
+            padding: 3px 6px; /* 🎯 안쪽 여백 극소화 */
+            border-radius: 6px;
+            font-size: 11px; /* 🎯 글자 크기 축소 */
+            font-weight: 800;
+            white-space: nowrap;
+            letter-spacing: -0.8px; /* 🎯 자간을 바짝 좁혀서 아주 날씬하게 만듦 */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            animation: floatUpDown 1.5s infinite ease-in-out;
+            pointer-events: none; 
+            z-index: 10;
+        }
+        .chatbot-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            right: 16px;
+            border-width: 4px 4px 0;
+            border-style: solid;
+            border-color: #ff5e5e transparent transparent transparent;
+        }
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+    `;
+    document.head.appendChild(chatbotStyle);
+
+    // 2. 챗봇 대화창 화면 주입 (body에 직접 붙임)
+    const chatbotWindowHTML = `
+        <div id="chatbot-window">
+            <div class="chatbot-header">
+                <span>🤖 핵심 개념 안내 비트봇</span>
+                <span style="cursor:pointer; font-size: 16px;" id="chatbot-close-x">✖</span>
+            </div>
+            <div class="chatbot-body" id="chatbot-messages">
+                <div class="chat-msg bot-msg">안녕! <br> 나는 데이터 비트박스 '비트봇'이야.<br>학습 중에 궁금한 내용이 생기면 언제든지 물어봐! (예:비트, 픽셀...)</div>
+            </div>
+            <div class="chatbot-input-area">
+                <input type="text" id="chatbot-input" placeholder="예: 픽셀, 아날로그, 디지털...">
+                <button id="chatbot-send-btn">전송</button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', chatbotWindowHTML);
+
+    // 3. 🎯 사이드바 내부 .erase-section(지우기 상자) 안에 나란히 재배치
+    const eraseSection = document.querySelector('.erase-section');
+    if (eraseSection) {
+        // 비트봇 버튼과 초미니 말풍선 구조 생성
+        const toggleWrapper = document.createElement('div');
+        toggleWrapper.id = 'chatbot-toggle-wrapper';
+        toggleWrapper.innerHTML = `
+            <div class="chatbot-tooltip">비트봇 💬</div>
+            <button id="chatbot-toggle-btn">🤖</button>
+        `;
+        // 지우기 상자 바로 오른쪽에 붙이기
+        eraseSection.appendChild(toggleWrapper);
+    }
+
+    // 4. 이벤트 리스너 연결
+    const toggleBtn = document.getElementById('chatbot-toggle-btn');
+    const closeX = document.getElementById('chatbot-close-x');
+    const sendBtn = document.getElementById('chatbot-send-btn');
+    const inputField = document.getElementById('chatbot-input');
+
+    if(toggleBtn) toggleBtn.addEventListener('click', toggleChatbot);
+    if(closeX) closeX.addEventListener('click', toggleChatbot);
+    if(sendBtn) sendBtn.addEventListener('click', sendChatMessage);
+    if(inputField) inputField.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendChatMessage();
+    });
+
+    function toggleChatbot() {
+        const chatWindow = document.getElementById('chatbot-window');
+        const isHidden = chatWindow.style.display === 'none' || chatWindow.style.display === '';
+        chatWindow.style.display = isHidden ? 'flex' : 'none';
+        
+        const tooltip = document.querySelector('.chatbot-tooltip');
+        if (tooltip) tooltip.style.display = isHidden ? 'none' : 'block';
+
+        if (isHidden) inputField.focus();
+    }
+
+    // 5. 가장 긴 단어 우선 매칭(Scoring) 검색 엔진
+    function sendChatMessage() {
+        const message = inputField.value.trim();
+        if (!message) return;
+
+        addMessageToUI('user-msg', message);
+        inputField.value = '';
+        const userInput = message.replace(/\s+/g, '').toLowerCase();
+
+        let bestMatch = null;
+        let maxScore = 0;
+
+        if (typeof SEARCH_DB !== 'undefined' && Array.isArray(SEARCH_DB)) {
+            SEARCH_DB.forEach(item => {
+                let targets = [];
+                if (typeof item.keyword === 'string') targets.push(item.keyword);
+                if (Array.isArray(item.aliases)) targets.push(...item.aliases);
+                if (Array.isArray(item.keywords)) targets.push(...item.keywords);
+                if (typeof item.title === 'string') targets.push(item.title);
+
+                targets.forEach(target => {
+                    if (!target) return;
+                    const cleanTarget = target.replace(/\s+/g, '').toLowerCase();
+                    let currentScore = 0;
+
+                    if (userInput === cleanTarget) currentScore = cleanTarget.length + 100; 
+                    else if (userInput.includes(cleanTarget)) currentScore = cleanTarget.length;
+                    else if (cleanTarget.includes(userInput)) currentScore = userInput.length;
+
+                    if (currentScore > maxScore) {
+                        maxScore = currentScore;
+                        bestMatch = item;
+                    }
+                });
+            });
+        }
+
+        setTimeout(() => {
+            if (bestMatch) {
+                const titleText = bestMatch.keyword || bestMatch.title || "탐구 개념";
+                const descText = bestMatch.desc || "관련 설명을 찾았어!";
+                const url = bestMatch.url || "#";
+                const anchor = bestMatch.anchor || "";
+                const stepText = bestMatch.step ? `${bestMatch.step}단계: ` : "";
+                
+                const reply = `
+                    <strong>[${titleText}]</strong><br>
+                    ${descText}<br><br>
+                    🎯 <a href="${url}${anchor}" style="color:#0f766e; font-weight:bold; text-decoration:underline;">[${stepText}${bestMatch.title || titleText}] 페이지로 이동해서 탐구하기</a>
+                `;
+                addMessageToUI('bot-msg', reply);
+            } else {
+                addMessageToUI('bot-msg', '아직 내가 학습하지 못한 내용인 것 같아. 핵심 개념어(예: 비트, 인공지능)를 다시 확인해 줄래?');
+            }
+        }, 300);
+    }
+
+    function addMessageToUI(className, text) {
+        const msgContainer = document.getElementById('chatbot-messages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `chat-msg ${className}`;
+        msgDiv.innerHTML = text; 
+        msgContainer.appendChild(msgDiv);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+});

@@ -53,13 +53,13 @@ function typeChar(btnEl, char, dec, bin, standard) {
     setTimeout(() => {
         if(boxDec) boxDec.classList.add('active');
         if(standard === 'ASCII') {
-            elStdLabel.innerHTML = '<span style="color:#38bdf8;">🇺🇸 아스키코드</span>';
+            elStdLabel.innerHTML = '<span style="color:#38bdf8;">아스키코드</span>';
         } else {
-            elStdLabel.innerHTML = '<span style="color:#34d399;">🌍 유니코드</span>';
+            elStdLabel.innerHTML = '<span style="color:#38bdf8;">🌍 유니코드</span>';
         }
         elStdLabel.classList.add('pop-anim');
         elDec.innerText = dec;
-        elDec.style.color = standard === 'ASCII' ? '#38bdf8' : '#34d399';
+        elDec.style.color = ''; // CSS .process-box.active .process-value 에서 통일 관리
         elDec.classList.add('pop-anim');
     }, 300);
 
@@ -67,7 +67,7 @@ function typeChar(btnEl, char, dec, bin, standard) {
     setTimeout(() => {
         if(boxBin) boxBin.classList.add('active');
         elBin.innerHTML = bin.includes(' ') ? bin.replace(/ /g, '<br>') : bin;
-        elBin.style.fontSize = bin.length > 8 ? '1.1rem' : '1.3rem';
+        // fontSize는 CSS .bin-value에서 통일 관리
         elBin.classList.add('pop-anim');
     }, 600);
 }
