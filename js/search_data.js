@@ -163,13 +163,13 @@ const SEARCH_DB = [
         desc: '0~9까지 10개의 숫자를 사용하는 우리가 일상에서 쓰는 수 체계'
     },
     {
-        keyword: '이진수 변환',
-        aliases: ['이진수 계산', '십진수 이진수', '2진수 변환'],
+        keyword: '이진수 변환 방법',
+        aliases: ['이진수 계산', '십진수 이진수', '2진수 변환 방법'],
         step: 3, part: 'PART 02',
         title: '숫자의 디지털 표현',
         url: '03_number.html',
         anchor: '#step1-visual',
-        desc: '십진수→이진수: 2로 계속 나눈 나머지를 거꾸로 읽기. <br> 이진수→십진수: 켜진 자리의 값(1, 2, 4, 8, 16...)을 모두 합산'
+        desc: '십진수→이진수: 2로 계속 나눈 나머지를 거꾸로 읽기. \n 이진수→십진수: 켜진 자리의 값(1, 2, 4, 8, 16...)을 모두 합산'
     },
     {
         keyword: '이진수 자릿값',
@@ -188,7 +188,7 @@ const SEARCH_DB = [
     // ════════════════════════════════════════════════════
     {
         keyword: '아스키코드',
-        aliases: ['ASCII', 'ascii', '아스키'],
+        aliases: ['ASCII', 'ascii', '아스키', '디지털 문자'],
         step: 4, part: 'PART 02',
         title: '문자의 디지털 표현',
         url: '04_text.html',
@@ -197,7 +197,7 @@ const SEARCH_DB = [
     },
     {
         keyword: '유니코드',
-        aliases: ['Unicode', 'unicode'],
+        aliases: ['Unicode', 'unicode', '디지털 문자'],
         step: 4, part: 'PART 02',
         title: '문자의 디지털 표현',
         url: '04_text.html',
@@ -247,7 +247,7 @@ const SEARCH_DB = [
     // ════════════════════════════════════════════════════
     {
         keyword: '픽셀',
-        aliases: ['pixel', 'Pixel', '화소'],
+        aliases: ['pixel', '디지털 이미지', '화소', '그림'],
         step: 5, part: 'PART 03',
         title: '이미지의 디지털 표현',
         url: '05_image.html',
@@ -283,7 +283,7 @@ const SEARCH_DB = [
     },
     {
         keyword: '벡터',
-        aliases: ['vector', 'SVG', 'AI', '벡터 이미지'],
+        aliases: ['vector', 'SVG', '벡터 이미지'],
         step: 5, part: 'PART 03',
         title: '이미지의 디지털 표현',
         url: '05_image.html',

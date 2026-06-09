@@ -961,13 +961,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 const descText = bestMatch.desc || "관련 설명을 찾았어!";
                 const url = bestMatch.url || "#";
                 const anchor = bestMatch.anchor || "";
-                const stepText = bestMatch.step ? `${bestMatch.step}단계: ` : "";
-                
-                const reply = `
-                    <strong>[${titleText}]</strong><br>
-                    ${descText}<br><br>
-                    🎯 <a href="${url}${anchor}" style="color:#0f766e; font-weight:bold; text-decoration:underline;">[${stepText}${bestMatch.title || titleText}] 페이지로 이동해서 탐구하기</a>
-                `;
+                const stepText = bestMatch.step ? `${bestMatch.step}단원: ` : "";
+                const safeDesc = descText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+                const reply = `<strong>[${titleText}]</strong>\n${safeDesc}\n\n🎯 <a href="${url}${anchor}" style="color:#0f766e; font-weight:bold; text-decoration:underline;">[${stepText}${bestMatch.title || titleText}] 페이지로 이동해서 탐구하기</a>`;
                 addMessageToUI('bot-msg', reply);
             } else {
                 addMessageToUI('bot-msg', '아직 내가 학습하지 못한 내용인 것 같아. 핵심 개념어(예: 비트, 인공지능)를 다시 확인해 줄래?');
@@ -979,7 +976,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const msgContainer = document.getElementById('chatbot-messages');
         const msgDiv = document.createElement('div');
         msgDiv.className = `chat-msg ${className}`;
-        msgDiv.innerHTML = text; 
+        msgDiv.innerHTML = text.replace(/\n/g,'<br>');
         msgContainer.appendChild(msgDiv);
         msgContainer.scrollTop = msgContainer.scrollHeight;
     }
