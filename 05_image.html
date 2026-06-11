@@ -101,31 +101,69 @@
                                 <button class="inline-reveal-btn" onclick="revealInline(this, '해상도 (Resolution)', '#e84393')">❔</button> : 이미지 하나가 몇 개의 픽셀로 이루어져 있는지를 나타내는 정밀도입니다. (예: 1920x1080)
                             </div>
                         </div>
-                        <div class="concept-row">
-                            <div class="concept-icon">🖼️</div>
-                            <div class="concept-text">
-                                <button class="inline-reveal-btn violet" onclick="revealInline(this, '비트맵 (Bitmap)', 'var(--multi-violet)')">❔</button> 방식 : 픽셀들을 격자 모양으로 나열해 이미지를 표현합니다. 무리하게 확대하면 모서리가 깨지는 <b>'계단 현상'</b>이 발생합니다. 
-<br>파일의 대표적인 형식에는 
-<button class="inline-reveal-btn violet" style="margin-bottom: 5px;" onclick="revealInline(this, '<b>BMP</b>: 윈도 표준 비트맵 파일', '#0984e3')">❔ BMP</button>, 
-<button class="inline-reveal-btn violet" style="margin-bottom: 5px;" onclick="revealInline(this, '<b>JPG</b>: 사진을 주로 저장하며 고화질', '#0984e3')">❔ JPG</button>, 
-<button class="inline-reveal-btn violet" style="margin-bottom: 5px;" onclick="revealInline(this, '<b>PNG</b>: 인터넷에서 주로 사용하는 고화질 저용량', '#0984e3')">❔ PNG</button> 
-이(가) 있습니다.
+                        <!-- ── 비트맵 / 벡터 개념 + 포스트잇 나란히 ── -->
+                        <div style="display:flex; align-items:flex-start; width:100%;">
+                            <!-- 왼쪽: 개념 설명 -->
+                            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                                <div class="concept-row" style="margin-bottom:0;">
+                                    <div class="concept-icon">🖼️</div>
+                                    <div class="concept-text">
+                                        <button class="inline-reveal-btn violet" onclick="revealInline(this, '비트맵 (Bitmap)', 'var(--multi-violet)')">❔</button> 방식 : 픽셀들을 격자 모양으로 나열해 이미지를 표현합니다.<br>
+                                        무리하게 확대하면 모서리가 깨지는 <b>'계단 현상'</b>이 발생합니다.
+                                    </div>
+                                </div>
+                                <div class="concept-row" style="margin-bottom:0;">
+                                    <div class="concept-icon">📈</div>
+                                    <div class="concept-text">
+                                        <button class="inline-reveal-btn violet" onclick="revealInline(this, '벡터 (Vector)', 'var(--multi-violet)')">❔</button> 방식 : 점, 선, 면을 수학적 방정식으로 저장합니다.<br>
+                                        무한히 확대해도 <b>절대 깨지지 않습니다.</b>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="concept-row">
-                            <div class="concept-icon">📈</div>
-                            <div class="concept-text">
-                                <button class="inline-reveal-btn violet" onclick="revealInline(this, '벡터 (Vector)', 'var(--multi-violet)')">❔</button> 방식 : 점, 선, 면을 수학적 방정식으로 저장하여 무한히 확대해도 <b>절대 깨지지 않습니다.</b>
-<br>파일의 대표적인 형식에는 
-<button class="inline-reveal-btn violet" style="margin-bottom: 5px;" onclick="revealInline(this, '<b>SVG</b>: 크기를 조절해도 선명하며 웹에서 주로 사용하는 벡터 파일', '#0984e3')">❔ SVG</button>, 
-<button class="inline-reveal-btn violet" style="margin-bottom: 5px;" onclick="revealInline(this, '<b>AI</b>: 로고나 캐릭터 등 전문 그래픽 디자인에 쓰이는 원본 파일', '#0984e3')">❔ AI</button> 
-이(가) 있습니다.                        </div>
+                            <!-- 오른쪽: 포스트잇 두 개 -->
+                            <div style="display:flex; gap:40px; align-items:flex-start; flex-shrink:0; padding:10px 10px 10px 50px;">
+                                <!-- 비트맵 포스트잇 -->
+                                <div style="width:190px; background:linear-gradient(160deg,#fff9c4 60%,#fff176); border-radius:4px 14px 14px 14px; padding:14px 14px 16px; box-shadow:3px 5px 14px rgba(9,132,227,0.13),0 1px 3px rgba(0,0,0,0.08); position:relative; font-family:'Pretendard','Inter',sans-serif; transform:rotate(1.5deg); border-top:4px solid #0984e3;">
+                                    <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#74b9ff,#0984e3);box-shadow:0 2px 5px rgba(0,0,0,0.25);"></div>
+                                    <div style="font-size:0.78rem;font-weight:900;color:#0964b0;margin-bottom:8px;text-align:center;">🖼️ 비트맵 형식</div>
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        <div style="background:rgba(9,132,227,0.08);border-radius:7px;padding:6px 9px;">
+                                            <div style="font-size:0.78rem;font-weight:900;color:#0984e3;">📄 BMP</div>
+                                            <div style="font-size:0.72rem;color:#555;margin-top:2px;line-height:1.4;">윈도 표준 비트맵 파일</div>
+                                        </div>
+                                        <div style="background:rgba(9,132,227,0.08);border-radius:7px;padding:6px 9px;">
+                                            <div style="font-size:0.78rem;font-weight:900;color:#0984e3;">📷 JPG</div>
+                                            <div style="font-size:0.72rem;color:#555;margin-top:2px;line-height:1.4;">사진을 주로 저장하며 고화질</div>
+                                        </div>
+                                        <div style="background:rgba(9,132,227,0.08);border-radius:7px;padding:6px 9px;">
+                                            <div style="font-size:0.78rem;font-weight:900;color:#0984e3;">🌐 PNG</div>
+                                            <div style="font-size:0.72rem;color:#555;margin-top:2px;line-height:1.4;">인터넷용 고화질 저용량</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- 벡터 포스트잇 -->
+                                <div style="width:190px; background:linear-gradient(160deg,#fff9c4 60%,#fff176); border-radius:4px 14px 14px 14px; padding:14px 14px 16px; box-shadow:3px 5px 14px rgba(0,184,148,0.13),0 1px 3px rgba(0,0,0,0.08); position:relative; font-family:'Pretendard','Inter',sans-serif; transform:rotate(-1.2deg); border-top:4px solid #00b894;">
+                                    <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#55efc4,#00836b);box-shadow:0 2px 5px rgba(0,0,0,0.25);"></div>
+                                    <div style="font-size:0.78rem;font-weight:900;color:#00836b;margin-bottom:8px;text-align:center;">📈 벡터 형식</div>
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        <div style="background:rgba(0,184,148,0.09);border-radius:7px;padding:6px 9px;">
+                                            <div style="font-size:0.78rem;font-weight:900;color:#00836b;">🌍 SVG</div>
+                                            <div style="font-size:0.72rem;color:#555;margin-top:2px;line-height:1.4;">웹에서 주로 사용하는 벡터 파일</div>
+                                        </div>
+                                        <div style="background:rgba(0,184,148,0.09);border-radius:7px;padding:6px 9px;">
+                                            <div style="font-size:0.78rem;font-weight:900;color:#00836b;">🎨 AI</div>
+                                            <div style="font-size:0.72rem;color:#555;margin-top:2px;line-height:1.4;">전문 그래픽 디자인용 원본 파일</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="concept-row">
                             <div class="concept-icon">🎨</div>
                             <div class="concept-text">
-                                <b>RGB 색상</b> : 빛의 삼원색(Red-8비트, Green-8비트, Blue-8비트)을 조합하여 색을 표현합니다. 하나의 픽셀 색상을 저장하는 데 보통 <button class="inline-reveal-btn green" onclick="revealInline(this, '24비트 (약 1600만 색)', '#2e7d32')">❔</button>를 사용합니다.
+                                <b>RGB 색상</b> : 빛의 삼원색(Red-8비트, Green-8비트, Blue-8비트)을 조합하여 색을 표현합니다.<br>
+                                하나의 픽셀 색상을 저장하는 데 보통 <button class="inline-reveal-btn green" onclick="revealInline(this, '24비트 (약 1600만 색)', '#2e7d32')">❔</button>를 사용합니다.
                             </div>
                         </div>
                     </div>

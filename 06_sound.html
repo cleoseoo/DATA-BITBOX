@@ -63,7 +63,7 @@
                 </div>
                 <div id="step2-concept" class="step-container">
                     <div style="font-size: 1.3rem; font-weight: 900; color: var(--multi-violet); margin-bottom: 10px; text-align: left; padding-left: 10px;">소리의 디지털화 과정 (PCM)</div>
-                    <div class="concept-wrap">
+                    <div class="concept-wrap" style="display:flex; flex-direction:column; gap:12px;">
                         <div class="concept-row"><div class="concept-icon">🌊</div><div style="flex:1;"><b style="color:var(--accent-blue)">아날로그 소리</b> : 자연의 소리처럼 시간이 지남에 따라 끊어짐 없이 연속적으로 부드럽게 변하는 파형입니다.</div></div>
                         <div class="concept-row"><div class="concept-icon">💻</div><div style="flex:1;"><b style="color:var(--accent-violet)">디지털 소리</b> : 아날로그 소리를 컴퓨터가 처리할 수 있도록 <b>0과 1의 이진수</b>로 변환한 불연속적인 신호입니다. <br>표본화 → 양자화 → 부호화 3단계를 거쳐 만들어집니다.</div></div>
 
@@ -78,9 +78,56 @@
                             <div id="pcmAnimLabel" style="text-align:center;margin-top:10px;font-size:0.92rem;font-weight:700;color:var(--multi-violet);min-height:22px;"></div>
                         </div>
 
-                        <div class="concept-row"><div class="concept-icon">✂️</div><div style="flex:1;"><b>1단계: </b><button class="pill-btn" onclick="revealInline(this, '표본화 (Sampling)', 'var(--accent-blue)')">?</button><br>연속적인 아날로그 파형을 <b>일정한 시간 간격으로 잘게 쪼개어</b> 값을 추출하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 샘플링 레이트: 1초에 몇 번 쪼개는지 나타내며 단위는 헤르츠(Hz)를 사용합니다.</span></div></div>
-                        <div class="concept-row"><div class="concept-icon">📏</div><div style="flex:1;"><b>2단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--multi-violet), #a29bfe);" onclick="revealInline(this, '양자화 (Quantization)', 'var(--multi-violet)')">?</button><br>표본화로 추출된 실수 값을 가장 가까운 <b>정수(단계)로 반올림하여 수치화</b>하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 표현 단계 수(정밀도): 소리의 크기를 몇 단계로 쪼갤지 결정합니다. (비트 수가 클수록 정밀합니다.)</span></div></div>
-                        <div class="concept-row"><div class="concept-icon">🔢</div><div style="flex:1;"><b>3단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--accent-green), #55efc4);" onclick="revealInline(this, '부호화 (Encoding)', 'var(--accent-green)')">?</button><br>양자화된 수치(정수)를 컴퓨터가 이해하고 저장할 수 있도록 <b>0과 1의 이진수 코드로 변환</b>하는 과정입니다.</div></div>
+                        <!-- ── PCM 3단계 + 포스트잇 나란히 ── -->
+                        <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+                            <!-- 왼쪽: PCM 3단계 설명 -->
+                            <div style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:12px;">
+                                <div class="concept-row"><div class="concept-icon">✂️</div><div style="flex:1;"><b>1단계: </b><button class="pill-btn" onclick="revealInline(this, '표본화 (Sampling)', 'var(--accent-blue)')">?</button><br>연속적인 아날로그 파형을 <b>일정한 시간 간격으로 잘게 쪼개어</b> 값을 추출하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 샘플링 레이트: 1초에 몇 번 쪼개는지 나타내며 단위는 헤르츠(Hz)를 사용합니다.</span></div></div>
+                                <div class="concept-row"><div class="concept-icon">📏</div><div style="flex:1;"><b>2단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--multi-violet), #a29bfe);" onclick="revealInline(this, '양자화 (Quantization)', 'var(--multi-violet)')">?</button><br>표본화로 추출된 실수 값을 가장 가까운 <b>정수(단계)로 반올림하여 수치화</b>하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 표현 단계 수(정밀도): 소리의 크기를 몇 단계로 쪼갤지 결정합니다. (비트 수가 클수록 정밀합니다.)</span></div></div>
+                                <div class="concept-row"><div class="concept-icon">🔢</div><div style="flex:1;"><b>3단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--accent-green), #55efc4);" onclick="revealInline(this, '부호화 (Encoding)', 'var(--accent-green)')">?</button><br>양자화된 수치(정수)를 컴퓨터가 이해하고 저장할 수 있도록 <b>0과 1의 이진수 코드로 변환</b>하는 과정입니다.</div></div>
+                            </div>
+
+                            <!-- 오른쪽: 포스트잇 -->
+                            <div style="
+                                flex-shrink:0;
+                                width:200px;
+                                background: linear-gradient(160deg, #fff9c4 60%, #fff176);
+                                border-radius: 4px 18px 18px 18px;
+                                padding: 16px 16px 18px;
+                                box-shadow: 3px 5px 14px rgba(108,92,231,0.13), 0 1px 3px rgba(0,0,0,0.08);
+                                position: relative;
+                                font-family: 'Pretendard', 'Inter', sans-serif;
+                                transform: rotate(1.5deg);
+                                border-top: 4px solid #6c5ce7;
+                            ">
+                                <!-- 핀 -->
+                                <div style="
+                                    position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+                                    width:18px; height:18px; border-radius:50%;
+                                    background: radial-gradient(circle at 35% 35%, #a29bfe, #4527a0);
+                                    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+                                "></div>
+                                <!-- 제목 -->
+                                <div style="font-size:0.82rem; font-weight:900; color:#4527a0; margin-bottom:10px; text-align:center; letter-spacing:-0.3px;">
+                                    🎵 소리 파일의 형식
+                                </div>
+                                <!-- 항목들 -->
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <div style="background:rgba(108,92,231,0.07); border-radius:8px; padding:7px 9px;">
+                                        <div style="font-size:0.8rem; font-weight:900; color:#6c5ce7;">🔊 WAV</div>
+                                        <div style="font-size:0.75rem; color:#555; margin-top:2px; line-height:1.4;">기본 음성 파일 형식으로 용량이 크다.</div>
+                                    </div>
+                                    <div style="background:rgba(0,184,148,0.08); border-radius:8px; padding:7px 9px;">
+                                        <div style="font-size:0.8rem; font-weight:900; color:#00836b;">🎧 MP3</div>
+                                        <div style="font-size:0.75rem; color:#555; margin-top:2px; line-height:1.4;">사람이 듣기 어려운 소리를 삭제한 압축 음악 파일 형식이다.</div>
+                                    </div>
+                                    <div style="background:rgba(253,203,110,0.18); border-radius:8px; padding:7px 9px;">
+                                        <div style="font-size:0.8rem; font-weight:900; color:#b7850a;">🎹 MID</div>
+                                        <div style="font-size:0.75rem; color:#555; margin-top:2px; line-height:1.4;">전자 악기와 컴퓨터 간 데이터 교환을 목적으로 만들어진 파일 형식이다.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="step-navigation">
                         <div class="nav-arrow prev" onclick="goStep('step1-visual')"><svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg><div>소리 변환기</div></div>

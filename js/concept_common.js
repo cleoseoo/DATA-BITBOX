@@ -870,7 +870,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 <span style="cursor:pointer; font-size: 16px;" id="chatbot-close-x">✖</span>
             </div>
             <div class="chatbot-body" id="chatbot-messages">
-                <div class="chat-msg bot-msg">안녕! <br> 나는 데이터 비트박스 '비트봇'이야.<br>학습 중에 궁금한 내용이 생기면 언제든지 물어봐! (예:비트, 픽셀...)</div>
+                <div class="chat-msg bot-msg">안녕! <br> 나는 데이터 비트박스 '비트봇'이야.<br>데이터의 디지털 표현과 관련한 핵심 개념을 언제든지 물어봐! (예:비트, 픽셀...)</div>
             </div>
             <div class="chatbot-input-area">
                 <input type="text" id="chatbot-input" placeholder="예: 픽셀, 아날로그, 디지털...">
