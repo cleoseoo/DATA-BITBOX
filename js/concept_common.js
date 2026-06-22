@@ -791,69 +791,83 @@ document.addEventListener("DOMContentLoaded", function() {
         /* 사이드바 최하단 지우기 상자 + 비트봇 정렬 레이아웃 */
         .erase-section {
             display: flex !important;
-            gap: 10px !important;
+            gap: 8px !important;
             align-items: center !important;
             width: 100% !important;
         }
 
-        /* 🎯 얇은 빨간 테두리 상자 가로 크기 축소 (자동 양보) */
-        .erase-section .erase-btn {
-            flex: 1 !important; /* 전체 너비에서 비트봇 자리를 제외하고 늘어남 */
-            margin: 0 !important;
-        }
-
+        /* 챗봇 버튼: 왼쪽 배치, 말풍선 스타일 */
         #chatbot-toggle-wrapper {
             position: relative;
             display: flex;
             align-items: center;
-            flex-shrink: 0; /* 크기가 찌그러지지 않도록 고정 */
+            flex-shrink: 0;
+            order: -1; /* 항상 왼쪽 */
         }
         #chatbot-toggle-btn {
-            width: 44px; /* 지우기 상자 높이와 딱 정렬되도록 조정 */
-            height: 44px;
-            border-radius: 50%;
-            background-color: #0f766e;
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
             color: white;
-            font-size: 22px; 
+            font-size: 12px;
+            font-weight: 800;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 3px 8px rgba(15,118,110,0.35);
+            transition: transform 0.2s, background 0.2s;
             display: flex;
             justify-content: center;
             align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            letter-spacing: -0.3px;
         }
         #chatbot-toggle-btn:hover {
-            transform: scale(1.05);
-            background-color: #0d635c;
+            transform: scale(1.04);
+            background: linear-gradient(135deg, #0d635c, #0f766e);
         }
-        
-        /* 💡 [대수술] 콤팩트하고 귀엽게 다이어트한 빨간 말풍선 */
+        /* 말풍선 꼬리 장식 */
+        #chatbot-toggle-btn::before {
+            content: '💬';
+            font-size: 15px;
+        }
+
+        /* 🎯 지우기 버튼: 오른쪽 배치, 가로 축소 */
+        .erase-section .erase-btn {
+            flex: 1 !important;
+            margin: 0 !important;
+            font-size: 12px !important;
+            padding: 8px 10px !important;
+            white-space: nowrap !important;
+        }
+
+        /* 말풍선 툴팁 (챗봇 닫혀있을 때) */
         .chatbot-tooltip {
             position: absolute;
-            bottom: 54px; /* 버튼 바로 위 배치 */
-            right: 0px; 
-            background-color: #ff5e5e; 
+            bottom: 48px;
+            left: 0;
+            background-color: #0f766e;
             color: white;
-            padding: 3px 6px; /* 🎯 안쪽 여백 극소화 */
-            border-radius: 6px;
-            font-size: 11px; /* 🎯 글자 크기 축소 */
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
             font-weight: 800;
             white-space: nowrap;
-            letter-spacing: -0.8px; /* 🎯 자간을 바짝 좁혀서 아주 날씬하게 만듦 */
-            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+            letter-spacing: -0.5px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
             animation: floatUpDown 1.5s infinite ease-in-out;
-            pointer-events: none; 
+            pointer-events: none;
             z-index: 10;
         }
         .chatbot-tooltip::after {
             content: '';
             position: absolute;
             bottom: -4px;
-            right: 16px;
+            left: 14px;
             border-width: 4px 4px 0;
             border-style: solid;
-            border-color: #ff5e5e transparent transparent transparent;
+            border-color: #0f766e transparent transparent transparent;
         }
         @keyframes floatUpDown {
             0%, 100% { transform: translateY(0); }
@@ -866,7 +880,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const chatbotWindowHTML = `
         <div id="chatbot-window">
             <div class="chatbot-header">
-                <span>🤖 핵심 개념 안내 비트봇</span>
+                <span>💬 핵심 개념 안내 비트봇</span>
                 <span style="cursor:pointer; font-size: 16px;" id="chatbot-close-x">✖</span>
             </div>
             <div class="chatbot-body" id="chatbot-messages">
@@ -887,11 +901,11 @@ document.addEventListener("DOMContentLoaded", function() {
         const toggleWrapper = document.createElement('div');
         toggleWrapper.id = 'chatbot-toggle-wrapper';
         toggleWrapper.innerHTML = `
-            <div class="chatbot-tooltip">비트봇 💬</div>
-            <button id="chatbot-toggle-btn">🤖</button>
+            <div class="chatbot-tooltip">개념 챗봇 💬</div>
+            <button id="chatbot-toggle-btn">개념 챗봇</button>
         `;
-        // 지우기 상자 바로 오른쪽에 붙이기
-        eraseSection.appendChild(toggleWrapper);
+        // 지우기 버튼 왼쪽(앞)에 삽입
+        eraseSection.insertBefore(toggleWrapper, eraseSection.firstChild);
     }
 
     // 4. 이벤트 리스너 연결
