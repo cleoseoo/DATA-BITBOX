@@ -153,11 +153,11 @@
                             <div style="flex:1; min-width:240px; display:flex; flex-direction:column; gap:8px;">
                                 <span style="font-weight:900; color:var(--accent-blue); font-size:0.95rem;">✂️ 샘플링 개수 — 1초에 몇 번 잘라 기록할까?</span>
                                 <div style="display:flex; align-items:center; gap:10px;">
-                                    <input type="range" id="sampleSlider" min="16" max="256" step="8" value="32" oninput="onSliderChange()" onchange="onSliderRelease()" style="flex:1; cursor:pointer; accent-color:var(--accent-blue); height:8px; border-radius:4px;">
-                                    <span id="sliderValDisplay" style="font-weight:900; color:#2d3436; min-width:46px; font-size:1rem; text-align:right;">32개</span>
+                                    <input type="range" id="sampleSlider" min="1" max="5" step="1" value="3" oninput="onSliderChange()" onchange="onSliderRelease()" style="flex:1; cursor:pointer; accent-color:var(--accent-blue); height:8px; border-radius:4px;">
+                                    <span id="sliderValDisplay" style="font-weight:900; color:#2d3436; min-width:56px; font-size:1rem; text-align:right;">3개/초</span>
                                 </div>
                                 <div id="sampleSliderDesc" style="font-size:0.82rem; color:#555; line-height:1.6; background:#f0f8ff; border-radius:10px; padding:8px 12px; border-left:3px solid var(--accent-blue);">
-                                    ✂️ <b>32개</b> = 파형을 <b>32번</b> 잘라 기록해요. 계단 현상이 조금 보여요. <span style="color:#aaa; font-size:0.78rem; margin-left:4px;">슬라이더를 움직여 차이를 확인해보세요!</span>
+                                    ✂️ 1초에 <b>3번</b> 잘라요 → 1초 구간에 점 <b>3개</b>가 찍혀요. <span style="color:#aaa; font-size:0.78rem; margin-left:4px;">슬라이더를 움직여 차이를 확인해보세요!</span>
                                 </div>
                             </div>
 
@@ -168,19 +168,19 @@
                             <div style="flex:1; min-width:240px; display:flex; flex-direction:column; gap:8px;">
                                 <span style="font-weight:900; color:var(--multi-violet); font-size:0.95rem;">🔢 비트 심도 — 소리 음질을 결정하는 양자화 단계 수</span>
                                 <div style="display:flex; gap:8px; width: 100%;">
+                                    <button id="bitBtn2"  onclick="setBitDepth(2)"  class="bit-btn" style="flex:1; padding:10px 8px; font-size:0.9rem;">2비트<br><small>4단계</small></button>
                                     <button id="bitBtn3"  onclick="setBitDepth(3)"  class="bit-btn active-bit" style="flex:1; padding:10px 8px; font-size:0.9rem;">3비트<br><small>8단계</small></button>
-                                    <button id="bitBtn8"  onclick="setBitDepth(8)"  class="bit-btn" style="flex:1; padding:10px 8px; font-size:0.9rem;">8비트<br><small>256단계</small></button>
-                                    <button id="bitBtn16" onclick="setBitDepth(16)" class="bit-btn" style="flex:1; padding:10px 8px; font-size:0.9rem;">16비트<br><small>65,536단계</small></button>
+                                    <button id="bitBtn4"  onclick="setBitDepth(4)"  class="bit-btn" style="flex:1; padding:10px 8px; font-size:0.9rem;">4비트<br><small>16단계</small></button>
                                 </div>
                                 <div id="bitDepthDesc" style="font-size:0.82rem; color:#555; line-height:1.6; background:#f8f6ff; border-radius:10px; padding:8px 12px; border-left:3px solid var(--multi-violet);">
-                                    🎵 <b>3비트</b> = 소리를 <b>8단계</b>로만 기록해요. 마치 계단처럼 뚝뚝 끊기는 소리가 납니다. <span style="color:#aaa; font-size:0.78rem; margin-left:4px;">버튼을 눌러 차이를 확인해보세요!</span>
+                                    🎵 <b>3비트</b> = 소리를 <b>8단계</b>로 기록해요. 2비트보다 계단이 절반으로 줄었어요. <span style="color:#aaa; font-size:0.78rem; margin-left:4px;">버튼을 눌러 차이를 확인해보세요!</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 용량 계산 -->
                         <div style="background:#fff3cd; border-radius:8px; padding:8px 14px; font-size:0.88rem; font-weight:800; color:#856404; border-left:3px solid #ffc107;">
-                            📦 예상 용량: <span id="capCalc">32개 × 3비트 = 96비트</span>
+                            📦 예상 용량: <span id="capCalc">3개/초 × 3비트 = 9비트/초</span>
                             <span style="color:#6c757d; font-weight:600; font-size:0.82rem;"> — 샘플 수와 비트 수가 많을수록 파일이 커집니다</span>
                         </div>
                     </div>
@@ -198,6 +198,21 @@
                                 <button class="lab-action-btn" id="btnSample" onclick="doSampling()">✂️ 표본화 실행</button>
                             </div>
                             <div id="drawHintBox" class="draw-hint-box">👉 <b>파형을 0초(왼쪽 끝)</b>에서 시작해서 <b>10초(오른쪽 끝)</b>까지 연결해서 그려주세요!</div>
+                            <div id="autoLegendBox" style="display:none; width:100%; margin-top:10px; background:white; border-radius:12px; border:2px dashed #ced4da; padding:20px 16px; box-sizing:border-box; flex-direction:column; justify-content:center; align-items:flex-start; gap:10px;">
+                                <div style="font-size:0.78rem; font-weight:900; color:#888; letter-spacing:1px;">📌 그래프 읽는 법</div>
+                                <div style="display:flex; align-items:center; gap:10px; width:100%;">
+                                    <div style="width:13px; height:13px; border-radius:50%; background:#d63031; flex-shrink:0; box-shadow:0 0 5px rgba(214,48,49,0.4);"></div>
+                                    <div style="font-size:0.84rem; font-weight:700; color:#2d3436;">빨간 점 = <b style="color:#d63031;">샘플링 위치</b> (원본값)</div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; width:100%;">
+                                    <div style="width:22px; height:3px; background:#00b894; flex-shrink:0; border-radius:2px;"></div>
+                                    <div style="font-size:0.84rem; font-weight:700; color:#2d3436;">초록 계단선 = <b style="color:#00b894;">반올림된 값</b> (양자화값)</div>
+                                </div>
+                                <div style="display:flex; align-items:flex-start; gap:8px; background:#f8f9fa; border-radius:8px; padding:8px 10px; width:100%; box-sizing:border-box;">
+                                    <div style="font-size:1rem; flex-shrink:0;">💡</div>
+                                    <div style="font-size:0.8rem; font-weight:700; color:#555; line-height:1.5;">빨간 점과 초록 선의 <b>높이 차이</b>가 <b style="color:#6c5ce7;">양자화 오차</b>예요!<br>비트 수가 클수록 단계가 촘촘해져 오차가 줄어들어요.</div>
+                                </div>
+                            </div>
                         </div>
                         <div class="lab-panel" id="rightPanel" style="opacity: 0.5; pointer-events: none; transition: 0.3s;">
                             <div class="panel-title" id="rightPanelTitle">2. 양자화 & 부호화 실습 (3비트)</div>
@@ -223,7 +238,7 @@
                                     </div>
                                 </div>
                                 <div style="font-size: 1.1rem; font-weight: 900; color: var(--multi-violet);">자동 표본화/양자화 완료!</div>
-                                <div style="font-size: 0.9rem; color: #666; font-weight: 700; text-align: center; margin-top: 5px; line-height: 1.5;">표본 개수가 많아질수록 붉은 점이 촘촘해져<br>원래의 파형에 매우 가까워집니다.</div>
+                                <div style="font-size: 0.9rem; color: #666; font-weight: 700; text-align: center; margin-top: 5px; line-height: 1.5;">1초 구간(보라 점선 박스)에 점이 몇 개인지 세어보세요!<br>슬라이더 숫자 = 샘플링 개수 = 1초에 찍히는 점의 개수예요.</div>
                             </div>
                         </div>
 
@@ -297,6 +312,7 @@
                         </div>
 
                     </div>
+
                     <div class="step-navigation">
                         <div class="nav-arrow prev" onclick="goStep('step2-concept')"><svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg><div>소리의 디지털화 구성 원리</div></div>
                         <div class="nav-arrow next" onclick="goStep('step4-quiz')"><div>개념 확인 (최종 퀴즈)</div><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></svg></div>
@@ -351,7 +367,7 @@
                 <textarea id="reflectionInput" class="reflection-area" placeholder="새롭게 알게된 사실과 느낀점을 기록하세요."></textarea>
                 <div class="capture-tip">📸 캡처: Win+Shift+S | Mac: Cmd+Shift+4</div>
             </div>
-            <div class="erase-section"><button class="erase-btn" onclick="eraseStepContent()">🗑️ 이 단원 학습 내용 지우기<br><span style="font-size:0.68rem; font-weight:600; opacity:0.7;">(메모·소감·퀴즈 기록)</span></button></div>
+            <div class="erase-section"><button class="erase-btn" onclick="eraseStepContent()">🗑️ 이 단원 학습 내용 지우기<br><span style="font-size:0.68rem; font-weight:600; opacity:0.7;">(배움노트·소감·퀴즈 기록)</span></button></div>
         </aside>
     </main>
     <div class="modal-overlay" id="modalOverlay"><div class="modal-content" id="modalContent"></div></div>

@@ -1,6 +1,6 @@
 /* =========================================================
    [데이터 비트박스] 개념 탐구 공통 스크립트 (concept_common.js)
-   - 퀴즈 타이머, 채점, 드래그 앤 드롭, 리포트 출력, 노트 저장
+   - 퀴즈 타이머, 채점, 드래그 앤 드롭, 보고서 출력, 노트 저장
 ========================================================= */
 
 // ✅ 진행 점 업데이트
@@ -229,7 +229,7 @@ function showSuccess() {
             <p style="margin:5px 0; font-size:1.1rem; font-weight:800;">최종 점수: <span style="color:var(--apple-red); font-size:1.3rem;">${finalScore}점</span></p>
             <p style="margin:5px 0; font-size:1.1rem; font-weight:800;">풀이 시간: <span style="color:var(--teal-main); font-size:1.3rem;">${m}분 ${s}초</span></p>
         </div>
-        <p style="font-size:0.95rem; color:#555; margin-bottom:20px;">${titleText}을(를) 마스터했습니다!!<br>창을 닫고 우측 하단의 버튼을 눌러 리포트를 저장하세요.</p>
+        <p style="font-size:0.95rem; color:#555; margin-bottom:20px;">${titleText}을(를) 마스터했습니다!!<br>창을 닫고 우측 하단의 버튼을 눌러 보고서를 저장하세요.</p>
         <button onclick="closeModal()" style="width:100%; padding:14px; background:var(--teal-main); color:white; border:none; border-radius:12px; font-weight:700; font-size:1.1rem; cursor:pointer;">확인 및 닫기</button>
     `;
     document.getElementById('modalOverlay').style.display = 'flex';
@@ -249,7 +249,7 @@ function showSuccess() {
 
 function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
 
-// ✅ 리포트 다운로드 (TXT / PNG)
+// ✅ 보고서 다운로드 (TXT / PNG)
 function downloadReportTXT() {
     const finalScore = score;
     const memo = document.getElementById('memoInput') ? document.getElementById('memoInput').value : '';
@@ -264,7 +264,7 @@ function downloadReportTXT() {
 
     const txtContent = 
 `==================================================
-        [데이터 비트박스] 학습 결과 리포트
+        [데이터 비트박스] 학습 결과 보고서
 ==================================================
 
 ▶ 단원명 : ${reportTitle}
@@ -281,7 +281,7 @@ ${memo || "작성된 내용이 없습니다."}
 ${reflection || "작성된 내용이 없습니다."}
 
 ==================================================
-* 본 리포트는 '데이터 비트박스' 시스템에서 자동 생성되었습니다.
+* 본 보고서는 '데이터 비트박스' 시스템에서 자동 생성되었습니다.
 ==================================================`;
 
     const blob = new Blob([txtContent], { type: "text/plain;charset=utf-8" });
@@ -332,7 +332,7 @@ function downloadReportImageOffline() {
     ctx.beginPath(); ctx.roundRect(40, 40, 720, totalHeight - 80, 24); ctx.fill(); ctx.stroke();
     
     ctx.fillStyle = '#0f766e'; ctx.font = "bold 32px sans-serif"; ctx.textAlign = 'center';
-    ctx.fillText("[데이터 비트박스] 학습 결과 리포트", 400, 100);
+    ctx.fillText("[데이터 비트박스] 학습 결과 보고서", 400, 100);
     ctx.strokeStyle = '#14b8a6'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(230, 120); ctx.lineTo(570, 120); ctx.stroke();
     
@@ -362,10 +362,10 @@ function downloadReportImageOffline() {
     currentY += 70;
     
     ctx.fillStyle = '#94a3b8'; ctx.font = "bold 16px sans-serif"; ctx.textAlign = 'center';
-    ctx.fillText("본 리포트는 '데이터 비트박스' 시스템에서 자동 생성되었습니다.", 400, currentY);
+    ctx.fillText("본 보고서는 '데이터 비트박스' 시스템에서 자동 생성되었습니다.", 400, currentY);
     
     const link = document.createElement('a');
-    link.download = `${fileName}_리포트.png`;
+    link.download = `${fileName}_보고서.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
 }
@@ -791,84 +791,80 @@ document.addEventListener("DOMContentLoaded", function() {
         /* 사이드바 최하단 지우기 상자 + 비트봇 정렬 레이아웃 */
         .erase-section {
             display: flex !important;
-            gap: 8px !important;
-            align-items: center !important;
+            gap: 10px !important;
+            align-items: stretch !important;
             width: 100% !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
         }
 
-        /* 챗봇 버튼: 왼쪽 배치, 말풍선 스타일 */
+        /* 챗봇 버튼: SVG 말풍선 */
         #chatbot-toggle-wrapper {
             position: relative;
             display: flex;
             align-items: center;
             flex-shrink: 0;
-            order: -1; /* 항상 왼쪽 */
+            order: -1;
         }
         #chatbot-toggle-btn {
-            height: 40px;
-            padding: 0 12px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #0f766e, #0d9488);
-            color: white;
-            font-size: 12px;
-            font-weight: 800;
+            position: relative;
+            background: transparent;
             border: none;
             cursor: pointer;
-            box-shadow: 0 3px 8px rgba(15,118,110,0.35);
-            transition: transform 0.2s, background 0.2s;
+            padding: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-            letter-spacing: -0.3px;
+            align-items: flex-start;
+            transition: transform 0.2s, filter 0.2s;
         }
         #chatbot-toggle-btn:hover {
-            transform: scale(1.04);
-            background: linear-gradient(135deg, #0d635c, #0f766e);
+            transform: scale(1.05);
+            filter: brightness(1.1);
         }
-        /* 말풍선 꼬리 장식 */
-        #chatbot-toggle-btn::before {
-            content: '💬';
+        #chatbot-toggle-btn::before { content: none; }
+        #chatbot-toggle-btn::after  { content: none; }
+        #chatbot-toggle-btn .bubble-text {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            pointer-events: none;
+            white-space: nowrap;
         }
 
-        /* 🎯 지우기 버튼: 오른쪽 배치, 가로 축소 */
+        /* 🎯 지우기 버튼: 높이·글씨 중앙 정렬 통일 */
         .erase-section .erase-btn {
             flex: 1 !important;
             margin: 0 !important;
-            font-size: 12px !important;
-            padding: 8px 10px !important;
+            height: 46px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            padding: 0 12px !important;
             white-space: nowrap !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+            border-radius: 14px !important;
+            background: #ffffff !important;
+            border: 2px solid #0f766e !important;
+            color: #0f766e !important;
+            box-shadow: 0 2px 6px rgba(15,118,110,0.15) !important;
+            cursor: pointer !important;
+            line-height: 1.4 !important;
+        }
+        .erase-section .erase-btn:hover {
+            background: #f0faf9 !important;
         }
 
-        /* 말풍선 툴팁 (챗봇 닫혀있을 때) */
-        .chatbot-tooltip {
-            position: absolute;
-            bottom: 48px;
-            left: 0;
-            background-color: #0f766e;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 800;
-            white-space: nowrap;
-            letter-spacing: -0.5px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-            animation: floatUpDown 1.5s infinite ease-in-out;
-            pointer-events: none;
-            z-index: 10;
-        }
-        .chatbot-tooltip::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 14px;
-            border-width: 4px 4px 0;
-            border-style: solid;
-            border-color: #0f766e transparent transparent transparent;
-        }
         @keyframes floatUpDown {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-3px); }
@@ -901,8 +897,33 @@ document.addEventListener("DOMContentLoaded", function() {
         const toggleWrapper = document.createElement('div');
         toggleWrapper.id = 'chatbot-toggle-wrapper';
         toggleWrapper.innerHTML = `
-            <div class="chatbot-tooltip">개념 챗봇 💬</div>
-            <button id="chatbot-toggle-btn">개념 챗봇</button>
+            <button id="chatbot-toggle-btn">
+                <svg width="130" height="60" viewBox="0 0 130 60" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="bubble-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#0f766e"/>
+                            <stop offset="100%" stop-color="#0d9488"/>
+                        </linearGradient>
+                        <filter id="bubble-shadow">
+                            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f766e" flood-opacity="0.35"/>
+                        </filter>
+                    </defs>
+                    <path d="
+                        M 14 2
+                        Q 2 2 2 14
+                        L 2 34
+                        Q 2 46 14 46
+                        L 74 46
+                        L 68 58
+                        L 92 46
+                        Q 128 46 128 34
+                        L 128 14
+                        Q 128 2 116 2
+                        Z
+                    " fill="url(#bubble-grad)" filter="url(#bubble-shadow)"/>
+                </svg>
+                <span class="bubble-text">개념 챗봇</span>
+            </button>
         `;
         // 지우기 버튼 왼쪽(앞)에 삽입
         eraseSection.insertBefore(toggleWrapper, eraseSection.firstChild);
@@ -925,9 +946,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const chatWindow = document.getElementById('chatbot-window');
         const isHidden = chatWindow.style.display === 'none' || chatWindow.style.display === '';
         chatWindow.style.display = isHidden ? 'flex' : 'none';
-        
-        const tooltip = document.querySelector('.chatbot-tooltip');
-        if (tooltip) tooltip.style.display = isHidden ? 'none' : 'block';
 
         if (isHidden) inputField.focus();
     }

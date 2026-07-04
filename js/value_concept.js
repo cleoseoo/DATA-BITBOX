@@ -91,7 +91,7 @@
             image:  { icon:'🖼️', title:'이미지 데이터', desc:'친구들과 찍은 찰칵! 셀카부터 예쁜 풍경 사진까지!<br>눈으로 보는 시각 정보로, 수많은 작은 점(픽셀)들이 모여 만들어져요.' },
             sound:  { icon:'🎵', title:'소리 데이터', desc:'매일 듣는 신나는 음악, 친구의 목소리, 게임 효과음까지!<br>귀로 듣는 모든 청각 정보도 컴퓨터 안에서는 0과 1로 저장돼요.' },
             video:  { icon:'🎬', title:'동영상 데이터', desc:'유튜브, 숏폼 영상, 넷플릭스 영화 등 우리가 즐겨보는 영상!<br>이미지와 소리가 하나로 합쳐진, 아주 크고 복잡한 데이터랍니다.' },
-            sensor: { icon:'📡', title:'센서 데이터', desc:'스마트워치가 재주는 심박수와 걸음 수, GPS 위치 정보까지!<br>우리 몸과 주변 환경의 변화를 실시간으로 읽어내는 똑똑한 데이터예요.' }
+            sensor: { icon:'📡', title:'센서 데이터', desc:'스마트워치가 측정하는 심박수와 걸음 수, GPS 위치 정보까지!<br>우리 몸과 주변 환경의 변화를 실시간으로 읽어내는 똑똑한 데이터예요.' }
         };
         function selectDtype(el, type) {
             document.querySelectorAll('.dtype-scene').forEach(s => s.classList.remove('active'));

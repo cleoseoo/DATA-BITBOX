@@ -23,6 +23,21 @@ document.addEventListener('DOMContentLoaded', () => {
         dCanvas.height = 250; 
         dCanvas.style.height = '250px'; 
     }
+
+    // 창 크기 변경 시 오른쪽 그리드 재구성 (반응형)
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (document.getElementById('sampleGrid')) {
+                buildRightGrid();
+                // 이미 샘플링된 데이터 있으면 점도 다시 그리기
+                if (extractedQuantValues && extractedQuantValues.length > 0) {
+                    setupQuantizationInputs();
+                }
+            }
+        }, 150);
+    });
     const drawArea = document.querySelector('.draw-area');
     if (drawArea) drawArea.style.height = '250px';
     const sampleGrid = document.getElementById('sampleGrid');
@@ -164,6 +179,10 @@ window.setMode = function(mode, btn) {
     document.getElementById('drawPanel').style.display = 'none'; 
     document.getElementById('rightPanel').style.display = 'none'; 
     document.getElementById('uploadModeArea').style.display = 'none'; 
+    const legendBox = document.getElementById('autoLegendBox');
+    if (legendBox) { legendBox.style.display = 'none'; legendBox.style.minHeight = ''; }
+    const msgAreaRst = document.getElementById('autoMessageArea');
+    if (msgAreaRst) { msgAreaRst.style.display = 'none'; msgAreaRst.style.marginTop = '10px'; msgAreaRst.style.minHeight = ''; }
 
     if(mode === 'manual') { 
         currentSampleCount = 10; 
@@ -179,16 +198,16 @@ window.setMode = function(mode, btn) {
     } else if (mode === 'auto') { 
         document.getElementById('sliderArea').style.display = 'flex'; 
         const slider = document.getElementById('sampleSlider');
-        slider.min = "16"; slider.max = "256"; slider.step = "8"; slider.value = "32";
-        let sliderVal = parseInt(slider.value); currentSampleCount = sliderVal; 
-        document.getElementById('sliderValDisplay').innerText = sliderVal + '개';
-        document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (${sliderVal}개 자동 변환)`;
+        slider.min = "1"; slider.max = "5"; slider.step = "1"; slider.value = "3";
+        currentSampleCount = 3;
+        document.getElementById('sliderValDisplay').innerText = '3개/초';
+        document.getElementById('rightPanelTitle').innerText = '2. 디지털 파형 (1초에 3개 샘플)';
         const descEl = document.getElementById('sampleSliderDesc');
-        if (descEl) descEl.innerHTML = `✂️ <b>32개</b> = 파형을 <b>32번</b> 잘라 기록해요. 계단 현상이 조금 보여요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">슬라이더를 움직여 차이를 확인해보세요!</span>`;
+        if (descEl) descEl.innerHTML = `✂️ 1초에 <b>3번</b> 잘라요 → 1초 구간에 점 <b>3개</b>가 찍혀요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">슬라이더를 움직여 차이를 확인해보세요!</span>`;
         document.getElementById('drawPanel').style.display = 'flex'; 
         document.getElementById('rightPanel').style.display = 'flex'; 
         document.getElementById('manualInputsArea').style.display = 'none'; 
-        document.getElementById('autoMessageArea').style.display = 'flex'; 
+        document.getElementById('autoMessageArea').style.display = 'none'; 
         if(drawnPath.length > 20) doSampling(); 
     } else if (mode === 'upload') {
         document.getElementById('sliderArea').style.display = 'none'; 
@@ -204,21 +223,22 @@ let uploadBitDepth  = 3;
 // ── 비트 심도 설정 (자동 변환 모드) ──────────────────────────────
 window.setBitDepth = function(bits) {
     currentBitDepth = bits;
-    [3, 8, 16].forEach(b => {
+    [2, 3, 4].forEach(b => {
         const btn = document.getElementById('bitBtn' + b);
         if (btn) btn.className = 'bit-btn' + (b === bits ? ' active-bit' : '');
     });
-    // 비트 심도 설명 업데이트
     const desc = document.getElementById('bitDepthDesc');
     if (desc) {
         const descs = {
-            3:  '🎚️ <b>3비트</b> = 소리를 <b>8단계</b>로만 기록해요. 마치 계단처럼 뚝뚝 끊기는 소리가 납니다. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">오른쪽 그래프에서 계단 현상을 확인해보세요!</span>',
-            8:  '🎵 <b>8비트</b> = 소리를 <b>256단계</b>로 기록해요. 옛날 게임 BGM 수준이에요. 3비트보다 훨씬 부드럽죠? <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">오른쪽 그래프에서 점들이 촘촘해졌어요!</span>',
-            16: '💿 <b>16비트</b> = 소리를 <b>65,536단계</b>로 기록해요. 우리가 듣는 <b>CD 음질</b>이에요. 원본 파형과 거의 똑같죠! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">비트 수가 많을수록 원음에 가까워져요!</span>'
+            2: '🎚️ <b>2비트</b> = 소리를 딱 <b>4단계</b>로만 기록해요. 계단이 매우 커서 소리가 거칠게 끊겨요! <span style="color:#555;font-size:0.85rem;">왼쪽 그래프에서 격자가 4줄로 바뀌는 것을 확인해보세요!</span>',
+            3: '🎵 <b>3비트</b> = 소리를 <b>8단계</b>로 기록해요. 단계 수가 4개→8개로 <b>2배 늘어나</b> 더 정밀하게 기록돼요! <span style="color:#555;font-size:0.85rem;">왼쪽/오른쪽 그래프에서 8줄 격자를 확인해보세요!</span>',
+            4: '💿 <b>4비트</b> = 소리를 <b>16단계</b>로 기록해요. 단계 수가 8개→16개로 <b>2배 늘어나</b> 원음에 훨씬 가까워져요! <span style="color:#555;font-size:0.85rem;">2비트와 비교해보면 차이가 확 느껴져요!</span>'
         };
         desc.innerHTML = descs[bits];
     }
     updateCapacity();
+    // 왼쪽 캔버스 격자를 비트 심도에 맞게 즉시 갱신
+    redrawDrawnPath();
     if (drawnPath.length > 20) doSampling();
 };
 
@@ -245,7 +265,11 @@ function updateCapacity() {
     const el = document.getElementById('capCalc');
     if (!el) return;
     const total = currentSampleCount * currentBitDepth;
-    el.textContent = currentSampleCount + '개 × ' + currentBitDepth + '비트 = ' + total + '비트';
+    if (currentMode === 'auto') {
+        el.textContent = currentSampleCount + '개/초 × ' + currentBitDepth + '비트 = ' + total + '비트/초';
+    } else {
+        el.textContent = currentSampleCount + '개 × ' + currentBitDepth + '비트 = ' + total + '비트';
+    }
 }
 
 function updateUploadCapacity() {
@@ -281,18 +305,19 @@ window.onUploadSliderChange = function() {
 
 window.onSliderChange = function() { 
     let sliderVal = parseInt(document.getElementById('sampleSlider').value); 
-    document.getElementById('sliderValDisplay').innerText = sliderVal + '개'; 
+    document.getElementById('sliderValDisplay').innerText = sliderVal + '개/초'; 
     currentSampleCount = sliderVal; 
-    document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (${sliderVal}개 자동 변환)`;
+    document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (1초에 ${sliderVal}개 샘플)`;
     const descEl = document.getElementById('sampleSliderDesc');
-    if (descEl) {
-        const descs = {
-            low:  `✂️ <b>${sliderVal}개</b> = 파형을 <b>${sliderVal}번만</b> 잘라 기록해요. 계단이 뚜렷하게 보여요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">오른쪽 그래프에서 계단 현상을 확인해보세요!</span>`,
-            mid:  `✂️ <b>${sliderVal}개</b> = 파형을 <b>${sliderVal}번</b> 잘라 기록해요. 계단 현상이 조금 줄어들었어요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">숫자가 많아질수록 원음에 가까워져요!</span>`,
-            high: `✂️ <b>${sliderVal}개</b> = 파형을 <b>${sliderVal}번이나</b> 잘라 기록해요. 거의 원래 곡선과 똑같아요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">슬라이더를 왼쪽으로 당겨 차이를 비교해보세요!</span>`
+    if (descEl && currentMode === 'auto') {
+        const msgs = {
+            1: `✂️ 1초에 <b>1번</b>만 잘라요 → 1초마다 점 <b>1개</b>. 아주 듬성듬성! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1초 구간에 점이 딱 1개만 찍혀요!</span>`,
+            2: `✂️ 1초에 <b>2번</b> 잘라요 → 1초마다 점 <b>2개</b>. 약간 더 정밀해요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1초 구간에 점 2개가 찍혀요!</span>`,
+            3: `✂️ 1초에 <b>3번</b> 잘라요 → 1초마다 점 <b>3개</b>. 파형을 더 잘 표현해요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1개일 때와 비교해보세요!</span>`,
+            4: `✂️ 1초에 <b>4번</b> 잘라요 → 1초마다 점 <b>4개</b>. 꽤 촘촘해졌어요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">원래 파형과 비슷해지고 있어요!</span>`,
+            5: `✂️ 1초에 <b>5번</b> 잘라요 → 1초마다 점 <b>5개</b>. 원래 파형에 가장 가까워요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1개와 많이 다르죠?</span>`
         };
-        const level = sliderVal <= 48 ? 'low' : sliderVal <= 144 ? 'mid' : 'high';
-        descEl.innerHTML = descs[level];
+        descEl.innerHTML = msgs[sliderVal] || msgs[3];
     }
     updateCapacity();
     if(drawnPath.length > 20) doSampling(); 
@@ -444,53 +469,142 @@ function bufferToWave(abuffer, targetRate) {
 
 // 🌟 [핵심 보정 1] 높이 250px 확장 및 위아래 20px 패딩을 완벽하게 맞춘 배경 그리드
 function drawGrid() { 
-    dCtx.strokeStyle = '#dfe6e9'; dCtx.lineWidth = 1; 
-    const stepY = 30; // 간격: (250px - 상하여백40px) / 7칸 = 30px
+    dCtx.strokeStyle = '#dfe6e9'; dCtx.lineWidth = 1;
+    
+    // auto 모드: 비트 심도별 격자 (2비트=4줄, 3비트=8줄, 4비트=16줄)
+    // manual 모드: 항상 8줄 (0~7)
+    const levels    = (currentMode === 'auto') ? Math.pow(2, currentBitDepth) : 8;
+    const stepYdraw = 210 / (levels - 1); // 캔버스 픽셀 간격
 
-    for(let i=0; i<=7; i++) { 
-        let y = 230 - (i * stepY); // 0단계는 230px(바닥), 7단계는 20px(천장)
+    for(let i = 0; i < levels; i++) { 
+        let y = 230 - (i * stepYdraw);
+        dCtx.strokeStyle = '#dfe6e9'; dCtx.lineWidth = 1;
         dCtx.beginPath(); dCtx.moveTo(25, y); dCtx.lineTo(395, y); dCtx.stroke(); 
-        dCtx.fillStyle = '#b2bec3'; dCtx.font = 'bold 10px Inter'; dCtx.textAlign = 'left'; 
-        dCtx.fillText(i, 5, y + 4); 
+        // 4비트(16줄)는 짝수 번호만 표시
+        if (levels <= 8 || i % 2 === 0) {
+            dCtx.fillStyle = '#b2bec3'; dCtx.font = 'bold 10px Inter'; dCtx.textAlign = 'left'; 
+            dCtx.fillText(i, 5, y + 4); 
+        }
     } 
     for(let i=0; i<=10; i++) { 
         let x = 25 + i * 37; 
+        dCtx.strokeStyle = '#dfe6e9'; dCtx.lineWidth = 1;
         dCtx.beginPath(); dCtx.moveTo(x, 0); dCtx.lineTo(x, 250); dCtx.stroke(); 
         if(i > 0) { 
             dCtx.fillStyle = '#b2bec3'; dCtx.font = 'bold 10px Inter'; dCtx.textAlign = 'center'; 
             dCtx.fillText(i + '초', x, 245); 
         } 
     } 
-    // 테두리 강조선
     dCtx.strokeStyle = '#b2bec3'; dCtx.lineWidth = 2; 
     dCtx.beginPath(); dCtx.moveTo(25, 0); dCtx.lineTo(25, 250); dCtx.stroke(); 
     dCtx.beginPath(); dCtx.moveTo(25, 230); dCtx.lineTo(395, 230); dCtx.stroke(); 
 }
 
 // 🌟 [핵심 보정 2] 오른쪽 결과창의 그리드도 250px 높이에 맞춰 정밀 배치
+// ── 오른쪽 그리드 메트릭 (buildRightGrid <-> setupQuantizationInputs 공유) ──
+let rightGridM = { LP: 25, BP: 20, secW: 37, UH: 210 };
+
+// ── 선형 보간: 파형 위 정확한 Y값 계산 ──────────────────────────
+function getInterpolatedY(sortedPath, targetX) {
+    if (!sortedPath || sortedPath.length === 0) return 115; // fallback
+    // targetX 양쪽 점 탐색
+    let left = null, right = null;
+    for (let i = 0; i < sortedPath.length - 1; i++) {
+        if (sortedPath[i].x <= targetX && sortedPath[i + 1].x >= targetX) {
+            left  = sortedPath[i];
+            right = sortedPath[i + 1];
+            break;
+        }
+    }
+    if (left && right && right.x !== left.x) {
+        // 선형 보간
+        const t = (targetX - left.x) / (right.x - left.x);
+        return left.y + t * (right.y - left.y);
+    }
+    // fallback: 가장 가까운 점
+    let closest = sortedPath[0], minDiff = Infinity;
+    for (let pt of sortedPath) {
+        const diff = Math.abs(pt.x - targetX);
+        if (diff < minDiff) { minDiff = diff; closest = pt; }
+    }
+    return closest.y;
+}
+
 function buildRightGrid() { 
     const grid = document.getElementById('sampleGrid'); 
-    grid.innerHTML = `<span style="position: absolute; top: -25px; left: 0; font-size: 11px; font-weight: 900; color: #86868b;">진폭(Amplitude) ▲</span><span style="position: absolute; bottom: -20px; right: 0; font-size: 11px; font-weight: 900; color: #86868b;">시간(Time) ▶</span>`; 
-    const stepY = 30; 
-    
-    for(let i=0; i<=7; i++) { 
-        let bottomPx = 20 + (i * stepY); 
-        let line = document.createElement('div'); 
-        line.style.cssText = `position:absolute; left:25px; width:370px; height:1px; background:#dfe6e9; bottom:${bottomPx}px; z-index:1;`; 
+    if (!grid) return;
+
+    // 컨테이너 실제 너비 측정 (0이면 fallback)
+    const GW = grid.clientWidth  > 0 ? grid.clientWidth  : 420;
+    const GH = grid.clientHeight > 0 ? grid.clientHeight : 250;
+
+    // 기준(420×250) 대비 스케일
+    const sX = GW / 420;
+    const sY = GH / 250;
+
+    const LP   = Math.round(25  * sX);   // 왼쪽 여백
+    const BP   = Math.round(20  * sY);   // 아래 여백
+    const topP = Math.round(20  * sY);   // 위 여백
+    const UW   = GW - LP - Math.round(5 * sX); // 사용 가능 너비
+    const UH   = GH - BP - topP;              // 사용 가능 높이
+    const secW = UW / 10;                      // 초당 픽셀
+
+    // 메트릭 저장 (setupQuantizationInputs에서 사용)
+    rightGridM = { LP, BP, secW, UH, GH };
+
+    // overflow 방지
+    grid.style.overflow = 'hidden';
+
+    const isAuto = (currentMode === 'auto');
+    const levels = isAuto ? Math.pow(2, currentBitDepth) : 8;
+    const stepY  = UH / (levels - 1);
+
+    const lineColors  = { 2: '#e17055', 3: '#6c5ce7', 4: '#0984e3' };
+    const lineColor   = isAuto ? (lineColors[currentBitDepth] || '#6c5ce7') : '#dfe6e9';
+    const lineWidth_s = isAuto && currentBitDepth === 2 ? '2px' : '1px';
+    const lineOpacity = isAuto ? (currentBitDepth === 2 ? '0.75' : currentBitDepth === 3 ? '0.55' : '0.45') : '1';
+
+    grid.innerHTML = `<span style="position:absolute; top:-25px; left:0; font-size:11px; font-weight:900; color:#86868b;">진폭(Amplitude) ▲</span><span style="position:absolute; bottom:-20px; right:0; font-size:11px; font-weight:900; color:#86868b;">시간(Time) ▶</span>`;
+
+    // 가로 격자선 (수평)
+    for (let i = 0; i < levels; i++) { 
+        const bottomPx = BP + i * stepY; 
+        const line = document.createElement('div'); 
+        line.style.cssText = `position:absolute; left:${LP}px; width:${UW}px; height:${lineWidth_s}; background:${lineColor}; opacity:${lineOpacity}; bottom:${bottomPx}px; z-index:1;`; 
         grid.appendChild(line); 
-        let label = document.createElement('span'); 
-        label.style.cssText = `position:absolute; left:5px; font-size:10px; color:#b2bec3; font-weight:700; bottom:${bottomPx - 4}px; z-index:2;`; 
-        label.innerText = i; 
-        grid.appendChild(label); 
-    } 
-    for(let i=0; i<=10; i++) { 
-        let x = 25 + i * 37; 
-        let line = document.createElement('div'); 
+        if (!isAuto || currentBitDepth <= 3 || i % 2 === 0) {
+            const label = document.createElement('span'); 
+            label.style.cssText = `position:absolute; left:3px; font-size:${isAuto && currentBitDepth === 4 ? '8' : '10'}px; color:${isAuto ? lineColor : '#b2bec3'}; font-weight:700; bottom:${bottomPx - 4}px; z-index:2; opacity:0.9;`; 
+            label.innerText = i; 
+            grid.appendChild(label); 
+        }
+    }
+
+    // auto 모드: 비트심도 배지 + 1초 구간 강조박스
+    if (isAuto) {
+        const badge = document.createElement('div');
+        const badgeColors = { 2: '#e17055', 3: '#6c5ce7', 4: '#0984e3' };
+        badge.style.cssText = `position:absolute; top:4px; right:8px; background:${badgeColors[currentBitDepth]}; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:20px; z-index:10;`;
+        badge.innerText = { 2: '2비트 — 4단계', 3: '3비트 — 8단계', 4: '4비트 — 16단계' }[currentBitDepth];
+        grid.appendChild(badge);
+        const hlBox = document.createElement('div');
+        hlBox.style.cssText = `position:absolute; left:${LP}px; width:${secW}px; top:0; bottom:${BP}px; background:rgba(108,92,231,0.05); border-left:2px dashed #6c5ce7; border-right:2px dashed #6c5ce7; z-index:0;`;
+        grid.appendChild(hlBox);
+        const hlLabel = document.createElement('span');
+        hlLabel.style.cssText = `position:absolute; left:${LP + 3}px; top:2px; font-size:9px; color:#6c5ce7; font-weight:800; z-index:5;`;
+        hlLabel.innerText = '← 1초 →';
+        grid.appendChild(hlLabel);
+    }
+
+    // 세로 격자선 (초 단위)
+    for (let i = 0; i <= 10; i++) { 
+        const x = Math.round(LP + i * secW);
+        const line = document.createElement('div'); 
         line.style.cssText = `position:absolute; bottom:0; height:100%; width:1px; background:#dfe6e9; left:${x}px; z-index:1;`; 
         grid.appendChild(line); 
-        if(i > 0) { 
-            let label = document.createElement('span'); 
-            label.style.cssText = `position:absolute; left:${x}px; transform:translateX(-50%); font-size:10px; color:#b2bec3; font-weight:700; bottom:2px; z-index:2; white-space: nowrap;`; 
+        if (i > 0) { 
+            const label = document.createElement('span'); 
+            label.style.cssText = `position:absolute; left:${x}px; transform:translateX(-50%); font-size:10px; color:#b2bec3; font-weight:700; bottom:2px; z-index:2; white-space:nowrap;`; 
             label.innerText = i + '초'; 
             grid.appendChild(label); 
         } 
@@ -508,6 +622,10 @@ window.initDrawCanvas = function() {
     dCtx.clearRect(0,0,420,250); drawnPath = []; extractedQuantValues = []; drawGrid(); 
     document.getElementById('rightPanel').style.opacity = '0.5'; 
     document.getElementById('rightPanel').style.pointerEvents = 'none'; 
+    const lbInit  = document.getElementById('autoLegendBox');
+    const msgInit = document.getElementById('autoMessageArea');
+    if (lbInit)  { lbInit.style.display  = 'none'; lbInit.style.minHeight  = ''; }
+    if (msgInit) { msgInit.style.display = 'none'; msgInit.style.minHeight = ''; msgInit.style.marginTop = '10px'; }
     document.getElementById('quantInputs').innerHTML = ''; 
     document.getElementById('binInputs').innerHTML = ''; 
     buildRightGrid(); document.getElementById('drawHintBox').classList.remove('hidden'); 
@@ -555,44 +673,93 @@ window.doSampling = function() {
     if (currentMode === 'manual') { 
         for(let i = 0; i <= currentSampleCount; i++) { sampleXPoints.push(25 + (i * 37)); } 
     } else { 
-        let colWidthPx = 370 / currentSampleCount; 
-        for(let i = 0; i < currentSampleCount; i++) { sampleXPoints.push(25 + (colWidthPx / 2) + (colWidthPx * i)); } 
+        // 1초에 currentSampleCount개, 10초 전체에 반복 (1초=37px)
+        const dotSpacing = 37 / currentSampleCount;
+        for(let sec = 0; sec < 10; sec++) {
+            for(let s = 0; s < currentSampleCount; s++) {
+                sampleXPoints.push(25 + sec * 37 + dotSpacing * (s + 0.5));
+            }
+        }
     } 
     
-    let digitalPoints = []; 
-    const stepY = 30; // 3비트(8단계) 간격
-    const autoBitLevels = Math.pow(2, currentBitDepth) - 1; // 비트 심도에 따른 단계 수
-    const autoStepY = 210 / autoBitLevels; // 비트 심도 기반 간격
+    let digitalPoints = [];
+    let autoOriginalYs = []; // auto 모드: 원본 Y 좌표 별도 보관
+    const stepY = 30;
+    const autoBitLevels = Math.pow(2, currentBitDepth) - 1;
+    const autoStepY = 210 / autoBitLevels;
     
     sampleXPoints.forEach((targetX) => { 
-        let closestPt = sortedPath[0]; let minDiff = 1000; 
-        for(let pt of sortedPath) { let diff = Math.abs(pt.x - targetX); if(diff < minDiff) { minDiff = diff; closestPt = pt; } } 
+        // 선형 보간으로 파형 위 정확한 Y 계산
+        const exactY = getInterpolatedY(sortedPath, targetX);
         let snappedY; 
         
         if (currentMode === 'manual') { 
-            let qValue = Math.round((230 - closestPt.y) / stepY); 
+            let qValue = Math.round((230 - exactY) / stepY); 
             if(qValue < 0) qValue = 0; if(qValue > 7) qValue = 7; 
             extractedQuantValues.push(qValue); 
             snappedY = 230 - (qValue * stepY); 
-            
-            dCtx.strokeStyle = '#d63031'; dCtx.lineWidth = 1.5; dCtx.setLineDash([3, 3]); dCtx.beginPath(); dCtx.moveTo(targetX, 230); dCtx.lineTo(targetX, closestPt.y); dCtx.stroke(); dCtx.setLineDash([]); 
-            dCtx.fillStyle = '#d63031'; dCtx.beginPath(); dCtx.arc(targetX, closestPt.y, 4, 0, Math.PI*2); dCtx.fill(); 
+            // manual: 점선 + 빨간 점
+            dCtx.strokeStyle = '#d63031'; dCtx.lineWidth = 1.5; dCtx.setLineDash([3, 3]); dCtx.beginPath(); dCtx.moveTo(targetX, 230); dCtx.lineTo(targetX, exactY); dCtx.stroke(); dCtx.setLineDash([]); 
+            dCtx.fillStyle = '#d63031'; dCtx.beginPath(); dCtx.arc(targetX, exactY, 4, 0, Math.PI*2); dCtx.fill(); 
         } else { 
-            let highQValue = Math.round((230 - closestPt.y) / autoStepY); 
+            let highQValue = Math.round((230 - exactY) / autoStepY); 
             if(highQValue < 0) highQValue = 0; if(highQValue > autoBitLevels) highQValue = autoBitLevels;
             snappedY = 230 - (highQValue * autoStepY);
-            // 실제 단계값 저장 → 비트 심도별 정밀도 유지
             extractedQuantValues.push({ val: highQValue, max: autoBitLevels });
+            autoOriginalYs.push({ x: targetX, y: exactY });
         } 
         digitalPoints.push({x: targetX, y: snappedY}); 
     }); 
+
     dCtx.setLineDash([]); 
+
+    // ① 초록 계단선 먼저 그리기
     if(currentMode === 'auto') { 
         dCtx.beginPath(); dCtx.strokeStyle = '#00b894'; dCtx.lineWidth = 2.5; 
-        for(let i = 0; i < digitalPoints.length; i++) { if(i === 0) { dCtx.moveTo(digitalPoints[i].x, digitalPoints[i].y); } else { dCtx.lineTo(digitalPoints[i].x, digitalPoints[i-1].y); dCtx.lineTo(digitalPoints[i].x, digitalPoints[i].y); } } 
+        for(let i = 0; i < digitalPoints.length; i++) { 
+            if(i === 0) { dCtx.moveTo(digitalPoints[i].x, digitalPoints[i].y); } 
+            else { dCtx.lineTo(digitalPoints[i].x, digitalPoints[i-1].y); dCtx.lineTo(digitalPoints[i].x, digitalPoints[i].y); } 
+        } 
         dCtx.stroke(); 
+
+        // ② 빨간 점을 초록선 위에 나중에 그리기 → 항상 보임
+        dCtx.fillStyle = '#d63031';
+        autoOriginalYs.forEach(({x, y}) => {
+            dCtx.beginPath();
+            dCtx.arc(x, y, 3.5, 0, Math.PI * 2);
+            dCtx.fill();
+        });
     } 
     setupQuantizationInputs(); 
+
+    if (currentMode === 'auto') {
+        // ① 두 박스 동시에 표시
+        const lbEl  = document.getElementById('autoLegendBox');
+        const msgEl = document.getElementById('autoMessageArea');
+        if (lbEl)  { lbEl.style.display  = 'flex'; lbEl.style.minHeight  = ''; }
+        if (msgEl) { msgEl.style.display = 'flex'; msgEl.style.minHeight = ''; msgEl.style.marginTop = '10px'; }
+
+        // ② Y 위치 정렬 후 높이 동일화
+        setTimeout(() => {
+            if (!lbEl || !msgEl) return;
+            // Y 정렬: autoMessageArea를 autoLegendBox와 같은 top 위치로
+            const lbTop  = lbEl.getBoundingClientRect().top;
+            const msgTop = msgEl.getBoundingClientRect().top;
+            const diff   = lbTop - msgTop;
+            const currMT = parseFloat(getComputedStyle(msgEl).marginTop) || 0;
+            msgEl.style.marginTop = Math.max(0, currMT + diff) + 'px';
+
+            // 높이 동일화: 둘 중 큰 쪽에 맞춤
+            setTimeout(() => {
+                const maxH = Math.max(lbEl.offsetHeight, msgEl.offsetHeight);
+                lbEl.style.minHeight  = maxH + 'px';
+                msgEl.style.minHeight = maxH + 'px';
+            }, 40);
+        }, 80);
+    } else {
+        const lb = document.getElementById('autoLegendBox');
+        if (lb) lb.style.display = 'none';
+    }
 };
 
 // 🌟 [핵심 보정 5] 오른쪽 박스에 생성되는 빨간 점과 막대기 높이 일치
@@ -605,7 +772,15 @@ function setupQuantizationInputs() {
     extractedQuantValues.forEach((item, index) => {
         const val    = typeof item === 'object' ? item.val : item;
         const maxVal = typeof item === 'object' ? item.max : 7;
-        let xPos; if(currentMode === 'manual') { xPos = 25 + (index * 37); } else { let colWidthPx = 370 / currentSampleCount; xPos = 25 + (colWidthPx / 2) + (colWidthPx * index); }
+        let xPos;
+        if(currentMode === 'manual') {
+            xPos = 25 + (index * 37);
+        } else {
+            // rightGridM의 실제 스케일된 좌표 사용
+            const sec      = Math.floor(index / currentSampleCount);
+            const posInSec = index % currentSampleCount;
+            xPos = rightGridM.LP + sec * rightGridM.secW + (rightGridM.secW / currentSampleCount) * (posInSec + 0.5);
+        }
         if (currentMode === 'manual') {
             let bottomPx = 20 + (val * stepY);
             let dot = document.createElement('div'); dot.style.cssText = `position:absolute; width:10px; height:10px; background:#d63031; border-radius:50%; bottom:${bottomPx}px; left:${xPos}px; transform:translate(-50%, 50%); box-shadow:0 0 10px rgba(214, 48, 49, 0.6); z-index:3;`; 
@@ -615,11 +790,11 @@ function setupQuantizationInputs() {
             let qInp = document.createElement('input'); qInp.type = 'text'; qInp.className = 'q-input'; qInp.maxLength = 1; qInp.style.left = xPos + 'px'; qInp.setAttribute('data-ans', val.toString()); qInp.placeholder = "?"; qInp.oninput = function() { checkLabInput(this); }; qRow.appendChild(qInp); 
             let bInp = document.createElement('input'); bInp.type = 'text'; bInp.className = 'b-input'; bInp.maxLength = 3; bInp.style.left = xPos + 'px'; let binStr = val.toString(2).padStart(3, '0'); bInp.setAttribute('data-ans', binStr); bInp.placeholder = "???"; bInp.oninput = function() { checkLabInput(this); }; bRow.appendChild(bInp); 
         } else {
-            // 비율 기반: 16비트=정밀, 3비트=계단 (격자 높이 210px 기준)
-            let dot = document.createElement('div');
-            let dotSize = currentSampleCount >= 256 ? '2px' : (currentSampleCount >= 128 ? '3px' : '4px');
-            let exactBottomPx = 20 + (val / maxVal) * 210;
-            dot.style.cssText = `position:absolute; width:${dotSize}; height:${dotSize}; background:#d63031; border-radius:50%; left:${xPos}px; transform:translate(-50%, 50%); bottom:${exactBottomPx}px; z-index:3;`;
+            // rightGridM 기반 정확한 Y 위치 계산
+            const dotPx        = currentSampleCount <= 1 ? 11 : currentSampleCount <= 2 ? 10 : currentSampleCount <= 3 ? 9 : currentSampleCount <= 4 ? 8 : 7;
+            const exactBottomPx = rightGridM.BP + (val / maxVal) * rightGridM.UH;
+            const dot = document.createElement('div');
+            dot.style.cssText = `position:absolute; width:${dotPx}px; height:${dotPx}px; background:#d63031; border-radius:50%; left:${xPos}px; transform:translate(-50%, 50%); bottom:${exactBottomPx}px; z-index:3; box-shadow:0 0 5px rgba(214,48,49,0.5);`;
             grid.appendChild(dot);
         } 
     }); 
