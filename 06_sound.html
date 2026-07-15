@@ -82,7 +82,7 @@
                         <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
                             <!-- 왼쪽: PCM 3단계 설명 -->
                             <div style="flex:1; min-width:260px; display:flex; flex-direction:column; gap:12px;">
-                                <div class="concept-row"><div class="concept-icon">✂️</div><div style="flex:1;"><b>1단계: </b><button class="pill-btn" onclick="revealInline(this, '표본화 (Sampling)', 'var(--accent-blue)')">?</button><br>연속적인 아날로그 파형을 <b>일정한 시간 간격으로 잘게 쪼개어</b> 값을 추출하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 샘플링 레이트: 1초에 몇 번 쪼개는지 나타내며 단위는 헤르츠(Hz)를 사용합니다.</span></div></div>
+                                <div class="concept-row"><div class="concept-icon">✂️</div><div style="flex:1;"><b>1단계: </b><button class="pill-btn" onclick="revealInline(this, '표본화 (Sampling)', 'var(--accent-blue)')">?</button><br>연속적인 아날로그 파형을 <b>일정한 시간 간격으로 잘게 쪼개어</b> 값을 추출하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 표본화율: 1초 동안 소리를 몇 번 측정하는지 나타내며, 단위는 헤르츠(Hz)를 사용합니다.</span></div></div>
                                 <div class="concept-row"><div class="concept-icon">📏</div><div style="flex:1;"><b>2단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--multi-violet), #a29bfe);" onclick="revealInline(this, '양자화 (Quantization)', 'var(--multi-violet)')">?</button><br>표본화로 추출된 실수 값을 가장 가까운 <b>정수(단계)로 반올림하여 수치화</b>하는 과정입니다.<br><span style="font-size: 0.85rem; color: var(--text-sub);">* 표현 단계 수(정밀도): 소리의 크기를 몇 단계로 쪼갤지 결정합니다. (비트 수가 클수록 정밀합니다.)</span></div></div>
                                 <div class="concept-row"><div class="concept-icon">🔢</div><div style="flex:1;"><b>3단계: </b><button class="pill-btn" style="background: linear-gradient(135deg, var(--accent-green), #55efc4);" onclick="revealInline(this, '부호화 (Encoding)', 'var(--accent-green)')">?</button><br>양자화된 수치(정수)를 컴퓨터가 이해하고 저장할 수 있도록 <b>0과 1의 이진수 코드로 변환</b>하는 과정입니다.</div></div>
                             </div>
@@ -136,7 +136,7 @@
                 </div>
                 <div id="step3-advanced" class="step-container">
                     <div style="font-size: 1.3rem; font-weight: 900; color: var(--multi-violet); margin-bottom: 5px; text-align:left;">🔥 소리의 디지털 변환기</div>
-                    <p style="color: var(--text-sub); font-size: 0.95rem; margin-top: 5px; margin-bottom: 15px; font-weight: 600; text-align:left;">파형을 직접 그리고 샘플링 개수를 조절해보세요. 샘플이 촘촘해질수록 원래 아날로그 곡선에 매우 가까워집니다!</p>
+                    <p style="color: var(--text-sub); font-size: 0.95rem; margin-top: 5px; margin-bottom: 15px; font-weight: 600; text-align:left;">파형을 직접 그리고 표본화 개수를 조절해보세요. 표본화 간격이 촘촘해질수록 원래 아날로그 곡선에 매우 가까워집니다!</p>
                     
                     <div class="mode-selector">
                         <button class="mode-btn active" onclick="setMode('manual', this)">✏️ 소리변환 3단계 실습</button>
@@ -151,13 +151,13 @@
 
                             <!-- ① 샘플링 개수 -->
                             <div style="flex:1; min-width:240px; display:flex; flex-direction:column; gap:8px;">
-                                <span style="font-weight:900; color:var(--accent-blue); font-size:0.95rem;">✂️ 샘플링 개수 — 1초에 몇 번 잘라 기록할까?</span>
+                                <span style="font-weight:900; color:var(--accent-blue); font-size:0.95rem;">✂️ 표본화 개수 — 1초에 몇 번 측정해 기록할까?</span>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     <input type="range" id="sampleSlider" min="1" max="5" step="1" value="3" oninput="onSliderChange()" onchange="onSliderRelease()" style="flex:1; cursor:pointer; accent-color:var(--accent-blue); height:8px; border-radius:4px;">
                                     <span id="sliderValDisplay" style="font-weight:900; color:#2d3436; min-width:56px; font-size:1rem; text-align:right;">3개/초</span>
                                 </div>
                                 <div id="sampleSliderDesc" style="font-size:0.82rem; color:#555; line-height:1.6; background:#f0f8ff; border-radius:10px; padding:8px 12px; border-left:3px solid var(--accent-blue);">
-                                    ✂️ 1초에 <b>3번</b> 잘라요 → 1초 구간에 점 <b>3개</b>가 찍혀요. <span style="color:#aaa; font-size:0.78rem; margin-left:4px;">슬라이더를 움직여 차이를 확인해보세요!</span>
+                                    ✂️ 1초에 <b>3번</b> 측정해요 → 1초 구간에 점 <b>3개</b>가 찍혀요. <span style="color:#aaa; font-size:0.78rem; margin-left:4px;">슬라이더를 움직여 차이를 확인해보세요!</span>
                                 </div>
                             </div>
 
@@ -202,7 +202,7 @@
                                 <div style="font-size:0.78rem; font-weight:900; color:#888; letter-spacing:1px;">📌 그래프 읽는 법</div>
                                 <div style="display:flex; align-items:center; gap:10px; width:100%;">
                                     <div style="width:13px; height:13px; border-radius:50%; background:#d63031; flex-shrink:0; box-shadow:0 0 5px rgba(214,48,49,0.4);"></div>
-                                    <div style="font-size:0.84rem; font-weight:700; color:#2d3436;">빨간 점 = <b style="color:#d63031;">샘플링 위치</b> (원본값)</div>
+                                    <div style="font-size:0.84rem; font-weight:700; color:#2d3436;">빨간 점 = <b style="color:#d63031;">표본화 위치</b> (원본값)</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px; width:100%;">
                                     <div style="width:22px; height:3px; background:#00b894; flex-shrink:0; border-radius:2px;"></div>
@@ -238,7 +238,7 @@
                                     </div>
                                 </div>
                                 <div style="font-size: 1.1rem; font-weight: 900; color: var(--multi-violet);">자동 표본화/양자화 완료!</div>
-                                <div style="font-size: 0.9rem; color: #666; font-weight: 700; text-align: center; margin-top: 5px; line-height: 1.5;">1초 구간(보라 점선 박스)에 점이 몇 개인지 세어보세요!<br>슬라이더 숫자 = 샘플링 개수 = 1초에 찍히는 점의 개수예요.</div>
+                                <div style="font-size: 0.9rem; color: #666; font-weight: 700; text-align: center; margin-top: 5px; line-height: 1.5;">1초 구간(보라 점선 박스)에 점이 몇 개인지 세어보세요!<br>슬라이더 숫자 = 표본화 개수 = 1초에 찍히는 점의 개수예요.</div>
                             </div>
                         </div>
 
@@ -263,12 +263,12 @@
                                     </div>
                                 </div>
 
-                                <!-- 행2: 샘플링 | 구분선 | 비트심도 — align-items:stretch로 설명박스 높이 통일 -->
+                                <!-- 행2: 표본화 | 구분선 | 비트심도 — align-items:stretch로 설명박스 높이 통일 -->
                                 <div id="uploadControlGroup" style="opacity:0.35; pointer-events:none; display:flex; gap:0; align-items:stretch;">
 
                                     <!-- ① 샘플링 개수 -->
                                     <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:7px; padding-right:20px;">
-                                        <div style="font-weight:900; color:var(--accent-blue); font-size:0.95rem;">✂️ 샘플링 개수 — 1초에 몇 번 측정?</div>
+                                        <div style="font-weight:900; color:var(--accent-blue); font-size:0.95rem;">✂️ 표본화 개수 — 1초에 몇 번 측정?</div>
                                         <div style="display:flex; align-items:center; gap:10px;">
                                             <input type="range" id="uploadSampleSlider" min="50" max="44100" step="50" value="44100"
                                                 oninput="onUploadSliderChange()" onchange="onUploadSliderRelease()"
@@ -367,7 +367,7 @@
                 <textarea id="reflectionInput" class="reflection-area" placeholder="새롭게 알게된 사실과 느낀점을 기록하세요."></textarea>
                 <div class="capture-tip">📸 캡처: Win+Shift+S | Mac: Cmd+Shift+4</div>
             </div>
-            <div class="erase-section"><button class="erase-btn" onclick="eraseStepContent()">🗑️ 이 단원 학습 내용 지우기<br><span style="font-size:0.68rem; font-weight:600; opacity:0.7;">(배움노트·소감·퀴즈 기록)</span></button></div>
+            <div class="erase-section"><button class="erase-btn" onclick="eraseStepContent()">🗑️ 현재 단원 학습 내용 지우기<br><span style="font-size:0.68rem; font-weight:600; opacity:0.7;">(배움노트·소감·퀴즈 기록)</span></button></div>
         </aside>
     </main>
     <div class="modal-overlay" id="modalOverlay"><div class="modal-content" id="modalContent"></div></div>
@@ -534,8 +534,8 @@
     <script>
         const bbLines = [
             { plain:'▪소리는 공기의 진동이 물결처럼 퍼지는 아날로그 신호야.', html:'▪소리는 공기의 진동이 물결처럼 퍼지는 <em>아날로그 신호</em>야.' },
-            { plain:'▪이 파동을 일정 간격으로 측정하는 과정을 샘플링이라고 해.', html:'▪이 파동을 일정 간격으로 측정하는 과정을 <em>샘플링</em>이라고 해.' },
-            { plain:'▪샘플링을 촘촘하게 할수록 원본 소리에 더 가까워져.', html:'▪샘플링을 <strong>촘촘하게</strong> 할수록 원본 소리에 더 가까워져.' },
+            { plain:'▪이 파동을 일정 간격으로 측정하는 과정을 표본화라고 해.', html:'▪이 파동을 일정 간격으로 측정하는 과정을 <em>표본화</em>라고 해.' },
+            { plain:'▪표본화를 촘촘하게 할수록 원본 소리에 더 가까워져.', html:'▪표본화를 <strong>촘촘하게</strong> 할수록 원본 소리에 더 가까워져.' },
             { plain:'▪그렇게 측정한 값을 0과 1로 저장한 것이 디지털 음원이지', html:'▪그렇게 측정한 값을 <em>0과 1</em>로 저장한 것이 <em>디지털 음원</em>이지.<br>' },
             { plain:'➤ 그럼 직접 소리가 디지털로 변환되는 원리를 탐구해볼까?', html:'<em>➤ 그럼 직접 소리가 디지털로 변환되는 원리를 탐구해볼까?</em>' },
         ];

@@ -201,9 +201,9 @@ window.setMode = function(mode, btn) {
         slider.min = "1"; slider.max = "5"; slider.step = "1"; slider.value = "3";
         currentSampleCount = 3;
         document.getElementById('sliderValDisplay').innerText = '3개/초';
-        document.getElementById('rightPanelTitle').innerText = '2. 디지털 파형 (1초에 3개 샘플)';
+        updateRightPanelTitle();
         const descEl = document.getElementById('sampleSliderDesc');
-        if (descEl) descEl.innerHTML = `✂️ 1초에 <b>3번</b> 잘라요 → 1초 구간에 점 <b>3개</b>가 찍혀요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">슬라이더를 움직여 차이를 확인해보세요!</span>`;
+        if (descEl) descEl.innerHTML = `✂️ 1초에 <b>3번</b> 측정해요 → 1초 구간에 점 <b>3개</b>가 찍혀요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">슬라이더를 움직여 차이를 확인해보세요!</span>`;
         document.getElementById('drawPanel').style.display = 'flex'; 
         document.getElementById('rightPanel').style.display = 'flex'; 
         document.getElementById('manualInputsArea').style.display = 'none'; 
@@ -237,6 +237,7 @@ window.setBitDepth = function(bits) {
         desc.innerHTML = descs[bits];
     }
     updateCapacity();
+    updateRightPanelTitle();
     // 왼쪽 캔버스 격자를 비트 심도에 맞게 즉시 갱신
     redrawDrawnPath();
     if (drawnPath.length > 20) doSampling();
@@ -261,6 +262,16 @@ window.setUploadBitDepth = function(bits) {
 };
 
 // ── 용량 계산 ────────────────────────────────────────────────────
+function updateRightPanelTitle() {
+    const el = document.getElementById('rightPanelTitle');
+    if (!el) return;
+    if (currentMode === 'auto') {
+        el.innerText = `2. 디지털 파형 (1초에 ${currentSampleCount}개 표본화 · ${currentBitDepth}비트 양자화)`;
+    } else {
+        el.innerText = '2. 양자화 & 부호화 실습 (3비트)';
+    }
+}
+
 function updateCapacity() {
     const el = document.getElementById('capCalc');
     if (!el) return;
@@ -307,15 +318,15 @@ window.onSliderChange = function() {
     let sliderVal = parseInt(document.getElementById('sampleSlider').value); 
     document.getElementById('sliderValDisplay').innerText = sliderVal + '개/초'; 
     currentSampleCount = sliderVal; 
-    document.getElementById('rightPanelTitle').innerText = `2. 디지털 파형 (1초에 ${sliderVal}개 샘플)`;
+    updateRightPanelTitle();
     const descEl = document.getElementById('sampleSliderDesc');
     if (descEl && currentMode === 'auto') {
         const msgs = {
-            1: `✂️ 1초에 <b>1번</b>만 잘라요 → 1초마다 점 <b>1개</b>. 아주 듬성듬성! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1초 구간에 점이 딱 1개만 찍혀요!</span>`,
-            2: `✂️ 1초에 <b>2번</b> 잘라요 → 1초마다 점 <b>2개</b>. 약간 더 정밀해요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1초 구간에 점 2개가 찍혀요!</span>`,
-            3: `✂️ 1초에 <b>3번</b> 잘라요 → 1초마다 점 <b>3개</b>. 파형을 더 잘 표현해요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1개일 때와 비교해보세요!</span>`,
-            4: `✂️ 1초에 <b>4번</b> 잘라요 → 1초마다 점 <b>4개</b>. 꽤 촘촘해졌어요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">원래 파형과 비슷해지고 있어요!</span>`,
-            5: `✂️ 1초에 <b>5번</b> 잘라요 → 1초마다 점 <b>5개</b>. 원래 파형에 가장 가까워요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1개와 많이 다르죠?</span>`
+            1: `✂️ 1초에 <b>1번</b>만 측정해요 → 1초마다 점 <b>1개</b>. 아주 듬성듬성! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1초 구간에 점이 딱 1개만 찍혀요!</span>`,
+            2: `✂️ 1초에 <b>2번</b> 측정해요 → 1초마다 점 <b>2개</b>. 약간 더 정밀해요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1초 구간에 점 2개가 찍혀요!</span>`,
+            3: `✂️ 1초에 <b>3번</b> 측정해요 → 1초마다 점 <b>3개</b>. 파형을 더 잘 표현해요. <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1개일 때와 비교해보세요!</span>`,
+            4: `✂️ 1초에 <b>4번</b> 측정해요 → 1초마다 점 <b>4개</b>. 꽤 촘촘해졌어요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">원래 파형과 비슷해지고 있어요!</span>`,
+            5: `✂️ 1초에 <b>5번</b> 측정해요 → 1초마다 점 <b>5개</b>. 원래 파형에 가장 가까워요! <span style="color:#aaa;font-size:0.78rem;margin-left:6px;">1개와 많이 다르죠?</span>`
         };
         descEl.innerHTML = msgs[sliderVal] || msgs[3];
     }
@@ -542,7 +553,7 @@ function buildRightGrid() {
     const sX = GW / 420;
     const sY = GH / 250;
 
-    const LP   = Math.round(25  * sX);   // 왼쪽 여백
+    const LP   = Math.round(35  * sX);   // 왼쪽 여백 (Y축 레이블 공간 확보)
     const BP   = Math.round(20  * sY);   // 아래 여백
     const topP = Math.round(20  * sY);   // 위 여백
     const UW   = GW - LP - Math.round(5 * sX); // 사용 가능 너비
@@ -574,7 +585,8 @@ function buildRightGrid() {
         grid.appendChild(line); 
         if (!isAuto || currentBitDepth <= 3 || i % 2 === 0) {
             const label = document.createElement('span'); 
-            label.style.cssText = `position:absolute; left:3px; font-size:${isAuto && currentBitDepth === 4 ? '8' : '10'}px; color:${isAuto ? lineColor : '#b2bec3'}; font-weight:700; bottom:${bottomPx - 4}px; z-index:2; opacity:0.9;`; 
+            const labelLeft = Math.round(LP - 22); // 격자선에서 22px 왼쪽 (2자리 숫자 공간 확보)
+            label.style.cssText = `position:absolute; left:${labelLeft}px; font-size:${isAuto && currentBitDepth === 4 ? '8' : '10'}px; color:${isAuto ? lineColor : '#b2bec3'}; font-weight:700; bottom:${bottomPx - 4}px; z-index:2; opacity:0.9;`; 
             label.innerText = i; 
             grid.appendChild(label); 
         }
@@ -733,29 +745,40 @@ window.doSampling = function() {
     setupQuantizationInputs(); 
 
     if (currentMode === 'auto') {
-        // ① 두 박스 동시에 표시
         const lbEl  = document.getElementById('autoLegendBox');
         const msgEl = document.getElementById('autoMessageArea');
-        if (lbEl)  { lbEl.style.display  = 'flex'; lbEl.style.minHeight  = ''; }
-        if (msgEl) { msgEl.style.display = 'flex'; msgEl.style.minHeight = ''; msgEl.style.marginTop = '10px'; }
 
-        // ② Y 위치 정렬 후 높이 동일화
-        setTimeout(() => {
-            if (!lbEl || !msgEl) return;
-            // Y 정렬: autoMessageArea를 autoLegendBox와 같은 top 위치로
-            const lbTop  = lbEl.getBoundingClientRect().top;
-            const msgTop = msgEl.getBoundingClientRect().top;
-            const diff   = lbTop - msgTop;
-            const currMT = parseFloat(getComputedStyle(msgEl).marginTop) || 0;
-            msgEl.style.marginTop = Math.max(0, currMT + diff) + 'px';
+        // 이미 정렬 완료된 상태면 그냥 표시만
+        const alreadyAligned = lbEl && lbEl.style.minHeight !== '';
 
-            // 높이 동일화: 둘 중 큰 쪽에 맞춤
-            setTimeout(() => {
-                const maxH = Math.max(lbEl.offsetHeight, msgEl.offsetHeight);
-                lbEl.style.minHeight  = maxH + 'px';
-                msgEl.style.minHeight = maxH + 'px';
-            }, 40);
-        }, 80);
+        if (alreadyAligned) {
+            if (lbEl)  lbEl.style.display  = 'flex';
+            if (msgEl) msgEl.style.display = 'flex';
+        } else {
+            // 첫 표시: visibility:hidden 상태로 레이아웃만 잡은 뒤 한번에 보여줌
+            if (lbEl)  { lbEl.style.visibility  = 'hidden'; lbEl.style.display  = 'flex'; lbEl.style.minHeight  = ''; }
+            if (msgEl) { msgEl.style.visibility = 'hidden'; msgEl.style.display = 'flex'; msgEl.style.minHeight = ''; msgEl.style.marginTop = '10px'; }
+
+            // 레이아웃 확정 후 측정
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (!lbEl || !msgEl) return;
+                    // Y 정렬
+                    const lbTop  = lbEl.getBoundingClientRect().top;
+                    const msgTop = msgEl.getBoundingClientRect().top;
+                    const diff   = lbTop - msgTop;
+                    const currMT = parseFloat(getComputedStyle(msgEl).marginTop) || 0;
+                    msgEl.style.marginTop = Math.max(0, currMT + diff) + 'px';
+                    // 높이 동일화
+                    const maxH = Math.max(lbEl.offsetHeight, msgEl.offsetHeight);
+                    lbEl.style.minHeight  = maxH + 'px';
+                    msgEl.style.minHeight = maxH + 'px';
+                    // 이제 한번에 보여주기
+                    lbEl.style.visibility  = '';
+                    msgEl.style.visibility = '';
+                });
+            });
+        }
     } else {
         const lb = document.getElementById('autoLegendBox');
         if (lb) lb.style.display = 'none';

@@ -432,7 +432,7 @@ function eraseStepContent() {
     content.className = 'modal-content-small';
     content.innerHTML = `
         <div style="font-size:2.2rem; margin-bottom:10px;">🗑️</div>
-        <h3 style="color:#ef4444; margin-bottom:10px; font-size:1.2rem; font-weight:900;">이 단원 학습 내용 지우기</h3>
+        <h3 style="color:#ef4444; margin-bottom:10px; font-size:1.2rem; font-weight:900;">현재 단원 학습 내용 지우기</h3>
         <p style="font-size:0.9rem; color:#555; line-height:1.9; margin-bottom:22px; text-align:left; padding:0 4px; word-break:keep-all;">
             아래 내용이 모두 삭제됩니다.<br>
             <span style="color:#ef4444;">• 퀴즈 점수 및 완료 기록<br>• 배움 노트 내용<br>• 배움 활동 소감 내용<br>• SOS·미션 완료 테두리 상태</span>
@@ -479,7 +479,7 @@ function doEraseContent() {
     document.getElementById('modalContent').innerHTML = `
         <div style="font-size:2.2rem; margin-bottom:10px;">✅</div>
         <h3 style="margin-bottom:10px; font-size:1.2rem; font-weight:900;">삭제 완료!</h3>
-        <p style="font-size:0.9rem; color:#555; margin-bottom:18px;">이 단원의 학습 내용이 모두 삭제되었습니다.</p>
+        <p style="font-size:0.9rem; color:#555; margin-bottom:18px;">현재 단원 학습 내용이 모두 삭제되었습니다.</p>
         <button onclick="closeModal()" style="width:100%; padding:11px; color:white; border:none; border-radius:12px; font-weight:700; font-size:0.95rem; cursor:pointer; background:#10b981;">확인</button>
     `;
 }
