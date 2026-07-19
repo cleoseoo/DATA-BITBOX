@@ -170,7 +170,7 @@
 
             <div class="terminal">
                 <div class="terminal-header cyber-font" style="color:#FFF;"><span>🎼 이진수 작곡기</span> <span id="terminal-status" style="color:var(--cyber-magenta)">🎹 연주 준비 완료</span></div>
-                <textarea id="binaryInput" class="code-input cyber-font" placeholder="🎹 건반을 눌러 작곡하거나, 이진수를 직접 입력하거나, 예제를 로드하세요..." readonly></textarea>
+                <textarea id="binaryInput" class="code-input cyber-font" placeholder="🎹 건반을 눌러 작곡하거나, 이진수를 직접 입력하거나, 예제를 로드하세요..."></textarea>
                 
                 <div class="controls">
                     <div class="tempo-box">
@@ -906,14 +906,18 @@
             activeNodes[index] = { oscs, masterGain };
             keyElements[index].classList.add('active');
 
-            // 🎹 녹음 모드: 건반 직접 연주일 때만 기록 (시퀀서 재생 시 제외)
-            if (isRecording && !fromSequencer) {
-                const pressTime = performance.now() - recordStartTime; // 녹음 시작부터 경과 시간(ms)
-                recordedNotes.push({ bin: n.bin, noteIndex: index, pressTime });
+            // 🎹 건반 직접 연주 시 이진수를 입력창에 항상 표시 (시퀀서 재생 시 제외)
+            if (!fromSequencer) {
                 const ta  = document.getElementById('binaryInput');
                 const cur = ta.value.trim();
                 ta.value  = cur ? cur + ' ' + n.bin : n.bin;
                 ta.scrollTop = ta.scrollHeight;
+            }
+
+            // 🎹 녹음 모드: 박자(타이밍) 기록 (시퀀서 재생 시 제외)
+            if (isRecording && !fromSequencer) {
+                const pressTime = performance.now() - recordStartTime; // 녹음 시작부터 경과 시간(ms)
+                recordedNotes.push({ bin: n.bin, noteIndex: index, pressTime });
                 document.getElementById('terminal-status').innerText =
                     '🔴 녹음 중 — ' + recordedNotes.length + '음 기록됨';
             }

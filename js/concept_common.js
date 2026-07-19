@@ -709,7 +709,7 @@ document.addEventListener("DOMContentLoaded", function() {
             position: fixed;
             bottom: 90px; 
             right: 25px;
-            width: 330px;
+            width: 360px;
             height: 460px;
             background: white;
             border-radius: 14px;
@@ -741,7 +741,7 @@ document.addEventListener("DOMContentLoaded", function() {
             gap: 10px;
         }
         .chat-msg {
-            max-width: 85%;
+            max-width: 92%;
             padding: 9px 12px;
             border-radius: 12px;
             font-size: 13.5px;
@@ -775,6 +775,7 @@ document.addEventListener("DOMContentLoaded", function() {
             border-radius: 6px;
             outline: none;
             font-size: 13px;
+            cursor: text !important;
         }
         .chatbot-input-area button {
             padding: 0 14px;
@@ -876,11 +877,11 @@ document.addEventListener("DOMContentLoaded", function() {
     const chatbotWindowHTML = `
         <div id="chatbot-window">
             <div class="chatbot-header">
-                <span>💬 핵심 개념 안내 비트봇</span>
+                <span>💬 개념 안내 비트봇</span>
                 <span style="cursor:pointer; font-size: 16px;" id="chatbot-close-x">✖</span>
             </div>
             <div class="chatbot-body" id="chatbot-messages">
-                <div class="chat-msg bot-msg">안녕! <br> 나는 데이터 비트박스 '비트봇'이야.<br>데이터의 디지털 표현과 관련한 핵심 개념을 언제든지 물어봐! (예:비트, 픽셀...)</div>
+                <div class="chat-msg bot-msg">안녕! <br> 나는 데이터 비트박스 개념 안내 '비트봇'이야.<br>핵심 단어를 입력하면 개념을 설명해줄께!<br>(예:비트, 픽셀...)</div>
             </div>
             <div class="chatbot-input-area">
                 <input type="text" id="chatbot-input" placeholder="예: 픽셀, 아날로그, 디지털...">
@@ -922,7 +923,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         Z
                     " fill="url(#bubble-grad)" filter="url(#bubble-shadow)"/>
                 </svg>
-                <span class="bubble-text">개념 챗봇</span>
+                <span class="bubble-text">개념 안내 비트봇</span>
             </button>
         `;
         // 지우기 버튼 왼쪽(앞)에 삽입
@@ -999,7 +1000,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 const reply = `<strong>[${titleText}]</strong>\n${safeDesc}\n\n🎯 <a href="${url}${anchor}" style="color:#0f766e; font-weight:bold; text-decoration:underline;">[${stepText}${bestMatch.title || titleText}] 페이지로 이동해서 탐구하기</a>`;
                 addMessageToUI('bot-msg', reply);
             } else {
-                addMessageToUI('bot-msg', '아직 내가 학습하지 못한 내용인 것 같아. 핵심 개념어(예: 비트, 인공지능)를 다시 확인해 줄래?');
+                addMessageToUI('bot-msg', '아직 내가 학습하지 못한 내용인 것 같아. 핵심 단어(예: 비트, 인공지능)를 다시 입력해 줄래?');
             }
         }, 300);
     }

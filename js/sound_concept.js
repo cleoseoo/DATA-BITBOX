@@ -649,9 +649,11 @@ function getEventPos(e) {
     const rect = dCanvas.getBoundingClientRect(); 
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    // y 제한: 위로는 약 7.4 수준(y=8px), 아래로는 0 눈금(y=230px)까지만 그리기 허용
+    const rawY = (clientY - rect.top) * (dCanvas.height / rect.height);
     return { 
         x: (clientX - rect.left) * (dCanvas.width / rect.width), 
-        y: (clientY - rect.top) * (dCanvas.height / rect.height) 
+        y: Math.min(230, Math.max(8, rawY)) 
     }; 
 }
 
@@ -797,7 +799,8 @@ function setupQuantizationInputs() {
         const maxVal = typeof item === 'object' ? item.max : 7;
         let xPos;
         if(currentMode === 'manual') {
-            xPos = 25 + (index * 37);
+            // 세로 격자선(초 눈금)과 동일한 좌표 체계 사용 — 각 초 위치에 정확히 정렬
+            xPos = rightGridM.LP + index * rightGridM.secW;
         } else {
             // rightGridM의 실제 스케일된 좌표 사용
             const sec      = Math.floor(index / currentSampleCount);

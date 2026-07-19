@@ -337,7 +337,7 @@ const SEARCH_DB = [
         title: '소리의 디지털 표현',
         url: '06_sound.html',
         anchor: '#step2-concept',
-        desc: '추출된 실수값을 가장 가까운 정수로 반올림하여 수치화하는 2단계'
+        desc: '표본화로 추출한 값을 가장 가까운 정수로 반올림하여 수치화하는 단계'
     },
     {
         keyword: '부호화',
@@ -346,7 +346,7 @@ const SEARCH_DB = [
         title: '소리의 디지털 표현',
         url: '06_sound.html',
         anchor: '#step2-concept',
-        desc: '양자화된 수치를 0과 1의 이진수로 변환하는 3단계'
+        desc: '양자화로 얻은 정수 값을 0과 1의 이진수로 변환하는 단계'
     },
     {
         keyword: 'PCM',

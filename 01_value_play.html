@@ -6,6 +6,18 @@
 <title>Digital vs Analog Explorer - Falling Action</title>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./css/value_play_concept.css">
+<style>
+/* 특징 카드: 문장형 텍스트가 잘 보이도록 */
+.card.feature-card {
+    font-size: 15px;
+    max-width: 170px;
+    text-align: center;
+    line-height: 1.35;
+    white-space: normal;
+    word-break: keep-all;
+    border-style: dashed;
+}
+</style>
 </head>
 <body>
 <!-- ✅ DATA BITBOX 공통 네비바 -->
@@ -83,12 +95,12 @@
 
 <div class="memo" id="memo">
     🕹️ <b>게임 방법</b><br><br>
-    방향키(←→↑↓)로 로봇을 이동해 하늘에서 떨어지는 아이템을 잡아주세요.<br>
-    알맞은 구역으로 가져가면 점수를 획득합니다!<br>
+    방향키(←→↑↓)로 로봇을 이동해 떨어지는 사물과 특징 카드를 잡아주세요.<br>
+    DIGITAL / ANALOG 구역에 정확히 분류하면 점수를 획득합니다.<br>
     <br>
     <span style="color:#fbbf24; font-weight:900; font-size:18px;">🔥 콤보 달성 시 2의 지수승(2배씩)으로 점수가 폭발합니다!</span><br>
     <span style="color:#ff0844; font-weight:900; font-size:18px;">⚠️ 폭탄에 닿으면 현재 점수의 2배가 감점되니 조심하세요!</span><br>
-    <span style="color:#00f2fe; font-weight:900; font-size:18px;">🚨 한곳에 4초 이상 멈춰있으면 폭탄이 터지며 100점 감점! (캠핑 금지)</span><br>
+    <span style="color:#00f2fe; font-weight:900; font-size:18px;">🚨 한곳에 4초 이상 멈춰있으면 폭탄이 터지며 100점 감점! (멈춤 금지)</span><br>
     <br>
     <button onclick="startGame()">도전 시작!</button>
 </div>
@@ -120,7 +132,13 @@ const originalData = [
     {name:"💻", type:"digital", isImg: true}, {name:"📱", type:"digital", isImg: true}, {name:"⌚", type:"digital", isImg: true}, 
     {name:"LP판", type:"analog"}, {name:"종이책", type:"analog"}, {name:"손편지", type:"analog"},
     {name:"필름카메라", type:"analog"}, {name:"카세트테이프", type:"analog"}, {name:"만년필", type:"analog"},
-    {name:"🕰️", type:"analog", isImg: true}, {name:"🌡️", type:"analog", isImg: true}, {name:"📻", type:"analog", isImg: true} 
+    {name:"🕰️", type:"analog", isImg: true}, {name:"🌡️", type:"analog", isImg: true}, {name:"📻", type:"analog", isImg: true},
+    {name:"0과 1로 표현", type:"digital", isFeature: true}, {name:"복사해도 품질 유지", type:"digital", isFeature: true},
+    {name:"수정과 편집이 쉬움", type:"digital", isFeature: true}, {name:"끊어진 값(이산적)", type:"digital", isFeature: true},
+    {name:"연속적인 값", type:"analog", isFeature: true}, {name:"복사할수록 품질 저하", type:"analog", isFeature: true},
+    {name:"시간이 지나면 변형됨", type:"analog", isFeature: true}, {name:"자연 그대로의 신호", type:"analog", isFeature: true},
+    {name:"컴퓨터로 처리할 수 있음", type:"digital", isFeature: true}, {name:"먼 곳까지 빠르게 전송", type:"digital", isFeature: true},
+    {name:"사람의 감각으로 직접 느낌", type:"analog", isFeature: true}, {name:"정확한 값을 재기 어려움", type:"analog", isFeature: true}
 ];
 
 let game = document.getElementById("game");
@@ -240,6 +258,7 @@ function createCard(isInitial = false) {
         el.innerText = item.name;
         el.dataset.type = item.type;
         if(item.isImg) el.classList.add("img-card");
+        if(item.isFeature) el.classList.add("feature-card");
     }
     
     let startX = 50 + Math.random() * (window.innerWidth - 150);
@@ -249,7 +268,7 @@ function createCard(isInitial = false) {
     el.style.top = startY + "px";
     
     el.dataset.y = startY;
-    el.dataset.vy = Math.random() * 1.5 + 1.2; 
+    el.dataset.vy = Math.random() * 1.2 + 0.9; 
     
     game.appendChild(el);
     return el;

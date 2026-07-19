@@ -82,12 +82,36 @@ function updateNumberResult() {
 
 
 // 🌟 [개별 기능] 2. 나눗셈 빈칸 채우기 정답 확인
+// ── 오답 처리: 상자 흔들림 + 값 지우기 ──
+(function injectWrongShakeStyle() {
+    const st = document.createElement('style');
+    st.textContent = '@keyframes ncWrongShake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(6px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(4px);} } .nc-wrong { animation: ncWrongShake 0.4s ease; background-color:#fee2e2 !important; border-color:#ef4444 !important; }';
+    document.head.appendChild(st);
+})();
+
+function shakeWrong(el) {
+    el.classList.add('nc-wrong');
+    setTimeout(() => {
+        el.classList.remove('nc-wrong');
+        el.value = '';
+    }, 400);
+}
+
+function isWrongComplete(el) {
+    const ans = el.getAttribute('data-ans');
+    if (el.value.length === 0) return false;
+    // 입력한 부분이 정답의 시작과 다르면 즉시 오답 처리
+    return !ans.startsWith(el.value);
+}
+
 function checkDiv(el) {
     if (el.value === el.getAttribute('data-ans')) {
         el.style.backgroundColor = '#d1fae5';
         el.style.borderColor = '#10b981';
         el.style.color = '#047857';
         el.disabled = true;
+    } else if (isWrongComplete(el)) {
+        shakeWrong(el);
     }
     const allInputs = document.querySelectorAll('#step3-tip .val-box');
     let allCorrect = true;
@@ -107,6 +131,8 @@ function checkBinToDec(el) {
         el.style.borderColor = '#10b981';
         el.style.color = '#047857';
         el.disabled = true;
+    } else if (isWrongComplete(el)) {
+        shakeWrong(el);
     }
 }
 
@@ -118,6 +144,8 @@ function checkBinToDecFinal(el) {
         el.disabled = true;
         document.getElementById('resultBox2').style.backgroundColor = '#d1fae5';
         document.getElementById('resultBox2').style.borderColor = '#10b981';
+    } else if (isWrongComplete(el)) {
+        shakeWrong(el);
     }
 }
 

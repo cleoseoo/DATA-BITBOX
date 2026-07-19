@@ -35,7 +35,7 @@ function toggleBit() {
         // ── OFF 상태로 전환 ──
         sw.classList.remove('on');
         parent.classList.remove('on');
-        knob.innerText = '0';
+        knob.innerText = '';
         result.innerText = '0';
         result.classList.remove('on');
         offText.classList.add('active');
@@ -51,7 +51,7 @@ function toggleBit() {
         // ── ON 상태로 전환 ──
         sw.classList.add('on');
         parent.classList.add('on');
-        knob.innerText = '1';
+        knob.innerText = '';
         result.innerText = '1';
         result.classList.add('on');
         offText.classList.remove('active');

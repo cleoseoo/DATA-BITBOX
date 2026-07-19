@@ -141,8 +141,12 @@ function executeUTF8() {
         return;
     }
     
+    // 첫 번째 문자(코드 포인트 기준)만 변환 — 이모지도 1글자로 처리
+    const firstChar = Array.from(inputVal)[0];
+    document.getElementById('utf8Input').value = firstChar;
+
     const encoder = new TextEncoder();
-    const view = encoder.encode(inputVal);
+    const view = encoder.encode(firstChar);
     
     let html = '';
     view.forEach((byte, index) => {
@@ -153,14 +157,18 @@ function executeUTF8() {
     display.innerHTML = html;
     
     let bytes = view.length;
+    const isHangul = /[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(firstChar);
+    const cp = firstChar.codePointAt(0);
+    const isEmoji = cp >= 0x1F000 || (cp >= 0x2600 && cp <= 0x27BF);
+
     if(bytes === 1) {
-        infoText.innerHTML = `영문자/숫자는 <span style="color:var(--apple-blue)">1바이트(8비트)</span>를 사용합니다!`;
-    } else if(bytes === 3) {
+        infoText.innerHTML = `영문자/숫자/기호는 <span style="color:var(--apple-blue)">1바이트(8비트)</span>를 사용합니다!`;
+    } else if(isHangul) {
         infoText.innerHTML = `한글은 <span style="color:var(--apple-red)">3바이트(24비트)</span>를 사용합니다!`;
-    } else if(bytes === 4) {
-        infoText.innerHTML = `이모티콘은 가장 큰 <span style="color:var(--ocean-blue)">4바이트(32비트)</span>를 사용합니다!`;
+    } else if(isEmoji) {
+        infoText.innerHTML = `이모지는 <span style="color:var(--ocean-blue)">${bytes}바이트(${bytes * 8}비트)</span>를 사용합니다!`;
     } else {
-        infoText.innerHTML = `${bytes}바이트를 사용합니다!`;
+        infoText.innerHTML = `이 문자는 <span style="color:var(--ocean-blue)">${bytes}바이트(${bytes * 8}비트)</span>를 사용합니다!`;
     }
     infoText.style.display = 'block';
 }

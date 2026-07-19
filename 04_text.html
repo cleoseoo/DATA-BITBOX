@@ -109,12 +109,12 @@
     <strong>✅ 아스키코드 (ASCII):</strong> <button class="inline-reveal-btn" onclick="revealInline(this, '영어 대소문자, 숫자, 특수문자', '#0284c7', '#e0f2fe')">?</button>를 표현하기 위해 만든 미국의 표준 약속입니다.<br>
     &nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 0.9em; color:var(--text-sub); font-weight: 500;">(글자당 1바이트 사용 / 7비트 표준 128개, 8비트 확장 256개 문자 표현 가능)</span><br><br>
     
-    <strong>✅ 유니코드 (Unicode):</strong> <button class="inline-reveal-btn" onclick="revealInline(this, '전 세계 모든 언어와 기호(이모티콘 등)', '#0284c7', '#e0f2fe')">❔</button>에 <b>고유한 일련번호</b>를 매겨 놓은 국제 표준 사전입니다.<br>
+    <strong>✅ 유니코드 (Unicode):</strong> <button class="inline-reveal-btn" onclick="revealInline(this, '전 세계 모든 언어와 기호(이모지 등)', '#0284c7', '#e0f2fe')">❔</button>에 <b>고유한 일련번호</b>를 매겨 놓은 국제 표준 사전입니다.<br>
     &nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 0.9em; color:var(--text-sub); font-weight: 500;">(16비트로 각 문자마다 고유의 주소값을 가짐. 예: '가' = U+AC00)</span><br><br>
 
     <strong>✅ UTF-8:</strong> 유니코드 번호를 컴퓨터가 실제로 저장할 수 있는 <button class="inline-reveal-btn" onclick="revealInline(this, '이진수로 변환(인코딩)', '#0284c7', '#e0f2fe')">❔</button>하는 가장 대표적인 방식입니다. <br>
     &nbsp;&nbsp;&nbsp;&nbsp;글자의 종류에 따라 <b>1바이트에서 최대 <button class="inline-reveal-btn" onclick="revealInline(this, '4바이트(32비트)', '#0284c7', '#e0f2fe')">❔</button>까지 고무줄처럼 용량을 늘려 쓰기 때문에</b> 전 세계 표준으로 쓰입니다.<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 0.9em; color:var(--text-sub); font-weight: 500;">(영어는 1바이트, 한글은 3바이트(24비트), 이모티콘은 4바이트)</span>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: 0.9em; color:var(--text-sub); font-weight: 500;">(영어는 1바이트, 한글은 3바이트(24비트), 이모지는 4바이트)</span>
 </p>
 </div>
 
@@ -172,7 +172,7 @@
                 <div id="step4-unicode" class="step-container">
                     <div style="font-size: 1.3rem; font-weight: 900; color: var(--apple-blue); margin-bottom: 10px; text-align: left; padding-left: 10px;">🌍 심화 탐구: 유니코드 (Unicode) 맛보기</div>
                     <p style="text-align: left; padding-left: 10px; font-size: 0.95rem; color: var(--text-sub); margin-bottom: 20px; font-weight: 600;">
-                        유니코드는 전 세계의 모든 언어와 이모티콘을 담기 위해 1바이트를 넘어서는 훨씬 큰 번호 체계를 사용합니다. 보통 'U+' 기호가 붙은 16진수 번호로 표기합니다.
+                        유니코드는 전 세계의 모든 언어와 이모지를 담기 위해 1바이트를 넘어서는 훨씬 큰 번호 체계를 사용합니다. 보통 'U+' 기호가 붙은 16진수 번호로 표기합니다.
                     </p>
 
                     <div class="tip-box-blue" style="background: #f0f9ff; border-color: rgba(14, 165, 233, 0.3);">
@@ -205,12 +205,12 @@
                     <div style="font-size: 1.3rem; font-weight: 900; color: var(--apple-blue); margin-bottom: 10px; text-align: left; padding-left: 10px;">📦 특별 탐구: UTF-8 이진코드</div>
                     <p style="text-align: left; padding-left: 10px; font-size: 0.95rem; color: var(--text-sub); margin-bottom: 20px; font-weight: 600;">
                         UTF-8은 글자의 종류에 따라 <b>1바이트에서 4바이트</b>까지 용량을 자유자재로 변경하여 저장합니다.<br>
-                        입력창에 <b>영어, 한글, 이모티콘</b>을 각각 하나씩 입력해 보고 비트가 몇 개씩 나오는지 실험해 보세요!
+                        입력창에 <b>영문자, 숫자, 기호, 한글, 이모지</b>를 각각 하나씩 입력해 보고 비트가 몇 개씩 나오는지 실험해 보세요!
                     </p>
 
                     <div class="utf8-lab">
                         <div class="utf8-input-box">
-                            <input type="text" id="utf8Input" class="utf8-input" maxlength="1" placeholder="A" value="가">
+                            <input type="text" id="utf8Input" class="utf8-input" maxlength="2" placeholder="A" value="가">
                             <button class="utf8-btn" onclick="executeUTF8()">UTF-8 변환하기 🪄</button>
                         </div>
                         <div id="byteDisplay" class="byte-container">
@@ -224,7 +224,7 @@
                     <div class="step-navigation">
                         <div class="nav-arrow prev" onclick="goToStep('step5-utf8', 'step4-unicode')">
                             <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></svg>
-                            <div>유니코드(U</div>
+                            <div>유니코드</div>
                         </div>
                         <div class="nav-arrow next" onclick="goToStep('step5-utf8', 'step6-quiz')">
                             <div>개념 확인 (최종 퀴즈)</div>
@@ -264,7 +264,7 @@
                     <div id="quizForm">
                         <div class="quiz-box">1. 컴퓨터는 문자를 있는 그대로 기억하지 못하고 오직 <input type="text" class="blank" data-answer="0" data-score="5" data-swap="true" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 과(와) <input type="text" class="blank" data-answer="1" data-score="5" data-swap="true" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 로만 저장하므로, 숫자로 바꾸기 위한 <input type="text" class="blank" data-answer="약속" data-score="5" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> 이(가) 필요합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
                         <div class="quiz-box">2. 영어 대소문자, 숫자, 기본 특수문자를 십진수 번호와 매칭시켜 놓은 미국의 기초 표준 코드를 <input type="text" class="blank" data-answer="아스키코드" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 부릅니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
-                        <div class="quiz-box">3. 전 세계의 다양한 언어와 이모티콘(😊)까지 모두 표현하기 위해 훨씬 큰 고유 번호를 부여한 국제 표준 코드표를 <input type="text" class="blank" data-answer="유니코드" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
+                        <div class="quiz-box">3. 전 세계의 다양한 언어와 이모지(😊)까지 모두 표현하기 위해 훨씬 큰 고유 번호를 부여한 국제 표준 코드표를 <input type="text" class="blank" data-answer="유니코드" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
                         <div class="quiz-box">4. [신규] 유니코드 번호를 컴퓨터에 저장하기 위해 글자에 따라 용량을 고무줄처럼 1~4바이트로 조절하여 이진수로 변환(인코딩)하는 방식을 <input type="text" class="blank" data-answer="UTF-8" data-score="15" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[15점]</span></div>
                         <div class="quiz-box">5. 한글을 표현할 때, '가', '각' 처럼 글자 하나하나에 고유 번호를 도장 찍듯 부여하는 방식을 <input type="text" class="blank" data-answer="완성형" data-score="20" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
                         <div class="quiz-box" style="margin-bottom:0;">6. 반면, 한글의 초성/중성/종성에 각각 번호를 부여하고 이를 레고 블록처럼 결합해서 글자를 만드는 방식을 <input type="text" class="blank" data-answer="조합형" data-score="20" oninput="check(this)" ondrop="drop(event)" ondragover="allowDrop(event)" autocomplete="off" disabled> (이)라고 합니다. <span style="color:var(--apple-red); font-weight:900;">[20점]</span></div>
@@ -338,7 +338,6 @@
     </footer>
 
     <script src="./js/text_concept.js"></script>
-    <script src="./js/concept_common.js"></script>
 
     <style>
         #bb-backdrop {

@@ -286,13 +286,15 @@
                         지금까지 만든 <strong>문자 + 이미지 + 소리의 거대한 이진수 덩어리</strong>가 조합되어 하나의 동영상 파일로 탄생합니다!
                     </div>
                     
-                    <div style="display: flex; gap: 10px; align-items: center; background: #171E2E; padding: 15px; border-radius: 8px; border: 1px solid #334155; flex-wrap: wrap;">
-                        <span style="font-weight: bold; color: #94A3B8; white-space: nowrap;">저장 포맷:</span>
-                        <select id="formatSelect" style="width: 150px; margin-bottom: 0; cursor: pointer;">
-                            <option value="video/webm">WebM (권장)</option>
-                            <option value="video/mp4">MP4 (호환)</option>
-                        </select>
-                        <button class="btn" onclick="renderVideo()" id="renderBtn" style="flex: 1; min-width: 200px; font-size: 1.1rem; background: var(--secondary); color: white; letter-spacing: 1px;">🎬 10초 동영상 만들기</button>
+                    <div style="display: flex; gap: 30px; align-items: center; background: #171E2E; padding: 15px; border-radius: 8px; border: 1px solid #334155; flex-wrap: wrap;">
+                        <div style="flex: 0 0 494px; display: flex; gap: 10px; align-items: center; box-sizing: border-box;">
+                            <span style="font-weight: bold; color: #94A3B8; white-space: nowrap;">저장 포맷:</span>
+                            <select id="formatSelect" style="width: 220px; margin-bottom: 0; cursor: pointer;">
+                                <option value="video/webm">WebM (웹 표준 형식)</option>
+                                <option value="video/mp4">MP4 (널리 호환되는 형식)</option>
+                            </select>
+                        </div>
+                        <button class="btn" onclick="renderVideo()" id="renderBtn" style="flex: 1; min-width: 300px; font-size: 1.1rem; background: var(--secondary); color: white; letter-spacing: 1px;">🎬 10초 동영상 만들기</button>
                     </div>
                     
                     <div class="render-layout">
@@ -848,6 +850,9 @@
             if(format === 'video/mp4' && !MediaRecorder.isTypeSupported('video/mp4')) {
                 alert("현재 브라우저에서 MP4를 지원하지 않아 WebM으로 저장됩니다.");
                 mimeType = 'video/webm';
+            } else if(format === 'video/webm' && !MediaRecorder.isTypeSupported('video/webm')) {
+                alert("현재 브라우저에서 WebM을 지원하지 않아 MP4로 저장됩니다.");
+                mimeType = 'video/mp4';
             }
 
             const recorder = new MediaRecorder(combinedStream, { mimeType });
