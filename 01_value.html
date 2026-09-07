@@ -358,7 +358,6 @@
                                 <div class="thermo-desc digital-desc">0.1°C 단위로 <b>끊겨</b> 표시돼요.<br>0과 1로 변환되는 <b>불연속적인</b> 값입니다.</div>
                             </div>
                         </div>
-
                     </div>
                     <!-- ── // 온도계 인터랙션 ── -->
 
@@ -539,6 +538,10 @@
                             <div>디지털 데이터 장점</div>
                         </div>
                         <div style="display: flex; gap: 10px; margin-left: auto;">
+                            <div class="nav-arrow" id="submitTeacherBtn" onclick="submitToTeacher()"
+                                 style="background:linear-gradient(135deg,#16a34a,#22c55e); box-shadow:0 4px 15px rgba(22,163,74,0.35);">
+                                <div style="color:white;">📤 선생님께 제출</div>
+                            </div>
                             <div class="nav-arrow report-btn" onclick="downloadReportTXT()">
                                 <div>📄 텍스트 저장</div>
                             </div>
@@ -802,7 +805,8 @@
 
         window.addEventListener('load',()=>setTimeout(bbType,600));
     </script>
-<script src="./js/search_data.js"></script> 
+<script src="./js/search_data.js"></script>
+<script src="./js/config.js"></script>
 <script src="./js/concept_common.js"></script>
 </body>
 </html>

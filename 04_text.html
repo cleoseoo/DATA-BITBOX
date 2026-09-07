@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="./css/text_concept.css">
 </head>
 <body>
-
     <header>
         <div class="header-top">
             <div class="header-left">
@@ -280,6 +279,10 @@
                             <div>이전 (UTF-8 인코딩)</div>
                         </div>
                         <div style="display: flex; gap: 10px; margin-left: auto;">
+                            <div class="nav-arrow" id="submitTeacherBtn" onclick="submitToTeacher()"
+                                 style="background:linear-gradient(135deg,#16a34a,#22c55e); box-shadow:0 4px 15px rgba(22,163,74,0.35);">
+                                <div style="color:white;">📤 선생님께 제출</div>
+                            </div>
                             <div class="nav-arrow report-btn" onclick="downloadReportTXT()">
                                 <div>📄 텍스트 저장</div>
                             </div>
@@ -523,7 +526,8 @@
 
         window.addEventListener('load',()=>setTimeout(bbType,600));
     </script>
-<script src="./js/search_data.js"></script> 
+<script src="./js/search_data.js"></script>
+<script src="./js/config.js"></script>
 <script src="./js/concept_common.js"></script>
 </body>
 </html>

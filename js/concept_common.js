@@ -85,8 +85,8 @@ let correctAnswers = 0;
 const scored = new Set();
 
 function markStepDone(finalScore) {
-    const pass = typeof PASS_SCORE !== 'undefined' ? PASS_SCORE : 70;
-    if (finalScore < pass) return;
+    // 🌟 [수정] 70점 미만이어도 채점 결과(현재 점수)를 그대로 저장/표시합니다.
+    //    합격/불합격과 무관하게 "채점하기"를 누르면 항상 최신 점수로 반영됩니다.
     try {
         const done = JSON.parse(localStorage.getItem('completedSteps') || '[]');
         if (typeof THIS_STEP !== 'undefined' && !done.includes(THIS_STEP)) {
@@ -395,6 +395,124 @@ function downloadReportImageOffline() {
     link.download = `${fileName}_보고서.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
+}
+
+// ── 학번 확인 & 선생님 제출 ──────────────────────────────────
+const STUDENT_ID_KEY = 'dbb_student_id';
+let _studentIdCallback = null;
+
+function getSavedStudentId() {
+    return localStorage.getItem(STUDENT_ID_KEY);
+}
+
+// 저장된 학번이 있으면 바로 callback 실행, 없으면 입력창(모달)을 띄운 뒤 실행
+function ensureStudentId(callback) {
+    const saved = getSavedStudentId();
+    if (saved) { callback(saved); return; }
+    _studentIdCallback = callback;
+    openStudentIdModal();
+}
+
+function openStudentIdModal(errorMsg) {
+    const content = document.getElementById('modalContent');
+    content.className = 'modal-content-small';
+    content.innerHTML = `
+        <div style="font-size:2.2rem; margin-bottom:10px;">🙋</div>
+        <h3 style="margin-bottom:10px; font-size:1.2rem; font-weight:900;">학번을 입력해주세요</h3>
+        <p style="font-size:0.9rem; color:#555; line-height:1.7; margin-bottom:14px;">
+            학년(1자리) + 반(2자리) + 번호(2자리) = 총 5자리<br>
+            예) 1학년 1반 1번 → <b>10101</b>
+        </p>
+        <input id="studentIdInput" type="text" inputmode="numeric" maxlength="5" placeholder="예: 10101"
+            style="width:100%; padding:12px; font-size:1.15rem; text-align:center; letter-spacing:3px;
+                   border:2px solid #cbd5e1; border-radius:10px; margin-bottom:8px; box-sizing:border-box;">
+        ${errorMsg ? `<p style="color:#ef4444; font-size:0.85rem; margin-bottom:10px;">${errorMsg}</p>` : ''}
+        <button onclick="confirmStudentId()" style="width:100%; padding:12px; background:var(--teal-main, #0f766e);
+            color:white; border:none; border-radius:12px; font-weight:700; font-size:1rem; cursor:pointer;">확인</button>
+    `;
+    document.getElementById('modalOverlay').style.display = 'flex';
+
+    const input = document.getElementById('studentIdInput');
+    if (input) {
+        input.focus();
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); confirmStudentId(); }
+        });
+    }
+}
+
+function confirmStudentId() {
+    const input = document.getElementById('studentIdInput');
+    const val = input ? input.value.trim() : '';
+
+    // 학번 형식 검사: 1~3(학년) + 4자리 = 총 5자리 숫자
+    if (!/^[1-3][0-9]{4}$/.test(val)) {
+        openStudentIdModal('5자리 학번 형식이 올바르지 않습니다. (예: 10101)');
+        return;
+    }
+
+    localStorage.setItem(STUDENT_ID_KEY, val);
+    closeModal();
+    if (_studentIdCallback) {
+        const cb = _studentIdCallback;
+        _studentIdCallback = null;
+        cb(val);
+    }
+}
+
+// "📤 선생님께 제출" 버튼에서 호출
+function submitToTeacher() {
+    if (typeof SUBMIT_ENDPOINT === 'undefined' || !SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.indexOf('http') !== 0) {
+        showCustomAlert('안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.');
+        return;
+    }
+
+    ensureStudentId(function (studentId) {
+        const memo = document.getElementById('memoInput') ? document.getElementById('memoInput').value : '';
+        const reflection = document.getElementById('reflectionInput') ? document.getElementById('reflectionInput').value : '';
+        const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
+        const unitTitle = typeof STEP_TITLE !== 'undefined' ? STEP_TITLE : '';
+
+        const payload = {
+            action: 'submit',
+            secret: (typeof SUBMIT_SECRET !== 'undefined') ? SUBMIT_SECRET : '',
+            studentId: studentId,
+            unitId: unitId,
+            unitTitle: unitTitle,
+            score: score,                    // concept_common.js 상단에 이미 선언된 전역 변수
+            elapsedSeconds: elapsedSeconds,   // 〃
+            memo: memo,
+            reflection: reflection
+        };
+
+        const btn = document.getElementById('submitTeacherBtn');
+        const btnLabel = btn ? btn.querySelector('div') : null;
+        if (btn) btn.style.pointerEvents = 'none';
+        if (btnLabel) btnLabel.innerText = '제출 중...';
+
+        fetch(SUBMIT_ENDPOINT, {
+            method: 'POST',
+            // text/plain 으로 보내야 브라우저가 사전 확인 요청(preflight)을 보내지 않아
+            // Google Apps Script와 CORS 문제 없이 통신됩니다.
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.ok) {
+                    showCustomAlert('✅ 제출 완료', '선생님께 성공적으로 제출되었습니다.');
+                } else {
+                    showCustomAlert('제출 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.');
+                }
+            })
+            .catch(() => {
+                showCustomAlert('제출 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.');
+            })
+            .finally(() => {
+                if (btn) btn.style.pointerEvents = 'auto';
+                if (btnLabel) btnLabel.innerText = '📤 선생님께 제출';
+            });
+    });
 }
 
 // ✅ 페이지 로드 시 저장된 데이터 복원

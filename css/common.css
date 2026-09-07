@@ -37,6 +37,48 @@
     font-style: normal;
     src: url('../fonts/JetBrainsMono-Regular.ttf') format('truetype');
 }
+@font-face {
+    font-family: 'Pretendard';
+    font-weight: 700;
+    font-style: normal;
+    src: url('../fonts/Pretendard-Bold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Pretendard';
+    font-weight: 800;
+    font-style: normal;
+    src: url('../fonts/Pretendard-ExtraBold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Pretendard';
+    font-weight: 900;
+    font-style: normal;
+    src: url('../fonts/Pretendard-Black.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Inter';
+    font-weight: 400;
+    font-style: normal;
+    src: url('../fonts/Inter_28pt-Regular.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Inter';
+    font-weight: 600;
+    font-style: normal;
+    src: url('../fonts/Inter_28pt-SemiBold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Inter';
+    font-weight: 800;
+    font-style: normal;
+    src: url('../fonts/Inter_28pt-ExtraBold.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'Inter';
+    font-weight: 900;
+    font-style: normal;
+    src: url('../fonts/Inter_28pt-Black.ttf') format('truetype');
+}
 
 /* ── 시스템 폰트 굵기 렌더링 강화 ── */
 * {
@@ -291,6 +333,24 @@ main { flex: 1; display: flex; flex-direction: column; align-items: center; padd
 .step-arrow { font-size: 0.7rem; opacity: 0.3; transition: transform 0.2s ease, opacity 0.2s; position: relative; z-index: 1; }
 .step-item:hover .step-arrow { transform: translateX(5px); opacity: 0.8; }
 .step-item.is-done .step-arrow { opacity: 0.6; }
+
+/* ── STEP KEYWORDS ── */
+.step-keywords {
+    display: flex; flex-wrap: wrap; gap: 5px;
+    padding: 4px 14px 10px 14px;
+}
+.kw-tag {
+    font-family: 'JetBrains Mono', 'Pretendard', monospace;
+    font-size: 0.62rem; font-weight: 600; letter-spacing: 0.02em;
+    padding: 2px 9px; border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.45);
+    white-space: nowrap;
+}
+.p-mint   .kw-tag { background: rgba(0,245,196,0.07);  border-color: rgba(0,245,196,0.18);  color: rgba(0,245,196,0.6); }
+.p-blue   .kw-tag { background: rgba(10,132,255,0.07); border-color: rgba(10,132,255,0.18); color: rgba(90,200,250,0.6); }
+.p-violet .kw-tag { background: rgba(191,90,242,0.07); border-color: rgba(191,90,242,0.18); color: rgba(208,142,247,0.6); }
 
 /* ── COPYRIGHT FLOAT ── */
 .copy-btn {

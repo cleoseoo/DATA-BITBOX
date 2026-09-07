@@ -2,26 +2,39 @@
 const TOTAL=7;
 const STEP_COLORS={ 1:'#00f5c4',2:'#00f5c4', 3:'#0a84ff',4:'#0a84ff', 5:'#bf5af2',6:'#bf5af2',7:'#4361ee' };
 function getCompleted(){ try{ return JSON.parse(localStorage.getItem('completedSteps')||'[]'); }catch{ return []; } }
+// 🌟 [추가] 상단 PROGRESS 바(불 켜짐)는 "100점 만점"인 단원만 인정하기 위한 헬퍼
+function getStepScore(i){
+    const v = localStorage.getItem('score_step'+i);
+    if(v===null) return null;
+    const n = parseInt(v,10);
+    return isNaN(n) ? null : n;
+}
+function isFullScore(i){ return getStepScore(i) === 100; }
+
 function renderProgress(){
     const done=getCompleted();
     const segs=document.getElementById('progSegs');
     const cnt=document.getElementById('progCount');
     if(!segs || !cnt) return;
     segs.innerHTML='';
+    // 🌟 [수정] 상단 진행 바(세그먼트/카운트)는 100점(만점)인 단원만 불이 들어오게 계산
+    const fullDone=[];
     for(let i=1;i<=TOTAL;i++){
+        const full=isFullScore(i);
+        if(full) fullDone.push(i);
         const seg=document.createElement('div');
-        seg.className='prog-seg'+(done.includes(i)?' done':'');
+        seg.className='prog-seg'+(full?' done':'');
         const col=STEP_COLORS[i];
-        if(done.includes(i)){
+        if(full){
             seg.style.background=col; seg.style.boxShadow=`0 0 10px ${col}`; seg.style.color=col;
         }
         segs.appendChild(seg);
     }
-    cnt.textContent=`${done.length} / ${TOTAL}`;
+    cnt.textContent=`${fullDone.length} / ${TOTAL}`;
     // 카운터 색: 어두운 색 계열은 밝은 톤으로 가독성 확보
     const CNT_COLORS={ 3:'#7ec3ff', 4:'#7ec3ff', 7:'#b8c0ff' };
-    const maxDone=done.length>0?Math.max(...done):0;
-    cnt.style.color=done.length>0?(CNT_COLORS[maxDone]||STEP_COLORS[maxDone]):'rgba(255,255,255,0.3)';
+    const maxDone=fullDone.length>0?Math.max(...fullDone):0;
+    cnt.style.color=fullDone.length>0?(CNT_COLORS[maxDone]||STEP_COLORS[maxDone]):'rgba(255,255,255,0.3)';
     document.querySelectorAll('.step-item').forEach(el=>{
         const s=parseInt(el.dataset.step);
         // STEP 7 번호 칩: 어두운 네이비 대신 밝은 페리윙클로 가독성 확보
@@ -32,6 +45,7 @@ function renderProgress(){
                 num.style.borderColor='#b8c0ff';
             }
         }
+        // 🌟 STEP 옆 배지(✓ N점)는 기존처럼 "채점 시도 여부" 기준 — 점수와 무관하게 항상 현재 점수를 그대로 보여줌
         const isDone=done.includes(s);
         el.classList.toggle('is-done',isDone);
         // ✓ DONE 배지에 통과 점수 표시 (예: "✓ 100점")
@@ -97,14 +111,12 @@ function openInfoModal(){
         <div style="text-align:left;font-size:0.85rem;line-height:1.7;color:rgba(240,244,255,0.6);">
             <p style="margin-top:0;">본 <b style="color:var(--mint)">'데이터 비트박스'</b>는 교육 목적으로 제작된 프로그램입니다.</p>
             <div style="background:rgba(255,255,255,0.04);padding:14px;border-radius:10px;margin-bottom:10px;border:1px solid rgba(0,245,196,0.1);">
-                <strong style="color:var(--mint)">1. 자체 제작 (100% Coding Art)</strong><br>
-                모든 인터랙티브 시각 자료는 CSS·JS Canvas API로 코드 드로잉한 순수 창작물입니다.
-                일부는 Google(Gemini) &amp; Claude 생성형 시각자료입니다.
+                <strong style="color:var(--mint)">1. 자체 제작</strong><br>
+                모든 인터랙티브 시각 자료는 생성형 AI(Google Gemini, Anthropic Claude)를 활용하여 자체 제작하였습니다.
             </div>
             <div style="background:rgba(255,255,255,0.04);padding:14px;border-radius:10px;border:1px solid rgba(191,90,242,0.1);">
                 <strong style="color:var(--violet)">2. 오픈소스 (Open Source)</strong><br>
-                • UI 아이콘: Google Material Icons (Apache 2.0)<br>
-                • 웹 폰트: Noto Sans KR, Orbitron, JetBrains Mono (OFL)
+                • 웹 폰트: Noto Sans KR, Orbitron, JetBrains Mono, Pretendard, Inter (OFL)
             </div>
         </div>`,
         buttonsHTML:`<button class="mbtn primary" onclick="closeModal()">확인했습니다</button>`
