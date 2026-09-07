@@ -116,6 +116,15 @@
     }
     .fb-badge.done { background: #ecfdf5; color: var(--success-green); }
     .fb-badge.pending { background: #fff7ed; color: var(--gold-main); }
+    thead th.col-del { cursor: default; width: 44px; }
+    thead th.col-del:hover { color: var(--text-sub); }
+    td.col-del { text-align: center; }
+    .row-del-btn {
+        width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent;
+        color: var(--apple-gray); font-size: 0.95rem; cursor: pointer; transition: 0.15s;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .row-del-btn:hover { background: #fef2f2; color: var(--apple-red); }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
     .empty-state .icon { font-size: 2.4rem; margin-bottom: 10px; }
 
@@ -269,6 +278,7 @@
                             <th onclick="sortBy('score')">점수</th>
                             <th onclick="sortBy('timestamp')">제출 시각</th>
                             <th onclick="sortBy('feedback')">피드백</th>
+                            <th class="col-del"></th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -308,6 +318,22 @@
 
             <div class="detail-actions">
                 <button class="save-btn" id="saveFeedbackBtn" onclick="saveFeedback()">피드백 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 개별 기록 삭제 확인 모달 -->
+    <div class="modal-overlay" id="rowDeleteConfirmModal">
+        <div class="danger-card">
+            <div class="danger-icon">🗑</div>
+            <h3>이 기록을 삭제할까요?</h3>
+            <p>
+                <b id="rowDeleteLabel"></b> 학생의 이 제출 기록(배움노트·소감·선생님 피드백 포함)이 삭제됩니다.<br>
+                <b>되돌릴 수 없습니다.</b>
+            </p>
+            <div class="danger-actions">
+                <button class="danger-cancel-btn" onclick="closeRowDeleteConfirm()">취소</button>
+                <button class="danger-confirm-btn" id="rowDeleteConfirmBtn" onclick="confirmDeleteRow()">삭제</button>
             </div>
         </div>
     </div>
@@ -505,6 +531,10 @@
                     <td><span class="score-pill ${scoreClass}">${escapeHtml(r.score)}</span></td>
                     <td>${formatDate(r.timestamp)}</td>
                     <td>${fbBadge}</td>
+                    <td class="col-del">
+                        <button class="row-del-btn" title="이 기록 삭제"
+                            onclick='event.stopPropagation(); openRowDeleteConfirm(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)}, ${JSON.stringify(r.unitTitle || r.unitId || "")})'>🗑</button>
+                    </td>
                 </tr>`;
             }).join('');
         }
@@ -642,6 +672,56 @@
 
         document.getElementById('deleteConfirmModal').addEventListener('click', function (e) {
             if (e.target === this) closeDeleteConfirm();
+        });
+
+        // ── 개별 기록 삭제 ──────────────────────────────────
+        let rowToDelete = null; // { studentId, unitId }
+
+        function openRowDeleteConfirm(studentId, unitId, label) {
+            rowToDelete = { studentId, unitId };
+            document.getElementById('rowDeleteLabel').textContent = `${studentId} · ${label}`;
+            document.getElementById('rowDeleteConfirmBtn').disabled = false;
+            document.getElementById('rowDeleteConfirmBtn').innerHTML = '삭제';
+            document.getElementById('rowDeleteConfirmModal').style.display = 'flex';
+        }
+
+        function closeRowDeleteConfirm() {
+            document.getElementById('rowDeleteConfirmModal').style.display = 'none';
+            rowToDelete = null;
+        }
+
+        function confirmDeleteRow() {
+            if (!rowToDelete) return;
+            const btn = document.getElementById('rowDeleteConfirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin"></span> 삭제 중...';
+
+            const payload = { action: 'deleteRow', secret: ADMIN_SECRET, studentId: rowToDelete.studentId, unitId: rowToDelete.unitId };
+
+            fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok) throw new Error(data.error || '삭제 실패');
+                    allRows = allRows.filter(r => !(String(r.studentId) === String(rowToDelete.studentId) && String(r.unitId) === String(rowToDelete.unitId)));
+                    populateUnitFilter();
+                    renderStats();
+                    renderTable();
+                    closeRowDeleteConfirm();
+                    showToast('🗑 기록이 삭제되었습니다');
+                })
+                .catch(err => {
+                    showToast('삭제 실패: ' + err.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '삭제';
+                });
+        }
+
+        document.getElementById('rowDeleteConfirmModal').addEventListener('click', function (e) {
+            if (e.target === this) closeRowDeleteConfirm();
         });
     </script>
 </body>
