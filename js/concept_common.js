@@ -515,6 +515,53 @@ function submitToTeacher() {
     });
 }
 
+// "💬 선생님 피드백 확인" 버튼에서 호출 — 현재 단원에 대해 선생님이 남긴 피드백을 조회
+function checkTeacherFeedback() {
+    if (typeof SUBMIT_ENDPOINT === 'undefined' || !SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.indexOf('http') !== 0) {
+        showCustomAlert('안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.');
+        return;
+    }
+
+    ensureStudentId(function (studentId) {
+        const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
+
+        const btn = document.getElementById('checkFeedbackBtn');
+        const btnLabel = btn ? btn.querySelector('div') : null;
+        if (btn) btn.style.pointerEvents = 'none';
+        if (btnLabel) btnLabel.innerText = '확인 중...';
+
+        const url = SUBMIT_ENDPOINT
+            + '?action=feedback'
+            + '&secret=' + encodeURIComponent((typeof SUBMIT_SECRET !== 'undefined') ? SUBMIT_SECRET : '')
+            + '&studentId=' + encodeURIComponent(studentId)
+            + '&unitId=' + encodeURIComponent(unitId);
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (!data || !data.ok) {
+                    showCustomAlert('확인 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.');
+                    return;
+                }
+                if (data.feedback) {
+                    const dateLine = data.feedbackDate
+                        ? `<br><br><span style="font-size:0.78rem; color:#999;">(${data.feedbackDate} 작성)</span>`
+                        : '';
+                    showCustomAlert('💬 선생님 피드백', String(data.feedback).replace(/\n/g, '<br>') + dateLine);
+                } else {
+                    showCustomAlert('안내', '아직 선생님이 남긴 피드백이 없습니다.<br>제출 후 시간이 지나면 다시 확인해보세요.');
+                }
+            })
+            .catch(() => {
+                showCustomAlert('확인 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.');
+            })
+            .finally(() => {
+                if (btn) btn.style.pointerEvents = 'auto';
+                if (btnLabel) btnLabel.innerText = '💬 선생님 피드백 확인';
+            });
+    });
+}
+
 // ✅ 페이지 로드 시 저장된 데이터 복원
 window.onload = function() {
     try {

@@ -7,6 +7,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="./css/common.css">
+    <style>
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .dashboard-btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+            padding: 8px 18px; border-radius: 6px; background: transparent;
+            border: 1px solid rgba(99,102,241,0.4); color: rgba(129,140,248,0.9);
+            cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+            display: inline-flex; align-items: center;
+        }
+        .dashboard-btn:hover {
+            background: rgba(99,102,241,0.12); border-color: #6366f1; color: #a5b4fc;
+            box-shadow: 0 0 20px rgba(99,102,241,0.25);
+        }
+    </style>
 </head>
 <body>
 
@@ -22,7 +37,10 @@
                 <span class="badge-target">중학교 정보</span>
                 <h1 class="site-title">0과 1의 하모니 '데이터 <span>비트박스'</span></h1>
             </div>
-            <button class="reset-btn" onclick="openResetModal()">⟳ 전체 초기화</button>
+            <div class="header-actions">
+                <button class="reset-btn" onclick="openResetModal()">⟳ 전체 초기화</button>
+                <a class="dashboard-btn" href="teacher_dashboard.html">🗂 교사 대시보드</a>
+            </div>
         </div>
         <div class="progress-strip">
             <span class="prog-label">PROGRESS</span>
