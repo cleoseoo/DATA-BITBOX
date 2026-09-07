@@ -159,6 +159,35 @@
     .save-btn:hover { background: var(--teal-dark); }
     .save-btn:disabled { opacity: 0.6; cursor: default; }
 
+    /* ── 전체 삭제 확인 모달 ── */
+    .danger-card {
+        background: #fff; border-radius: 26px; width: 420px; max-width: 100%;
+        padding: 32px 30px; box-shadow: 0 25px 60px rgba(0,0,0,0.2); text-align: center;
+    }
+    .danger-card .danger-icon { font-size: 2.4rem; margin-bottom: 10px; }
+    .danger-card h3 { margin: 0 0 10px; font-size: 1.15rem; font-weight: 900; color: var(--apple-red); }
+    .danger-card p { color: var(--text-sub); font-size: 0.86rem; line-height: 1.7; margin: 0 0 18px; text-align: left; }
+    .danger-card p b { color: var(--text-main); }
+    .danger-card .confirm-word-box { text-align: left; margin-bottom: 18px; }
+    .danger-card .confirm-word-box label { display: block; font-size: 0.78rem; font-weight: 800; color: var(--text-sub); margin-bottom: 6px; }
+    #deleteConfirmInput {
+        width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid #e2e8f0;
+        font-size: 0.95rem; font-family: inherit; outline: none; text-align: center; letter-spacing: 1px;
+    }
+    #deleteConfirmInput:focus { border-color: var(--apple-red); box-shadow: 0 0 0 3px rgba(239,68,68,0.12); }
+    .danger-actions { display: flex; gap: 10px; }
+    .danger-cancel-btn {
+        flex: 1; padding: 13px; background: #f1f5f9; color: var(--text-main); border: none; border-radius: 14px;
+        font-weight: 800; font-size: 0.92rem; cursor: pointer;
+    }
+    .danger-cancel-btn:hover { background: #e2e8f0; }
+    .danger-confirm-btn {
+        flex: 1; padding: 13px; background: var(--apple-red); color: #fff; border: none; border-radius: 14px;
+        font-weight: 900; font-size: 0.92rem; cursor: pointer; box-shadow: 0 6px 15px rgba(239,68,68,0.3);
+    }
+    .danger-confirm-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+    .danger-confirm-btn:not(:disabled):hover { background: #dc2626; }
+
     #toast {
         position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
         background: #1d1d1f; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: 700;
@@ -182,6 +211,7 @@
         </div>
         <div class="header-right" id="headerActions" style="display:none;">
             <button class="hbtn" onclick="loadData(true)">🔄 새로고침</button>
+            <button class="hbtn danger" onclick="openDeleteConfirm()">🗑 전체 삭제</button>
             <button class="hbtn danger" onclick="logout()">🔒 연결 해제</button>
         </div>
     </header>
@@ -278,6 +308,26 @@
 
             <div class="detail-actions">
                 <button class="save-btn" id="saveFeedbackBtn" onclick="saveFeedback()">피드백 저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 전체 삭제 확인 모달 -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="danger-card">
+            <div class="danger-icon">⚠️</div>
+            <h3>전체 데이터 삭제</h3>
+            <p>
+                현재 저장된 <b id="deleteRowCount">0</b>건의 학생 제출/피드백 기록이 <b>모두</b> 삭제됩니다.<br>
+                이 작업은 <b>되돌릴 수 없습니다.</b> 계속하려면 아래 칸에 <b>전체삭제</b> 를 정확히 입력하세요.
+            </p>
+            <div class="confirm-word-box">
+                <label>확인을 위해 "전체삭제"를 입력하세요</label>
+                <input type="text" id="deleteConfirmInput" placeholder="전체삭제" autocomplete="off" oninput="checkDeleteConfirmInput()">
+            </div>
+            <div class="danger-actions">
+                <button class="danger-cancel-btn" onclick="closeDeleteConfirm()">취소</button>
+                <button class="danger-confirm-btn" id="deleteConfirmBtn" disabled onclick="confirmDeleteAll()">완전히 삭제</button>
             </div>
         </div>
     </div>
@@ -539,6 +589,59 @@
 
         document.getElementById('detailModal').addEventListener('click', function (e) {
             if (e.target === this) closeDetail();
+        });
+
+        // ── 전체 삭제 ──────────────────────────────────
+        const DELETE_CONFIRM_WORD = '전체삭제';
+
+        function openDeleteConfirm() {
+            document.getElementById('deleteRowCount').textContent = allRows.length;
+            document.getElementById('deleteConfirmInput').value = '';
+            document.getElementById('deleteConfirmBtn').disabled = true;
+            document.getElementById('deleteConfirmModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('deleteConfirmInput').focus(), 50);
+        }
+
+        function closeDeleteConfirm() {
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+        }
+
+        function checkDeleteConfirmInput() {
+            const val = document.getElementById('deleteConfirmInput').value.trim();
+            document.getElementById('deleteConfirmBtn').disabled = (val !== DELETE_CONFIRM_WORD);
+        }
+
+        function confirmDeleteAll() {
+            const btn = document.getElementById('deleteConfirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin"></span> 삭제 중...';
+
+            const payload = { action: 'clearAll', secret: ADMIN_SECRET };
+
+            fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok) throw new Error(data.error || '삭제 실패');
+                    allRows = [];
+                    populateUnitFilter();
+                    renderStats();
+                    renderTable();
+                    closeDeleteConfirm();
+                    showToast('🗑 전체 데이터가 삭제되었습니다');
+                })
+                .catch(err => showToast('삭제 실패: ' + err.message))
+                .finally(() => {
+                    btn.innerHTML = '완전히 삭제';
+                    // 다음에 열 때 다시 입력해야 하므로 disabled 상태는 openDeleteConfirm에서 재설정됨
+                });
+        }
+
+        document.getElementById('deleteConfirmModal').addEventListener('click', function (e) {
+            if (e.target === this) closeDeleteConfirm();
         });
     </script>
 </body>
