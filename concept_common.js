@@ -416,11 +416,12 @@ function ensureStudentId(callback) {
 
 // 저장된 학번이 있어도 항상 다시 확인시키고 싶을 때 사용 (피드백 확인처럼
 // 다른 사람의 정보가 노출될 수 있는, 같은 PC를 여럿이 쓰는 상황에 민감한 동작용)
-// 입력창에는 편의상 이전 학번을 미리 채워주지만, 그대로 두더라도 반드시
-// "확인" 버튼을 눌러야 다음 단계로 진행됩니다.
+// ⚠️ 입력창을 절대 미리 채우지 않습니다. 이전 값이 채워져 있으면 학생이
+// 그냥 확인/엔터만 눌러버려서 "본인 확인"이라는 목적 자체가 무력화되기 때문에,
+// 매번 5자리를 직접 입력해야만 다음 단계로 진행되도록 빈 칸으로 띄웁니다.
 function ensureStudentIdFresh(callback) {
     _studentIdCallback = callback;
-    openStudentIdModal(null, getSavedStudentId());
+    openStudentIdModal(null, null);
 }
 
 function openStudentIdModal(errorMsg, prefillValue) {
