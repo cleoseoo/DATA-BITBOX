@@ -406,6 +406,8 @@ function getSavedStudentId() {
 }
 
 // 저장된 학번이 있으면 바로 callback 실행, 없으면 입력창(모달)을 띄운 뒤 실행
+// (현재는 "제출"/"피드백 확인" 모두 매번 재확인하는 ensureStudentIdFresh를 쓰기 때문에
+//  이 함수는 실제로는 호출되지 않지만, 혹시 필요할 경우를 위해 남겨둡니다.)
 function ensureStudentId(callback) {
     const saved = getSavedStudentId();
     if (saved) { callback(saved); return; }
@@ -413,7 +415,17 @@ function ensureStudentId(callback) {
     openStudentIdModal();
 }
 
-function openStudentIdModal(errorMsg) {
+// 저장된 학번이 있어도 항상 다시 확인시키고 싶을 때 사용 (피드백 확인처럼
+// 다른 사람의 정보가 노출될 수 있는, 같은 PC를 여럿이 쓰는 상황에 민감한 동작용)
+// ⚠️ 입력창을 절대 미리 채우지 않습니다. 이전 값이 채워져 있으면 학생이
+// 그냥 확인/엔터만 눌러버려서 "본인 확인"이라는 목적 자체가 무력화되기 때문에,
+// 매번 5자리를 직접 입력해야만 다음 단계로 진행되도록 빈 칸으로 띄웁니다.
+function ensureStudentIdFresh(callback) {
+    _studentIdCallback = callback;
+    openStudentIdModal(null, null);
+}
+
+function openStudentIdModal(errorMsg, prefillValue) {
     const content = document.getElementById('modalContent');
     content.className = 'modal-content-small';
     content.innerHTML = `
@@ -421,9 +433,11 @@ function openStudentIdModal(errorMsg) {
         <h3 style="margin-bottom:10px; font-size:1.2rem; font-weight:900;">학번을 입력해주세요</h3>
         <p style="font-size:0.9rem; color:#555; line-height:1.7; margin-bottom:14px;">
             학년(1자리) + 반(2자리) + 번호(2자리) = 총 5자리<br>
-            예) 1학년 1반 1번 → <b>10101</b>
+            예) 1학년 1반 1번 → <b>10101</b><br>
+            <span style="color:#dc2626; font-weight:700;">※ 다른 친구가 쓰던 PC일 수 있으니, 본인 학번이 맞는지 꼭 확인하세요.</span>
         </p>
         <input id="studentIdInput" type="text" inputmode="numeric" maxlength="5" placeholder="예: 10101"
+            value="${prefillValue ? String(prefillValue).replace(/[^0-9]/g, '') : ''}"
             style="width:100%; padding:12px; font-size:1.15rem; text-align:center; letter-spacing:3px;
                    border:2px solid #cbd5e1; border-radius:10px; margin-bottom:8px; box-sizing:border-box;">
         ${errorMsg ? `<p style="color:#ef4444; font-size:0.85rem; margin-bottom:10px;">${errorMsg}</p>` : ''}
@@ -435,6 +449,7 @@ function openStudentIdModal(errorMsg) {
     const input = document.getElementById('studentIdInput');
     if (input) {
         input.focus();
+        if (prefillValue) input.select();
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') { e.preventDefault(); confirmStudentId(); }
         });
@@ -447,7 +462,7 @@ function confirmStudentId() {
 
     // 학번 형식 검사: 1~3(학년) + 4자리 = 총 5자리 숫자
     if (!/^[1-3][0-9]{4}$/.test(val)) {
-        openStudentIdModal('5자리 학번 형식이 올바르지 않습니다. (예: 10101)');
+        openStudentIdModal('5자리 학번 형식이 올바르지 않습니다. (예: 10101)', val);
         return;
     }
 
@@ -461,13 +476,16 @@ function confirmStudentId() {
 }
 
 // "📤 선생님께 제출" 버튼에서 호출
+// ⚠️ ensureStudentId가 아니라 ensureStudentIdFresh를 사용합니다.
+// 제출할 때마다 학번을 다시 확인해야, 옆 친구가 무심코 남의 이름으로
+// 제출해버리는 실수를 막을 수 있기 때문입니다.
 function submitToTeacher() {
     if (typeof SUBMIT_ENDPOINT === 'undefined' || !SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.indexOf('http') !== 0) {
         showCustomAlert('안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.');
         return;
     }
 
-    ensureStudentId(function (studentId) {
+    ensureStudentIdFresh(function (studentId) {
         const memo = document.getElementById('memoInput') ? document.getElementById('memoInput').value : '';
         const reflection = document.getElementById('reflectionInput') ? document.getElementById('reflectionInput').value : '';
         const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
@@ -522,7 +540,11 @@ function checkTeacherFeedback() {
         return;
     }
 
-    ensureStudentId(function (studentId) {
+    // ⚠️ ensureStudentId가 아니라 ensureStudentIdFresh를 사용합니다.
+    // 같은 PC를 여러 학생이 함께 쓰는 경우(컴퓨터실 등), 저장된 학번을 확인 없이
+    // 재사용하면 이전 학생의 피드백이 그대로 노출될 수 있기 때문에,
+    // 피드백 확인은 매번 학번을 다시 확인시킵니다.
+    ensureStudentIdFresh(function (studentId) {
         const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
 
         const btn = document.getElementById('checkFeedbackBtn');
