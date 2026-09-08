@@ -441,6 +441,11 @@ function ensureStudentIdFresh(callback, errorMsg, prefillId) {
 // PIN은 학생이 "처음 제출/확인할 때 스스로 정하는 번호"이고, 그 뒤로는 계속 같은 PIN을
 // 입력해야만 통과됩니다(서버 쪽 검증은 Code.gs에서 처리). 학번만 알아도 남의 이름으로
 // 제출/피드백 열람이 안 되도록 막아주는 두 번째 잠금장치입니다.
+// 🌟 [수정] PIN 칸을 type="password"로 만들었더니, 브라우저가 그걸 "로그인 폼(아이디+비밀번호)"으로
+// 착각해서 학번 칸에 저장된 다른 값(예: 주소창 자동완성 기록의 "https...")을 멋대로 채워 넣는
+// 문제가 있었습니다. 그래서 두 칸 모두 자동완성/자동수정을 전부 꺼서 브라우저가 손대지 못하게
+// 했고, PIN 칸은 type="text"로 바꾸되 화면에는 여전히 ●●●●처럼 가려져 보이도록
+// (-webkit-text-security) 스타일만 적용했습니다.
 function openStudentIdModal(errorMsg, prefillId) {
     const content = document.getElementById('modalContent');
     content.className = 'modal-content-small';
@@ -453,11 +458,16 @@ function openStudentIdModal(errorMsg, prefillId) {
             <span style="color:#dc2626; font-weight:700;">※ 다른 친구가 쓰던 PC일 수 있으니, 본인 학번·PIN이 맞는지 꼭 확인하세요.</span>
         </p>
         <input id="studentIdInput" type="text" inputmode="numeric" maxlength="5" placeholder="학번 (예: 10101)"
+            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            data-lpignore="true" data-1p-ignore="true"
             value="${prefillId ? String(prefillId).replace(/[^0-9]/g, '') : ''}"
             style="width:100%; padding:12px; font-size:1.15rem; text-align:center; letter-spacing:3px;
                    border:2px solid #cbd5e1; border-radius:10px; margin-bottom:8px; box-sizing:border-box;">
-        <input id="studentPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="PIN 4자리"
+        <input id="studentPinInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="PIN 4자리"
+            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            data-lpignore="true" data-1p-ignore="true"
             style="width:100%; padding:12px; font-size:1.15rem; text-align:center; letter-spacing:6px;
+                   -webkit-text-security: disc; text-security: disc;
                    border:2px solid #cbd5e1; border-radius:10px; margin-bottom:8px; box-sizing:border-box;">
         ${errorMsg ? `<p style="color:#ef4444; font-size:0.85rem; margin-bottom:10px;">${errorMsg}</p>` : ''}
         <div style="display:flex; gap:8px;">
