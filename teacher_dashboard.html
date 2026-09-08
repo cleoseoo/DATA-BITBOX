@@ -38,6 +38,7 @@
     }
     .hbtn:hover { transform: translateY(-1px); background: #f9f9f9; }
     .hbtn.danger { color: var(--apple-red); border-color: rgba(239,68,68,0.25); }
+    .hbtn.warn { color: var(--gold-main); border-color: rgba(217,119,6,0.3); }
 
     main { max-width: 1200px; margin: 0 auto; padding: 30px 24px 80px; }
 
@@ -93,7 +94,12 @@
         background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
         border: 1px solid rgba(0,0,0,0.04);
     }
-    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    /* 🌟 [수정] 표 너비를 필요한 만큼(700px)만 고정해서 학번~PIN초기화까지
+       모든 칸이 왼쪽으로 바짝 당겨지고, 오른쪽에 남는 공간은 비워두게 함.
+       화면이 좁아 700px보다 좁을 땐 .table-scroll이 가로 스크롤을 담당함.
+       각 칸의 실제 폭은 아래 <colgroup>에서 지정. */
+    .table-scroll { overflow-x: auto; }
+    table { width: 700px; table-layout: fixed; border-collapse: collapse; font-size: 0.86rem; }
     thead th {
         text-align: left; padding: 14px 16px; background: #f8fafc; color: var(--text-sub);
         font-weight: 800; font-size: 0.75rem; letter-spacing: 0.3px; border-bottom: 1px solid #eef2f6;
@@ -116,11 +122,15 @@
     }
     .fb-badge.done { background: #ecfdf5; color: var(--success-green); }
     .fb-badge.pending { background: #fff7ed; color: var(--gold-main); }
-    /* 🌟 [수정] 제출 시각 칸이 남는 공간을 다 차지하게 하고, 피드백/삭제/PIN 칸은
-       좁게 고정해서 오른쪽으로 몰리지 않고 서로 바짝 붙어 왼쪽으로 당겨져 보이게 함 */
-    thead th.col-feedback, td.col-feedback { width: 100px; }
-    thead th.col-del, td.col-del { width: 56px; text-align: center; }
-    thead th.col-pin, td.col-pin { width: 56px; text-align: center; }
+    /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸을 좁게 고정해서
+       서로 바짝 붙어 왼쪽으로 당겨져 보이게 함 (실제 폭은 <colgroup>에서 지정) */
+    td.col-time { padding-left: 10px; padding-right: 10px; font-size: 0.8rem; }
+    td.col-center, td.col-feedback { text-align: center; }
+    td.col-del, td.col-pin { text-align: center; padding-left: 6px; padding-right: 6px; }
+    thead th.col-center, thead th.col-feedback, thead th.col-del, thead th.col-pin {
+        text-align: center; white-space: normal; word-break: keep-all; line-height: 1.25;
+        padding-left: 8px; padding-right: 8px;
+    }
     thead th.col-del, thead th.col-pin { cursor: default; }
     thead th.col-del:hover, thead th.col-pin:hover { color: var(--text-sub); }
     .row-del-btn, .row-pin-btn {
@@ -232,6 +242,7 @@
         </div>
         <div class="header-right" id="headerActions" style="display:none;">
             <button class="hbtn" onclick="loadData(true)">🔄 새로고침</button>
+            <button class="hbtn warn" onclick="openPinResetAllConfirm()">🔑 전체 PIN 초기화</button>
             <button class="hbtn danger" onclick="openDeleteConfirm()">🗑 전체 삭제</button>
             <button class="hbtn danger" onclick="logout()">🔒 연결 해제</button>
         </div>
@@ -282,20 +293,31 @@
             </div>
 
             <div class="table-wrap">
+                <div class="table-scroll">
                 <table id="dataTable">
+                    <colgroup>
+                        <col style="width:90px;">
+                        <col style="width:156px;">
+                        <col style="width:60px;">
+                        <col style="width:150px;">
+                        <col style="width:96px;">
+                        <col style="width:72px;">
+                        <col style="width:76px;">
+                    </colgroup>
                     <thead>
                         <tr>
                             <th onclick="sortBy('studentId')">학번</th>
                             <th onclick="sortBy('unitTitle')">단원</th>
-                            <th onclick="sortBy('score')">점수</th>
-                            <th onclick="sortBy('timestamp')">제출 시각</th>
-                            <th class="col-feedback" onclick="sortBy('feedback')">피드백</th>
-                            <th class="col-del">삭제</th>
-                            <th class="col-pin">PIN</th>
+                            <th class="col-center" onclick="sortBy('score')">점수</th>
+                            <th class="col-time" onclick="sortBy('timestamp')">제출 시각</th>
+                            <th class="col-feedback" onclick="sortBy('feedback')">피드백 작성</th>
+                            <th class="col-del">데이터 삭제</th>
+                            <th class="col-pin">PIN 초기화</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
                 </table>
+                </div>
                 <div class="empty-state" id="emptyState" style="display:none;">
                     <div class="icon">📭</div>
                     아직 제출된 데이터가 없습니다.
@@ -348,6 +370,23 @@
             <div class="danger-actions">
                 <button class="danger-cancel-btn" onclick="closePinResetConfirm()">취소</button>
                 <button class="danger-confirm-btn pin-reset-confirm" id="pinResetConfirmBtn" onclick="confirmResetPin()">초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 전체 학생 PIN 초기화 확인 모달 -->
+    <div class="modal-overlay" id="pinResetAllConfirmModal">
+        <div class="danger-card">
+            <div class="danger-icon">🔑</div>
+            <h3 style="color: var(--gold-main);">전체 학생 PIN 초기화</h3>
+            <p>
+                등록된 <b>모든 학생</b>의 PIN이 초기화됩니다.<br>
+                각 학생은 다음 번에 제출하거나 피드백을 확인할 때 <b>새로 입력하는 PIN</b>이 그대로 등록됩니다.<br>
+                (제출된 학습 기록·피드백은 삭제되지 않습니다.)
+            </p>
+            <div class="danger-actions">
+                <button class="danger-cancel-btn" onclick="closePinResetAllConfirm()">취소</button>
+                <button class="danger-confirm-btn pin-reset-confirm" id="pinResetAllConfirmBtn" onclick="confirmResetAllPins()">전체 초기화</button>
             </div>
         </div>
     </div>
@@ -558,8 +597,8 @@
                 return `<tr onclick='openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
                     <td class="student-id">${escapeHtml(r.studentId)}</td>
                     <td>${escapeHtml(r.unitTitle || r.unitId || '')}</td>
-                    <td><span class="score-pill ${scoreClass}">${escapeHtml(r.score)}</span></td>
-                    <td>${formatDate(r.timestamp)}</td>
+                    <td class="col-center"><span class="score-pill ${scoreClass}">${escapeHtml(r.score)}</span></td>
+                    <td class="col-time">${formatDate(r.timestamp)}</td>
                     <td class="col-feedback">${fbBadge}</td>
                     <td class="col-del">
                         <button class="row-del-btn" title="이 기록 삭제"
@@ -704,6 +743,46 @@
 
         document.getElementById('pinResetConfirmModal').addEventListener('click', function (e) {
             if (e.target === this) closePinResetConfirm();
+        });
+
+        // ── 전체 학생 PIN 초기화 ──────────────────────────────────
+        function openPinResetAllConfirm() {
+            document.getElementById('pinResetAllConfirmBtn').disabled = false;
+            document.getElementById('pinResetAllConfirmBtn').innerHTML = '전체 초기화';
+            document.getElementById('pinResetAllConfirmModal').style.display = 'flex';
+        }
+
+        function closePinResetAllConfirm() {
+            document.getElementById('pinResetAllConfirmModal').style.display = 'none';
+        }
+
+        function confirmResetAllPins() {
+            const btn = document.getElementById('pinResetAllConfirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin"></span> 초기화 중...';
+
+            const payload = { action: 'resetAllPins', secret: ADMIN_SECRET };
+
+            fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok) throw new Error(data.error || '초기화 실패');
+                    closePinResetAllConfirm();
+                    showToast('🔑 전체 학생의 PIN이 초기화되었습니다');
+                })
+                .catch(err => showToast('초기화 실패: ' + err.message))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '전체 초기화';
+                });
+        }
+
+        document.getElementById('pinResetAllConfirmModal').addEventListener('click', function (e) {
+            if (e.target === this) closePinResetAllConfirm();
         });
 
         // ── 전체 삭제 ──────────────────────────────────
