@@ -162,11 +162,17 @@
     .fb-meta { font-size: 0.72rem; color: var(--apple-gray); margin-top: 6px; }
     .detail-actions { display: flex; gap: 10px; margin-top: 22px; }
     .save-btn {
-        flex: 1; padding: 13px; background: var(--teal-main); color: #fff; border: none; border-radius: 14px;
+        flex: 2; padding: 13px; background: var(--teal-main); color: #fff; border: none; border-radius: 14px;
         font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 6px 15px rgba(15,118,110,0.3);
     }
     .save-btn:hover { background: var(--teal-dark); }
     .save-btn:disabled { opacity: 0.6; cursor: default; }
+    /* 🌟 [추가] 학생이 PIN을 잊어버렸을 때 초기화하는 버튼 (상세보기 모달 하단) */
+    .pin-reset-btn {
+        flex: 1; padding: 13px; background: #fff; color: var(--gold-main); border: 2px solid rgba(217,119,6,0.3);
+        border-radius: 14px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s;
+    }
+    .pin-reset-btn:hover { background: #fffbeb; }
 
     /* ── 전체 삭제 확인 모달 ── */
     .danger-card {
@@ -196,6 +202,9 @@
     }
     .danger-confirm-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
     .danger-confirm-btn:not(:disabled):hover { background: #dc2626; }
+    /* 🌟 [추가] PIN 초기화는 "데이터 삭제"보다는 약한 조치라서 빨간색 대신 골드 톤으로 구분 */
+    .danger-confirm-btn.pin-reset-confirm { background: var(--gold-main); box-shadow: 0 6px 15px rgba(217,119,6,0.3); }
+    .danger-confirm-btn.pin-reset-confirm:not(:disabled):hover { background: #b45309; }
 
     #toast {
         position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
@@ -318,6 +327,24 @@
 
             <div class="detail-actions">
                 <button class="save-btn" id="saveFeedbackBtn" onclick="saveFeedback()">피드백 저장</button>
+                <button class="pin-reset-btn" onclick="openPinResetConfirm()">🔑 PIN 초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN 초기화 확인 모달 -->
+    <div class="modal-overlay" id="pinResetConfirmModal">
+        <div class="danger-card">
+            <div class="danger-icon">🔑</div>
+            <h3 style="color: var(--gold-main);">PIN 초기화</h3>
+            <p>
+                <b id="pinResetLabel"></b> 학생의 등록된 PIN을 초기화합니다.<br>
+                이 학생이 다음 번에 제출하거나 피드백을 확인할 때 <b>새로 입력하는 PIN</b>이 그대로 등록됩니다.<br>
+                (제출된 학습 기록·피드백은 삭제되지 않습니다.)
+            </p>
+            <div class="danger-actions">
+                <button class="danger-cancel-btn" onclick="closePinResetConfirm()">취소</button>
+                <button class="danger-confirm-btn pin-reset-confirm" id="pinResetConfirmBtn" onclick="confirmResetPin()">초기화</button>
             </div>
         </div>
     </div>
@@ -619,6 +646,51 @@
 
         document.getElementById('detailModal').addEventListener('click', function (e) {
             if (e.target === this) closeDetail();
+        });
+
+        // ── PIN 초기화 (학생이 PIN을 잊어버렸을 때) ──────────────────────────────────
+        // 🌟 [추가] PIN은 학번 단위로 저장되므로(단원별이 아님) currentDetail.studentId만 사용합니다.
+        function openPinResetConfirm() {
+            if (!currentDetail) return;
+            document.getElementById('pinResetLabel').textContent = currentDetail.studentId;
+            document.getElementById('pinResetConfirmBtn').disabled = false;
+            document.getElementById('pinResetConfirmBtn').innerHTML = '초기화';
+            document.getElementById('pinResetConfirmModal').style.display = 'flex';
+        }
+
+        function closePinResetConfirm() {
+            document.getElementById('pinResetConfirmModal').style.display = 'none';
+        }
+
+        function confirmResetPin() {
+            if (!currentDetail) return;
+            const studentId = currentDetail.studentId;
+            const btn = document.getElementById('pinResetConfirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spin"></span> 초기화 중...';
+
+            const payload = { action: 'resetPin', secret: ADMIN_SECRET, studentId: studentId };
+
+            fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok) throw new Error(data.error === 'NOT_FOUND' ? '등록된 PIN이 없습니다.' : (data.error || '초기화 실패'));
+                    showToast(`🔑 ${studentId} 학생의 PIN이 초기화되었습니다`);
+                    closePinResetConfirm();
+                })
+                .catch(err => showToast('초기화 실패: ' + err.message))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '초기화';
+                });
+        }
+
+        document.getElementById('pinResetConfirmModal').addEventListener('click', function (e) {
+            if (e.target === this) closePinResetConfirm();
         });
 
         // ── 전체 삭제 ──────────────────────────────────
