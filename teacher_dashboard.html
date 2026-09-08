@@ -87,6 +87,7 @@
         font-family: inherit; outline: none; background: #fff;
     }
     .toolbar input:focus, .toolbar select:focus { border-color: var(--teal-main); }
+    #classFilterInput { width: 130px; flex: 0 0 auto; }
     #searchInput { flex: 1; min-width: 160px; }
     .toolbar .spacer { flex: 1; }
 
@@ -94,12 +95,11 @@
         background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
         border: 1px solid rgba(0,0,0,0.04);
     }
-    /* 🌟 [수정] 표 너비를 필요한 만큼(700px)만 고정해서 학번~PIN초기화까지
-       모든 칸이 왼쪽으로 바짝 당겨지고, 오른쪽에 남는 공간은 비워두게 함.
-       화면이 좁아 700px보다 좁을 땐 .table-scroll이 가로 스크롤을 담당함.
-       각 칸의 실제 폭은 아래 <colgroup>에서 지정. */
+    /* 🌟 [수정] 표가 위쪽 통계 카드(평균 점수 박스 등)와 같은 폭으로 꽉 차도록 100%로
+       채우고, 각 칸은 <colgroup>에서 비율(%)로 폭을 나눠 적절한 간격을 갖게 함.
+       화면이 아주 좁을 때만 .table-scroll이 가로 스크롤을 담당함. */
     .table-scroll { overflow-x: auto; }
-    table { width: 700px; table-layout: fixed; border-collapse: collapse; font-size: 0.86rem; }
+    table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 0.86rem; }
     thead th {
         text-align: left; padding: 14px 16px; background: #f8fafc; color: var(--text-sub);
         font-weight: 800; font-size: 0.75rem; letter-spacing: 0.3px; border-bottom: 1px solid #eef2f6;
@@ -122,14 +122,11 @@
     }
     .fb-badge.done { background: #ecfdf5; color: var(--success-green); }
     .fb-badge.pending { background: #fff7ed; color: var(--gold-main); }
-    /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸을 좁게 고정해서
-       서로 바짝 붙어 왼쪽으로 당겨져 보이게 함 (실제 폭은 <colgroup>에서 지정) */
-    td.col-time { padding-left: 10px; padding-right: 10px; font-size: 0.8rem; }
-    td.col-center, td.col-feedback { text-align: center; }
-    td.col-del, td.col-pin { text-align: center; padding-left: 6px; padding-right: 6px; }
-    thead th.col-center, thead th.col-feedback, thead th.col-del, thead th.col-pin {
+    /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸은 가운데 정렬해서
+       보기 좋게 정리 (실제 폭 비율은 <colgroup>에서 지정) */
+    td.col-center, td.col-time, td.col-feedback, td.col-del, td.col-pin { text-align: center; }
+    thead th.col-center, thead th.col-time, thead th.col-feedback, thead th.col-del, thead th.col-pin {
         text-align: center; white-space: normal; word-break: keep-all; line-height: 1.25;
-        padding-left: 8px; padding-right: 8px;
     }
     thead th.col-del, thead th.col-pin { cursor: default; }
     thead th.col-del:hover, thead th.col-pin:hover { color: var(--text-sub); }
@@ -254,7 +251,7 @@
             <div class="setup-card">
                 <div class="setup-icon">🗂️</div>
                 <h2>교사 대시보드 연결</h2>
-                <p>본인이 배포한 웹 앱 주소와 관리자 비밀값(ADMIN_SECRET)을 입력하세요.<br>이 브라우저에만 저장되며, 어떤 파일에도 기록되지 않습니다.</p>
+                <p>본인이 배포한 웹 앱 주소와 관리자 비밀값(ADMIN_SECRET)을 입력하세요.<br>이 브라우저에만 저장되며, <br>어떤 파일에도 기록되지 않습니다.</p>
 
                 <div class="field">
                     <label>Apps Script 웹 앱 URL</label>
@@ -282,6 +279,7 @@
             </div>
 
             <div class="toolbar">
+                <input type="text" id="classFilterInput" placeholder="🏫 반 검색 (예: 3)" oninput="renderTable()">
                 <input type="text" id="searchInput" placeholder="🔍 학번으로 검색 (예: 10101)" oninput="renderTable()">
                 <select id="unitFilter" onchange="renderTable()"><option value="">전체 단원</option></select>
                 <select id="fbFilter" onchange="renderTable()">
@@ -296,13 +294,13 @@
                 <div class="table-scroll">
                 <table id="dataTable">
                     <colgroup>
-                        <col style="width:90px;">
-                        <col style="width:156px;">
-                        <col style="width:60px;">
-                        <col style="width:150px;">
-                        <col style="width:96px;">
-                        <col style="width:72px;">
-                        <col style="width:76px;">
+                        <col style="width:10%;">
+                        <col style="width:26%;">
+                        <col style="width:8%;">
+                        <col style="width:15%;">
+                        <col style="width:15%;">
+                        <col style="width:13%;">
+                        <col style="width:13%;">
                     </colgroup>
                     <thead>
                         <tr>
@@ -550,11 +548,13 @@
         }
 
         function getFiltered() {
+            const classQ = document.getElementById('classFilterInput').value.trim();
             const q = document.getElementById('searchInput').value.trim();
             const unit = document.getElementById('unitFilter').value;
             const fb = document.getElementById('fbFilter').value;
 
             return allRows.filter(r => {
+                if (classQ && String(r.className || '').indexOf(classQ) === -1) return false;
                 if (q && String(r.studentId).indexOf(q) === -1) return false;
                 if (unit && r.unitTitle !== unit) return false;
                 if (fb === 'pending' && r.feedback) return false;
