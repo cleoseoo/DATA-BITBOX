@@ -116,15 +116,24 @@
     }
     .fb-badge.done { background: #ecfdf5; color: var(--success-green); }
     .fb-badge.pending { background: #fff7ed; color: var(--gold-main); }
-    thead th.col-del { cursor: default; width: 44px; }
-    thead th.col-del:hover { color: var(--text-sub); }
-    td.col-del { text-align: center; }
-    .row-del-btn {
+    /* 🌟 [수정] 제출 시각 칸이 남는 공간을 다 차지하게 하고, 피드백/삭제/PIN 칸은
+       좁게 고정해서 오른쪽으로 몰리지 않고 서로 바짝 붙어 왼쪽으로 당겨져 보이게 함 */
+    thead th.col-feedback, td.col-feedback { width: 100px; }
+    thead th.col-del, td.col-del { width: 56px; text-align: center; }
+    thead th.col-pin, td.col-pin { width: 56px; text-align: center; }
+    thead th.col-del, thead th.col-pin { cursor: default; }
+    thead th.col-del:hover, thead th.col-pin:hover { color: var(--text-sub); }
+    .row-del-btn, .row-pin-btn {
         width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent;
-        color: var(--apple-gray); font-size: 0.95rem; cursor: pointer; transition: 0.15s;
+        font-size: 0.95rem; cursor: pointer; transition: 0.15s;
         display: inline-flex; align-items: center; justify-content: center;
     }
+    .row-del-btn {
+        color: var(--apple-gray);
+    }
     .row-del-btn:hover { background: #fef2f2; color: var(--apple-red); }
+    .row-pin-btn { color: var(--apple-gray); }
+    .row-pin-btn:hover { background: #fffbeb; color: var(--gold-main); }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
     .empty-state .icon { font-size: 2.4rem; margin-bottom: 10px; }
 
@@ -162,17 +171,11 @@
     .fb-meta { font-size: 0.72rem; color: var(--apple-gray); margin-top: 6px; }
     .detail-actions { display: flex; gap: 10px; margin-top: 22px; }
     .save-btn {
-        flex: 2; padding: 13px; background: var(--teal-main); color: #fff; border: none; border-radius: 14px;
+        flex: 1; padding: 13px; background: var(--teal-main); color: #fff; border: none; border-radius: 14px;
         font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 6px 15px rgba(15,118,110,0.3);
     }
     .save-btn:hover { background: var(--teal-dark); }
     .save-btn:disabled { opacity: 0.6; cursor: default; }
-    /* 🌟 [추가] 학생이 PIN을 잊어버렸을 때 초기화하는 버튼 (상세보기 모달 하단) */
-    .pin-reset-btn {
-        flex: 1; padding: 13px; background: #fff; color: var(--gold-main); border: 2px solid rgba(217,119,6,0.3);
-        border-radius: 14px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s;
-    }
-    .pin-reset-btn:hover { background: #fffbeb; }
 
     /* ── 전체 삭제 확인 모달 ── */
     .danger-card {
@@ -286,8 +289,9 @@
                             <th onclick="sortBy('unitTitle')">단원</th>
                             <th onclick="sortBy('score')">점수</th>
                             <th onclick="sortBy('timestamp')">제출 시각</th>
-                            <th onclick="sortBy('feedback')">피드백</th>
-                            <th class="col-del"></th>
+                            <th class="col-feedback" onclick="sortBy('feedback')">피드백</th>
+                            <th class="col-del">삭제</th>
+                            <th class="col-pin">PIN</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -327,7 +331,6 @@
 
             <div class="detail-actions">
                 <button class="save-btn" id="saveFeedbackBtn" onclick="saveFeedback()">피드백 저장</button>
-                <button class="pin-reset-btn" onclick="openPinResetConfirm()">🔑 PIN 초기화</button>
             </div>
         </div>
     </div>
@@ -557,10 +560,14 @@
                     <td>${escapeHtml(r.unitTitle || r.unitId || '')}</td>
                     <td><span class="score-pill ${scoreClass}">${escapeHtml(r.score)}</span></td>
                     <td>${formatDate(r.timestamp)}</td>
-                    <td>${fbBadge}</td>
+                    <td class="col-feedback">${fbBadge}</td>
                     <td class="col-del">
                         <button class="row-del-btn" title="이 기록 삭제"
                             onclick='event.stopPropagation(); openRowDeleteConfirm(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)}, ${JSON.stringify(r.unitTitle || r.unitId || "")})'>🗑</button>
+                    </td>
+                    <td class="col-pin">
+                        <button class="row-pin-btn" title="이 학생 PIN 초기화"
+                            onclick='event.stopPropagation(); openPinResetConfirm(${JSON.stringify(r.studentId)})'>🔑</button>
                     </td>
                 </tr>`;
             }).join('');
@@ -649,10 +656,15 @@
         });
 
         // ── PIN 초기화 (학생이 PIN을 잊어버렸을 때) ──────────────────────────────────
-        // 🌟 [추가] PIN은 학번 단위로 저장되므로(단원별이 아님) currentDetail.studentId만 사용합니다.
-        function openPinResetConfirm() {
-            if (!currentDetail) return;
-            document.getElementById('pinResetLabel').textContent = currentDetail.studentId;
+        // 🌟 [수정] 상세보기 모달을 열지 않아도 표에서 바로 누를 수 있도록, 행의 🔑 버튼이
+        // studentId를 직접 넘겨줍니다. PIN은 학번 단위로 저장되므로(단원별이 아님) 그 학생의
+        // 어떤 단원 행에서 눌러도 같은 PIN 등록이 초기화됩니다.
+        let pinResetTarget = null; // studentId
+
+        function openPinResetConfirm(studentId) {
+            if (!studentId) return;
+            pinResetTarget = studentId;
+            document.getElementById('pinResetLabel').textContent = studentId;
             document.getElementById('pinResetConfirmBtn').disabled = false;
             document.getElementById('pinResetConfirmBtn').innerHTML = '초기화';
             document.getElementById('pinResetConfirmModal').style.display = 'flex';
@@ -660,11 +672,12 @@
 
         function closePinResetConfirm() {
             document.getElementById('pinResetConfirmModal').style.display = 'none';
+            pinResetTarget = null;
         }
 
         function confirmResetPin() {
-            if (!currentDetail) return;
-            const studentId = currentDetail.studentId;
+            if (!pinResetTarget) return;
+            const studentId = pinResetTarget;
             const btn = document.getElementById('pinResetConfirmBtn');
             btn.disabled = true;
             btn.innerHTML = '<span class="spin"></span> 초기화 중...';
