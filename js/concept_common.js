@@ -430,25 +430,34 @@ function ensureStudentId(callback) {
 // ⚠️ 입력창을 절대 미리 채우지 않습니다. 이전 값이 채워져 있으면 학생이
 // 그냥 확인/엔터만 눌러버려서 "본인 확인"이라는 목적 자체가 무력화되기 때문에,
 // 매번 5자리를 직접 입력해야만 다음 단계로 진행되도록 빈 칸으로 띄웁니다.
-function ensureStudentIdFresh(callback) {
+// 🌟 [추가] errorMsg/prefillId: 서버에서 PIN이 틀렸다는 응답을 받았을 때, 같은 학번은
+// 채워둔 채로 안내 문구와 함께 다시 입력창을 띄우기 위한 용도입니다(정상 흐름에서는 안 씀).
+function ensureStudentIdFresh(callback, errorMsg, prefillId) {
     _studentIdCallback = callback;
-    openStudentIdModal(null, null);
+    openStudentIdModal(errorMsg || null, prefillId || null);
 }
 
-function openStudentIdModal(errorMsg, prefillValue) {
+// 🌟 [추가] callback(studentId, pin) — 학번과 함께 개인 PIN(4자리)도 같이 확인합니다.
+// PIN은 학생이 "처음 제출/확인할 때 스스로 정하는 번호"이고, 그 뒤로는 계속 같은 PIN을
+// 입력해야만 통과됩니다(서버 쪽 검증은 Code.gs에서 처리). 학번만 알아도 남의 이름으로
+// 제출/피드백 열람이 안 되도록 막아주는 두 번째 잠금장치입니다.
+function openStudentIdModal(errorMsg, prefillId) {
     const content = document.getElementById('modalContent');
     content.className = 'modal-content-small';
     content.innerHTML = `
         <div style="font-size:2.2rem; margin-bottom:10px;">🙋</div>
-        <h3 style="margin-bottom:10px; font-size:1.2rem; font-weight:900;">학번을 입력해주세요</h3>
+        <h3 style="margin-bottom:10px; font-size:1.2rem; font-weight:900;">학번과 PIN을 입력해주세요</h3>
         <p style="font-size:0.9rem; color:#555; line-height:1.7; margin-bottom:14px;">
-            학년(1자리) + 반(2자리) + 번호(2자리) = 총 5자리<br>
-            예) 1학년 1반 1번 → <b>10101</b><br>
-            <span style="color:#dc2626; font-weight:700;">※ 다른 친구가 쓰던 PC일 수 있으니, 본인 학번이 맞는지 꼭 확인하세요.</span>
+            학번: 학년(1자리)+반(2자리)+번호(2자리) = 총 5자리 (예: 1학년 1반 1번 → <b>10101</b>)<br>
+            PIN: 나만 아는 숫자 4자리 <span style="color:#0f766e; font-weight:700;">(처음 입력하는 값이 앞으로 계속 쓰이는 내 PIN이 됩니다)</span><br>
+            <span style="color:#dc2626; font-weight:700;">※ 다른 친구가 쓰던 PC일 수 있으니, 본인 학번·PIN이 맞는지 꼭 확인하세요.</span>
         </p>
-        <input id="studentIdInput" type="text" inputmode="numeric" maxlength="5" placeholder="예: 10101"
-            value="${prefillValue ? String(prefillValue).replace(/[^0-9]/g, '') : ''}"
+        <input id="studentIdInput" type="text" inputmode="numeric" maxlength="5" placeholder="학번 (예: 10101)"
+            value="${prefillId ? String(prefillId).replace(/[^0-9]/g, '') : ''}"
             style="width:100%; padding:12px; font-size:1.15rem; text-align:center; letter-spacing:3px;
+                   border:2px solid #cbd5e1; border-radius:10px; margin-bottom:8px; box-sizing:border-box;">
+        <input id="studentPinInput" type="password" inputmode="numeric" maxlength="4" placeholder="PIN 4자리"
+            style="width:100%; padding:12px; font-size:1.15rem; text-align:center; letter-spacing:6px;
                    border:2px solid #cbd5e1; border-radius:10px; margin-bottom:8px; box-sizing:border-box;">
         ${errorMsg ? `<p style="color:#ef4444; font-size:0.85rem; margin-bottom:10px;">${errorMsg}</p>` : ''}
         <div style="display:flex; gap:8px;">
@@ -460,17 +469,19 @@ function openStudentIdModal(errorMsg, prefillValue) {
     `;
     document.getElementById('modalOverlay').style.display = 'flex';
 
-    const input = document.getElementById('studentIdInput');
-    if (input) {
-        input.focus();
-        if (prefillValue) input.select();
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') { e.preventDefault(); confirmStudentId(); }
-        });
+    const idInput = document.getElementById('studentIdInput');
+    const pinInput = document.getElementById('studentPinInput');
+    const enterHandler = function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); confirmStudentId(); }
+    };
+    if (idInput) {
+        if (prefillId) { pinInput && pinInput.focus(); } else { idInput.focus(); }
+        idInput.addEventListener('keydown', enterHandler);
     }
+    if (pinInput) pinInput.addEventListener('keydown', enterHandler);
 }
 
-// 🌟 [추가] "제출"/"피드백 확인" 버튼을 눌렀다가 마음이 바뀌었을 때 학번 입력창을 취소합니다.
+// 🌟 [추가] "제출"/"피드백 확인" 버튼을 눌렀다가 마음이 바뀌었을 때 학번·PIN 입력창을 취소합니다.
 // 입력값은 저장하지 않고, 원래 하려던 동작(제출/피드백 확인)도 실행되지 않습니다.
 function cancelStudentIdModal() {
     _studentIdCallback = null;
@@ -478,12 +489,19 @@ function cancelStudentIdModal() {
 }
 
 function confirmStudentId() {
-    const input = document.getElementById('studentIdInput');
-    const val = input ? input.value.trim() : '';
+    const idInput = document.getElementById('studentIdInput');
+    const pinInput = document.getElementById('studentPinInput');
+    const val = idInput ? idInput.value.trim() : '';
+    const pin = pinInput ? pinInput.value.trim() : '';
 
     // 학번 형식 검사: 1~3(학년) + 4자리 = 총 5자리 숫자
     if (!/^[1-3][0-9]{4}$/.test(val)) {
         openStudentIdModal('5자리 학번 형식이 올바르지 않습니다. (예: 10101)', val);
+        return;
+    }
+    // PIN 형식 검사: 숫자 4자리
+    if (!/^[0-9]{4}$/.test(pin)) {
+        openStudentIdModal('PIN은 숫자 4자리로 입력해주세요.', val);
         return;
     }
 
@@ -492,7 +510,7 @@ function confirmStudentId() {
     if (_studentIdCallback) {
         const cb = _studentIdCallback;
         _studentIdCallback = null;
-        cb(val);
+        cb(val, pin);
     }
 }
 
@@ -500,58 +518,70 @@ function confirmStudentId() {
 // ⚠️ ensureStudentId가 아니라 ensureStudentIdFresh를 사용합니다.
 // 제출할 때마다 학번을 다시 확인해야, 옆 친구가 무심코 남의 이름으로
 // 제출해버리는 실수를 막을 수 있기 때문입니다.
+// 🌟 [추가] 학번뿐 아니라 PIN(4자리)도 서버(Code.gs)에서 함께 검증합니다.
+// PIN이 기존에 등록된 값과 다르면(PIN_MISMATCH), 입력창을 다시 띄워 재입력을 받습니다
+// (attempt 함수로 재귀적으로 재시도).
 function submitToTeacher() {
     if (typeof SUBMIT_ENDPOINT === 'undefined' || !SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.indexOf('http') !== 0) {
         showCustomAlert('ℹ️ 안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.', 'ℹ️');
         return;
     }
 
-    ensureStudentIdFresh(function (studentId) {
-        const memo = document.getElementById('memoInput') ? document.getElementById('memoInput').value : '';
-        const reflection = document.getElementById('reflectionInput') ? document.getElementById('reflectionInput').value : '';
-        const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
-        const unitTitle = typeof STEP_TITLE !== 'undefined' ? STEP_TITLE : '';
+    function attempt(errorMsg, prefillId) {
+        ensureStudentIdFresh(function (studentId, pin) {
+            const memo = document.getElementById('memoInput') ? document.getElementById('memoInput').value : '';
+            const reflection = document.getElementById('reflectionInput') ? document.getElementById('reflectionInput').value : '';
+            const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
+            const unitTitle = typeof STEP_TITLE !== 'undefined' ? STEP_TITLE : '';
 
-        const payload = {
-            action: 'submit',
-            secret: (typeof SUBMIT_SECRET !== 'undefined') ? SUBMIT_SECRET : '',
-            studentId: studentId,
-            unitId: unitId,
-            unitTitle: unitTitle,
-            score: score,                    // concept_common.js 상단에 이미 선언된 전역 변수
-            elapsedSeconds: elapsedSeconds,   // 〃
-            memo: memo,
-            reflection: reflection
-        };
+            const payload = {
+                action: 'submit',
+                secret: (typeof SUBMIT_SECRET !== 'undefined') ? SUBMIT_SECRET : '',
+                studentId: studentId,
+                pin: pin,
+                unitId: unitId,
+                unitTitle: unitTitle,
+                score: score,                    // concept_common.js 상단에 이미 선언된 전역 변수
+                elapsedSeconds: elapsedSeconds,   // 〃
+                memo: memo,
+                reflection: reflection
+            };
 
-        const btn = document.getElementById('submitTeacherBtn');
-        const btnLabel = btn ? btn.querySelector('div') : null;
-        if (btn) btn.style.pointerEvents = 'none';
-        if (btnLabel) btnLabel.innerText = '제출 중...';
+            const btn = document.getElementById('submitTeacherBtn');
+            const btnLabel = btn ? btn.querySelector('div') : null;
+            if (btn) btn.style.pointerEvents = 'none';
+            if (btnLabel) btnLabel.innerText = '제출 중...';
 
-        fetch(SUBMIT_ENDPOINT, {
-            method: 'POST',
-            // text/plain 으로 보내야 브라우저가 사전 확인 요청(preflight)을 보내지 않아
-            // Google Apps Script와 CORS 문제 없이 통신됩니다.
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.ok) {
-                    showCustomAlert('✅ 제출 완료', '선생님께 성공적으로 제출되었습니다.', '✅');
-                } else {
-                    showCustomAlert('⚠️ 제출 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.', '⚠️');
-                }
+            fetch(SUBMIT_ENDPOINT, {
+                method: 'POST',
+                // text/plain 으로 보내야 브라우저가 사전 확인 요청(preflight)을 보내지 않아
+                // Google Apps Script와 CORS 문제 없이 통신됩니다.
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
             })
-            .catch(() => {
-                showCustomAlert('⚠️ 제출 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.', '⚠️');
-            })
-            .finally(() => {
-                if (btn) btn.style.pointerEvents = 'auto';
-                if (btnLabel) btnLabel.innerText = '📤 선생님께 제출';
-            });
-    });
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.ok) {
+                        showCustomAlert('✅ 제출 완료', '선생님께 성공적으로 제출되었습니다.', '✅');
+                    } else if (data && data.error === 'PIN_MISMATCH') {
+                        attempt('PIN이 이전에 등록한 값과 다릅니다.<br>본인의 PIN 4자리를 다시 확인해주세요.', studentId);
+                    } else if (data && data.error === 'INVALID_PIN') {
+                        attempt('PIN은 숫자 4자리로 입력해주세요.', studentId);
+                    } else {
+                        showCustomAlert('⚠️ 제출 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.', '⚠️');
+                    }
+                })
+                .catch(() => {
+                    showCustomAlert('⚠️ 제출 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.', '⚠️');
+                })
+                .finally(() => {
+                    if (btn) btn.style.pointerEvents = 'auto';
+                    if (btnLabel) btnLabel.innerText = '📤 선생님께 제출';
+                });
+        }, errorMsg, prefillId);
+    }
+
+    attempt(null, null);
 }
 
 // "💬 선생님 피드백 확인" 버튼에서 호출 — 현재 단원에 대해 선생님이 남긴 피드백을 조회
@@ -565,44 +595,58 @@ function checkTeacherFeedback() {
     // 같은 PC를 여러 학생이 함께 쓰는 경우(컴퓨터실 등), 저장된 학번을 확인 없이
     // 재사용하면 이전 학생의 피드백이 그대로 노출될 수 있기 때문에,
     // 피드백 확인은 매번 학번을 다시 확인시킵니다.
-    ensureStudentIdFresh(function (studentId) {
-        const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
+    // 🌟 [추가] PIN도 함께 확인해서, 학번만 알아도 남의 피드백을 열어볼 수 없게 막습니다.
+    function attempt(errorMsg, prefillId) {
+        ensureStudentIdFresh(function (studentId, pin) {
+            const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
 
-        const btn = document.getElementById('checkFeedbackBtn');
-        const btnLabel = btn ? btn.querySelector('div') : null;
-        if (btn) btn.style.pointerEvents = 'none';
-        if (btnLabel) btnLabel.innerText = '확인 중...';
+            const btn = document.getElementById('checkFeedbackBtn');
+            const btnLabel = btn ? btn.querySelector('div') : null;
+            if (btn) btn.style.pointerEvents = 'none';
+            if (btnLabel) btnLabel.innerText = '확인 중...';
 
-        const url = SUBMIT_ENDPOINT
-            + '?action=feedback'
-            + '&secret=' + encodeURIComponent((typeof SUBMIT_SECRET !== 'undefined') ? SUBMIT_SECRET : '')
-            + '&studentId=' + encodeURIComponent(studentId)
-            + '&unitId=' + encodeURIComponent(unitId);
+            const url = SUBMIT_ENDPOINT
+                + '?action=feedback'
+                + '&secret=' + encodeURIComponent((typeof SUBMIT_SECRET !== 'undefined') ? SUBMIT_SECRET : '')
+                + '&studentId=' + encodeURIComponent(studentId)
+                + '&pin=' + encodeURIComponent(pin)
+                + '&unitId=' + encodeURIComponent(unitId);
 
-        fetch(url)
-            .then(res => res.json())
-            .then(data => {
-                if (!data || !data.ok) {
-                    showCustomAlert('⚠️ 확인 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.', '⚠️');
-                    return;
-                }
-                if (data.feedback) {
-                    const dateLine = data.feedbackDate
-                        ? `<br><br><span style="font-size:0.78rem; color:#999;">(${data.feedbackDate} 작성)</span>`
-                        : '';
-                    showCustomAlert('💬 선생님 피드백', String(data.feedback).replace(/\n/g, '<br>') + dateLine, '💬');
-                } else {
-                    showCustomAlert('ℹ️ 안내', '아직 선생님이 남긴 피드백이 없습니다.<br>제출 후 시간이 지나면 다시 확인해보세요.', 'ℹ️');
-                }
-            })
-            .catch(() => {
-                showCustomAlert('⚠️ 확인 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.', '⚠️');
-            })
-            .finally(() => {
-                if (btn) btn.style.pointerEvents = 'auto';
-                if (btnLabel) btnLabel.innerText = '💬 선생님 피드백 확인';
-            });
-    });
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data || !data.ok) {
+                        if (data && data.error === 'PIN_MISMATCH') {
+                            attempt('PIN이 이전에 등록한 값과 다릅니다.<br>본인의 PIN 4자리를 다시 확인해주세요.', studentId);
+                            return;
+                        }
+                        if (data && data.error === 'INVALID_PIN') {
+                            attempt('PIN은 숫자 4자리로 입력해주세요.', studentId);
+                            return;
+                        }
+                        showCustomAlert('⚠️ 확인 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.', '⚠️');
+                        return;
+                    }
+                    if (data.feedback) {
+                        const dateLine = data.feedbackDate
+                            ? `<br><br><span style="font-size:0.78rem; color:#999;">(${data.feedbackDate} 작성)</span>`
+                            : '';
+                        showCustomAlert('💬 선생님 피드백', String(data.feedback).replace(/\n/g, '<br>') + dateLine, '💬');
+                    } else {
+                        showCustomAlert('ℹ️ 안내', '아직 선생님이 남긴 피드백이 없습니다.<br>제출 후 시간이 지나면 다시 확인해보세요.', 'ℹ️');
+                    }
+                })
+                .catch(() => {
+                    showCustomAlert('⚠️ 확인 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.', '⚠️');
+                })
+                .finally(() => {
+                    if (btn) btn.style.pointerEvents = 'auto';
+                    if (btnLabel) btnLabel.innerText = '💬 선생님 피드백 확인';
+                });
+        }, errorMsg, prefillId);
+    }
+
+    attempt(null, null);
 }
 
 // ✅ 페이지 로드 시 저장된 데이터 복원
