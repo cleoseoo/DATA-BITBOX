@@ -25,7 +25,13 @@ function setStatus(status) {
     } catch(e) {}
 }
 
-function showCustomAlert(title, message) {
+// 🌟 icon(3번째 인자, 선택): 팝업 맨 위 아이콘을 지정합니다. 안 주면 'ℹ️'가 기본값입니다.
+//    (기존 HTML의 아이콘 자리는 "🚫"가 고정으로 박혀 있었는데, 성공/피드백 등 모든 경우에
+//     같은 금지 표시가 뜨는 게 어색해서, 상황에 맞는 아이콘으로 매번 바꿔주도록 했습니다.
+//     HTML을 따로 고칠 필요 없이, alert-box 안의 첫 번째 div를 찾아서 내용만 바꿉니다.)
+function showCustomAlert(title, message, icon) {
+    const iconEl = document.querySelector('#customAlertModal .alert-box > div:first-child');
+    if (iconEl) iconEl.innerText = icon || 'ℹ️';
     document.getElementById('alertTitle').innerText = title;
     document.getElementById('alertMessage').innerHTML = message;
     document.getElementById('customAlertModal').style.display = 'flex';
@@ -406,7 +412,8 @@ function getSavedStudentId() {
 }
 
 // 저장된 학번이 있으면 바로 callback 실행, 없으면 입력창(모달)을 띄운 뒤 실행
-// → "제출"처럼 매번 재입력이 번거로운 동작에만 사용합니다.
+// (현재는 "제출"/"피드백 확인" 모두 매번 재확인하는 ensureStudentIdFresh를 쓰기 때문에
+//  이 함수는 실제로는 호출되지 않지만, 혹시 필요할 경우를 위해 남겨둡니다.)
 function ensureStudentId(callback) {
     const saved = getSavedStudentId();
     if (saved) { callback(saved); return; }
@@ -475,13 +482,16 @@ function confirmStudentId() {
 }
 
 // "📤 선생님께 제출" 버튼에서 호출
+// ⚠️ ensureStudentId가 아니라 ensureStudentIdFresh를 사용합니다.
+// 제출할 때마다 학번을 다시 확인해야, 옆 친구가 무심코 남의 이름으로
+// 제출해버리는 실수를 막을 수 있기 때문입니다.
 function submitToTeacher() {
     if (typeof SUBMIT_ENDPOINT === 'undefined' || !SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.indexOf('http') !== 0) {
-        showCustomAlert('안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.');
+        showCustomAlert('안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.', 'ℹ️');
         return;
     }
 
-    ensureStudentId(function (studentId) {
+    ensureStudentIdFresh(function (studentId) {
         const memo = document.getElementById('memoInput') ? document.getElementById('memoInput').value : '';
         const reflection = document.getElementById('reflectionInput') ? document.getElementById('reflectionInput').value : '';
         const unitId = typeof THIS_STEP !== 'undefined' ? THIS_STEP : '';
@@ -514,13 +524,13 @@ function submitToTeacher() {
             .then(res => res.json())
             .then(data => {
                 if (data && data.ok) {
-                    showCustomAlert('✅ 제출 완료', '선생님께 성공적으로 제출되었습니다.');
+                    showCustomAlert('✅ 제출 완료', '선생님께 성공적으로 제출되었습니다.', '✅');
                 } else {
-                    showCustomAlert('제출 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.');
+                    showCustomAlert('제출 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.', '⚠️');
                 }
             })
             .catch(() => {
-                showCustomAlert('제출 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.');
+                showCustomAlert('제출 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.', '⚠️');
             })
             .finally(() => {
                 if (btn) btn.style.pointerEvents = 'auto';
@@ -532,7 +542,7 @@ function submitToTeacher() {
 // "💬 선생님 피드백 확인" 버튼에서 호출 — 현재 단원에 대해 선생님이 남긴 피드백을 조회
 function checkTeacherFeedback() {
     if (typeof SUBMIT_ENDPOINT === 'undefined' || !SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.indexOf('http') !== 0) {
-        showCustomAlert('안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.');
+        showCustomAlert('안내', '아직 제출 기능이 설정되지 않았습니다.<br>선생님께 문의해주세요.', 'ℹ️');
         return;
     }
 
@@ -558,20 +568,20 @@ function checkTeacherFeedback() {
             .then(res => res.json())
             .then(data => {
                 if (!data || !data.ok) {
-                    showCustomAlert('확인 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.');
+                    showCustomAlert('확인 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.', '⚠️');
                     return;
                 }
                 if (data.feedback) {
                     const dateLine = data.feedbackDate
                         ? `<br><br><span style="font-size:0.78rem; color:#999;">(${data.feedbackDate} 작성)</span>`
                         : '';
-                    showCustomAlert('💬 선생님 피드백', String(data.feedback).replace(/\n/g, '<br>') + dateLine);
+                    showCustomAlert('💬 선생님 피드백', String(data.feedback).replace(/\n/g, '<br>') + dateLine, '💬');
                 } else {
-                    showCustomAlert('안내', '아직 선생님이 남긴 피드백이 없습니다.<br>제출 후 시간이 지나면 다시 확인해보세요.');
+                    showCustomAlert('안내', '아직 선생님이 남긴 피드백이 없습니다.<br>제출 후 시간이 지나면 다시 확인해보세요.', 'ℹ️');
                 }
             })
             .catch(() => {
-                showCustomAlert('확인 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.');
+                showCustomAlert('확인 실패', '인터넷 연결을 확인한 뒤 다시 시도해주세요.', '⚠️');
             })
             .finally(() => {
                 if (btn) btn.style.pointerEvents = 'auto';
