@@ -28,11 +28,21 @@ function setStatus(status) {
 // 🌟 icon(3번째 인자, 선택): 팝업 맨 위 아이콘을 지정합니다. 안 주면 'ℹ️'가 기본값입니다.
 //    (기존 HTML의 아이콘 자리는 "🚫"가 고정으로 박혀 있었는데, 성공/피드백 등 모든 경우에
 //     같은 금지 표시가 뜨는 게 어색해서, 상황에 맞는 아이콘으로 매번 바꿔주도록 했습니다.
-//     HTML을 따로 고칠 필요 없이, alert-box 안의 첫 번째 div를 찾아서 내용만 바꿉니다.)
+//     🌟 [재수정] 아이콘 자리를 찾는 방법을 3단계로 강화했습니다.
+//     예전에는 "alert-box 안의 첫 번째 div"라는 위치만 보고 찾았는데, 일부 단원 파일은
+//     그 구조가 살짝 달라서 엉뚱한 요소를 찾아버리는 경우가 있었습니다(그래서 아이콘이 안 바뀌는
+//     버그가 계속 남아있었던 것으로 보입니다). 이제는:
+//       1) id="customAlertIcon"이 있으면 그것을 최우선으로 사용 (가장 확실함, HTML에 이 id를
+//          추가해주시면 100% 정확하게 동작합니다)
+//       2) 없으면 "제목(alertTitle) 바로 앞에 있는 요소"를 아이콘으로 간주
+//       3) 그래도 없으면 기존 방식(alert-box 안의 첫 번째 div)으로 최후 시도
 function showCustomAlert(title, message, icon) {
-    const iconEl = document.querySelector('#customAlertModal .alert-box > div:first-child');
+    const alertTitleEl = document.getElementById('alertTitle');
+    const iconEl = document.getElementById('customAlertIcon')
+        || (alertTitleEl && alertTitleEl.previousElementSibling)
+        || document.querySelector('#customAlertModal .alert-box > div:first-child');
     if (iconEl) iconEl.innerText = icon || 'ℹ️';
-    document.getElementById('alertTitle').innerText = title;
+    if (alertTitleEl) alertTitleEl.innerText = title;
     document.getElementById('alertMessage').innerHTML = message;
     document.getElementById('customAlertModal').style.display = 'flex';
 }
