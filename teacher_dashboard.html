@@ -528,7 +528,7 @@
             const sel = document.getElementById('unitFilter');
             const cur = sel.value;
             const units = [...new Set(allRows.map(r => r.unitTitle).filter(Boolean))];
-            sel.innerHTML = '<option value="">전체 단원</option>' +
+            sel.innerHTML = '<option value="">제출 단원 검색</option>' +
                 units.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
             sel.value = cur;
         }
