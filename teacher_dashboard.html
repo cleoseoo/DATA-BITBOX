@@ -280,8 +280,8 @@
             </div>
 
             <div class="toolbar">
-                <input type="text" id="gradeFilterInput" placeholder="🎓 학년 검색 (예: 1)" oninput="renderTable()">
-                <input type="text" id="classFilterInput" placeholder="🏫 반 검색 (예: 3)" oninput="renderTable()">
+                <select id="gradeFilterInput" onchange="renderTable()"><option value="">🎓 전체 학년</option></select>
+                <select id="classFilterInput" onchange="renderTable()"><option value="">🏫 전체 반</option></select>
                 <input type="text" id="searchInput" placeholder="🔍 학번으로 검색 (예: 10101)" oninput="renderTable()">
                 <select id="unitFilter" onchange="renderTable()"><option value="">제출 단원 검색</option></select>
                 <select id="fbFilter" onchange="renderTable()">
@@ -504,6 +504,8 @@
                     }
                     allRows = data.rows || [];
                     populateUnitFilter();
+                    populateGradeFilter();
+                    populateClassFilter();
                     renderStats();
                     renderTable();
                 })
@@ -530,6 +532,29 @@
             const units = [...new Set(allRows.map(r => r.unitTitle).filter(Boolean))];
             sel.innerHTML = '<option value="">제출 단원 검색</option>' +
                 units.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+            sel.value = cur;
+        }
+
+        // 🌟 [추가] 학년/반 검색창을 <select>로 바꿔, 지우면 빈칸이 되는 대신
+        // "전체 학년"/"전체 반"이라는 명확한 기본값으로 항상 돌아오게 함.
+        // 실제 데이터에 있는 학년/반만 옵션으로 채워짐.
+        function populateGradeFilter() {
+            const sel = document.getElementById('gradeFilterInput');
+            const cur = sel.value;
+            const grades = [...new Set(allRows.map(r => getStudentGradePart(r.studentId)).filter(Boolean))]
+                .sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+            sel.innerHTML = '<option value="">🎓 전체 학년</option>' +
+                grades.map(g => `<option value="${g}">${parseInt(g, 10)}학년</option>`).join('');
+            sel.value = cur;
+        }
+
+        function populateClassFilter() {
+            const sel = document.getElementById('classFilterInput');
+            const cur = sel.value;
+            const classes = [...new Set(allRows.map(r => getStudentClassPart(r.studentId)).filter(Boolean))]
+                .sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+            sel.innerHTML = '<option value="">🏫 전체 반</option>' +
+                classes.map(c => `<option value="${c}">${parseInt(c, 10)}반</option>`).join('');
             sel.value = cur;
         }
 
