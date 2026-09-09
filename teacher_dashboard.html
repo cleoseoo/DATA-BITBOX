@@ -222,9 +222,9 @@
     .save-btn:hover { background: var(--teal-dark); }
     .save-btn:disabled { opacity: 0.6; cursor: default; }
     .resubmit-toggle-btn {
-        width: 100%; padding: 11px; border-radius: 12px; border: 2px solid #e2e8f0; background: #fff;
-        color: var(--text-sub); font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.15s;
-        margin-bottom: 18px; font-family: inherit;
+        flex: 1; padding: 13px; border-radius: 14px; border: 2px solid #e2e8f0; background: #fff;
+        color: var(--text-sub); font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.15s;
+        font-family: inherit;
     }
     .resubmit-toggle-btn:hover { background: #f8fafc; border-color: var(--teal-light); }
     .resubmit-toggle-btn.active { background: #fff7ed; border-color: rgba(217,119,6,0.4); color: var(--gold-main); }
@@ -384,8 +384,6 @@
                 <button class="close-x" onclick="closeDetail()">✕</button>
             </div>
 
-            <button class="resubmit-toggle-btn" id="resubmitToggleBtn" onclick="toggleResubmitRequest()">🔄 재제출 요청하기</button>
-
             <div class="detail-block">
                 <div class="block-label">📝 배움노트</div>
                 <div class="block-body" id="detailMemo"></div>
@@ -405,6 +403,7 @@
             </div>
 
             <div class="detail-actions">
+                <button class="resubmit-toggle-btn" id="resubmitToggleBtn" onclick="toggleResubmitRequest()">🔄 재제출 요청</button>
                 <button class="save-btn" id="saveFeedbackBtn" onclick="saveFeedback()">피드백 저장</button>
             </div>
         </div>
@@ -903,10 +902,12 @@
             if (!btn) return;
             if (row.resubmitRequested) {
                 btn.classList.add('active');
-                btn.textContent = '🔄 재제출 요청됨 (취소하려면 클릭)';
+                btn.textContent = '🔄 요청됨 (취소)';
+                btn.title = '재제출 요청됨 — 클릭하면 취소';
             } else {
                 btn.classList.remove('active');
-                btn.textContent = '🔄 재제출 요청하기';
+                btn.textContent = '🔄 재제출 요청';
+                btn.title = '클릭하면 학생에게 재제출을 요청합니다';
             }
         }
 
