@@ -137,6 +137,12 @@
         white-space: nowrap; font-family: inherit; transition: 0.15s;
     }
     .toolbar-btn:hover { background: #f8fafc; border-color: var(--teal-light); color: var(--teal-dark); }
+    .toolbar-btn:disabled { opacity: 0.45; cursor: default; background: #fff; border-color: #e2e8f0; color: var(--text-main); }
+    .toolbar-btn.accent { background: #fff7ed; border-color: rgba(217,119,6,0.35); color: var(--gold-main); }
+    .toolbar-btn.accent:hover:not(:disabled) { background: #ffedd5; border-color: rgba(217,119,6,0.5); }
+    .toolbar-btn.accent:disabled { background: #fff; border-color: #e2e8f0; color: var(--apple-gray); }
+    .toolbar-btn.ghost { background: transparent; border-color: transparent; color: var(--apple-gray); text-decoration: underline; }
+    .toolbar-btn.ghost:hover { background: #f8fafc; color: var(--text-sub); }
 
     /* 🌟 [추가] 학생 소통 기능: 걱정 키워드 표시, 학생별 통합 뷰, 빠른 문구 */
     .concern-flag { font-size: 0.85rem; cursor: help; }
@@ -202,12 +208,14 @@
     .resubmit-flag { font-size: 0.85rem; cursor: help; }
     /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸은 가운데 정렬해서
        보기 좋게 정리 (실제 폭 비율은 <colgroup>에서 지정) */
-    td.col-center, td.col-time, td.col-feedback, td.col-del, td.col-pin { text-align: center; }
-    thead th.col-center, thead th.col-time, thead th.col-feedback, thead th.col-del, thead th.col-pin {
+    td.col-center, td.col-time, td.col-feedback, td.col-del, td.col-pin, td.col-check { text-align: center; }
+    thead th.col-center, thead th.col-time, thead th.col-feedback, thead th.col-del, thead th.col-pin, thead th.col-check {
         text-align: center; white-space: normal; word-break: keep-all; line-height: 1.25;
     }
-    thead th.col-del, thead th.col-pin { cursor: default; }
+    thead th.col-del, thead th.col-pin, thead th.col-check { cursor: default; }
     thead th.col-del:hover, thead th.col-pin:hover { color: var(--text-sub); }
+    /* 🌟 [추가] 학급/학년 일괄 선택용 체크박스 칸 */
+    .row-check, #selectAllCheckbox { width: 17px; height: 17px; cursor: pointer; accent-color: var(--teal-main); }
     .row-del-btn, .row-pin-btn {
         width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent;
         font-size: 0.95rem; cursor: pointer; transition: 0.15s;
@@ -401,24 +409,31 @@
                     <option value="done">피드백 완료만</option>
                 </select>
                 <div class="spacer"></div>
+                <button class="toolbar-btn ghost" id="bulkClearBtn" style="display:none;" onclick="clearSelection()">선택 해제</button>
+                <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()">🔄 선택 재제출 요청</button>
                 <button class="toolbar-btn" onclick="openRosterModal()">📋 명단 관리</button>
                 <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
+            </div>
+            <div style="font-size:0.76rem; color: var(--text-sub); margin: -10px 0 14px; padding: 0 2px;">
+                💡 학년·반으로 목록을 좁힌 뒤 표 왼쪽 <b>체크박스로 전체 선택</b>하면, 학급 전체에게 한 번에 재제출을 요청할 수 있어요.
             </div>
 
             <div class="table-wrap">
                 <div class="table-scroll">
                 <table id="dataTable">
                     <colgroup>
-                        <col style="width:10%;">
-                        <col style="width:26%;">
+                        <col style="width:5%;">
+                        <col style="width:9%;">
+                        <col style="width:24%;">
                         <col style="width:8%;">
-                        <col style="width:15%;">
-                        <col style="width:15%;">
+                        <col style="width:14%;">
+                        <col style="width:14%;">
                         <col style="width:13%;">
                         <col style="width:13%;">
                     </colgroup>
                     <thead>
                         <tr>
+                            <th class="col-check"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" title="현재 목록 전체 선택/해제"></th>
                             <th onclick="sortBy('studentId')">학번</th>
                             <th onclick="sortBy('unitTitle')">단원</th>
                             <th class="col-center" onclick="sortBy('score')">점수</th>
@@ -505,6 +520,23 @@
             <div class="danger-actions">
                 <button class="danger-cancel-btn" onclick="closePinResetAllConfirm()">취소</button>
                 <button class="danger-confirm-btn pin-reset-confirm" id="pinResetAllConfirmBtn" onclick="confirmResetAllPins()">전체 초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 [추가] 학급/학년 일괄 재제출 요청 확인 모달 -->
+    <div class="modal-overlay" id="bulkResubmitConfirmModal">
+        <div class="danger-card">
+            <div class="danger-icon">🔄</div>
+            <h3 style="color: var(--gold-main);">선택한 학생들에게 재제출 요청</h3>
+            <p>
+                선택한 <b id="bulkResubmitCount">0건</b>에 대해 재제출을 요청합니다.<br>
+                학생이 다음에 학번·PIN으로 피드백을 확인할 때 재제출 요청 안내가 함께 보입니다.
+            </p>
+            <div id="bulkResubmitList" style="max-height:140px; overflow-y:auto; background:#f8fafc; border-radius:12px; padding:10px 14px; margin-bottom:18px; font-size:0.8rem; color:var(--text-sub); text-align:left; line-height:1.8;"></div>
+            <div class="danger-actions">
+                <button class="danger-cancel-btn" onclick="closeBulkResubmitConfirm()">취소</button>
+                <button class="danger-confirm-btn pin-reset-confirm" id="bulkResubmitConfirmBtn" onclick="confirmBulkResubmit()">재제출 요청</button>
             </div>
         </div>
     </div>
@@ -634,6 +666,9 @@
         let sortKey = 'timestamp';
         let sortDir = -1; // 최신순 기본
         let currentDetail = null; // { studentId, unitId }
+        // 🌟 [추가] 학급/학년 단위 일괄 재제출 요청: 체크박스로 선택한 (학번+단원) 쌍의 집합
+        let selectedKeys = new Set();
+        let bulkResubmitTargets = [];
 
         const LS_ENDPOINT = 'bitbox_dash_endpoint';
         const LS_SECRET = 'bitbox_dash_secret';
@@ -829,10 +864,22 @@
             });
         }
 
+        function selKey(r) { return String(r.studentId) + '__' + String(r.unitId); }
+
+        function syncSelectAllCheckbox(rows) {
+            const cb = document.getElementById('selectAllCheckbox');
+            if (!cb) return;
+            const total = rows.length;
+            const selectedInView = rows.filter(r => selectedKeys.has(selKey(r))).length;
+            cb.checked = total > 0 && selectedInView === total;
+            cb.indeterminate = selectedInView > 0 && selectedInView < total;
+        }
+
         function renderTable() {
             const rows = getFiltered();
             const tbody = document.getElementById('tableBody');
             const empty = document.getElementById('emptyState');
+            syncSelectAllCheckbox(rows);
 
             if (!rows.length) {
                 tbody.innerHTML = '';
@@ -858,7 +905,12 @@
                     ? ' <span class="concern-flag" title="소감/노트에 도움이 필요하다는 표현이 있어요">💭</span>' : '';
                 const resubmitBadge = r.resubmitRequested
                     ? ' <span class="resubmit-flag" title="재제출을 요청했어요">🔄</span>' : '';
+                const checked = selectedKeys.has(selKey(r)) ? 'checked' : '';
                 return `<tr onclick='openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
+                    <td class="col-check" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="row-check" ${checked}
+                            onchange="toggleRowSelect(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)}, this.checked)">
+                    </td>
                     <td class="student-id" title="이 학생의 전체 제출 이력 보기"
                         onclick='event.stopPropagation(); openStudentOverview(${JSON.stringify(r.studentId)})'>${escapeHtml(r.studentId)}</td>
                     <td>${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}${resubmitBadge}</td>
@@ -875,6 +927,100 @@
                     </td>
                 </tr>`;
             }).join('');
+        }
+
+        // ── 학급/학년 일괄 재제출 요청 ────────────────────────────────────────────
+        function toggleRowSelect(studentId, unitId, checked) {
+            const key = String(studentId) + '__' + String(unitId);
+            if (checked) selectedKeys.add(key); else selectedKeys.delete(key);
+            syncSelectAllCheckbox(getFiltered());
+            updateBulkBar();
+        }
+
+        function toggleSelectAll(checked) {
+            const rows = getFiltered();
+            rows.forEach(r => {
+                const key = selKey(r);
+                if (checked) selectedKeys.add(key); else selectedKeys.delete(key);
+            });
+            renderTable();
+            updateBulkBar();
+        }
+
+        function clearSelection() {
+            selectedKeys.clear();
+            renderTable();
+            updateBulkBar();
+        }
+
+        function updateBulkBar() {
+            const btn = document.getElementById('bulkResubmitBtn');
+            const clearBtn = document.getElementById('bulkClearBtn');
+            const n = selectedKeys.size;
+            if (btn) {
+                btn.disabled = n === 0;
+                btn.textContent = n > 0 ? `🔄 선택 ${n}건 재제출 요청` : '🔄 선택 재제출 요청';
+            }
+            if (clearBtn) clearBtn.style.display = n > 0 ? 'inline-block' : 'none';
+        }
+
+        function openBulkResubmitConfirm() {
+            const targets = allRows.filter(r => selectedKeys.has(selKey(r)));
+            if (!targets.length) return;
+            bulkResubmitTargets = targets;
+            document.getElementById('bulkResubmitCount').textContent = targets.length + '건';
+            const listEl = document.getElementById('bulkResubmitList');
+            const shown = targets.slice(0, 20).map(r => `${escapeHtml(r.studentId)} · ${escapeHtml(r.unitTitle || r.unitId || '')}`);
+            listEl.innerHTML = shown.join('<br>') + (targets.length > 20 ? `<br>… 외 ${targets.length - 20}건 더` : '');
+            document.getElementById('bulkResubmitConfirmModal').style.display = 'flex';
+        }
+
+        function closeBulkResubmitConfirm() {
+            document.getElementById('bulkResubmitConfirmModal').style.display = 'none';
+        }
+
+        function confirmBulkResubmit() {
+            const targets = bulkResubmitTargets;
+            if (!targets.length) return;
+            const btn = document.getElementById('bulkResubmitConfirmBtn');
+            const total = targets.length;
+            let done = 0, failed = 0;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spin"></span> 처리 중 (0/${total})`;
+
+            function next(i) {
+                if (i >= total) {
+                    closeBulkResubmitConfirm();
+                    selectedKeys.clear();
+                    renderTable();
+                    updateBulkBar();
+                    btn.disabled = false;
+                    btn.textContent = '재제출 요청';
+                    showToast(failed === 0
+                        ? `🔄 ${done}건 재제출을 요청했습니다`
+                        : `${done}건 요청 완료, ${failed}건 실패`);
+                    return;
+                }
+                const row = targets[i];
+                const payload = { action: 'requestResubmit', secret: ADMIN_SECRET, studentId: row.studentId, unitId: row.unitId, requested: true };
+                fetch(ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.ok) throw new Error(data.error || '실패');
+                        row.resubmitRequested = true;
+                        done++;
+                    })
+                    .catch(() => { failed++; })
+                    .finally(() => {
+                        btn.innerHTML = `<span class="spin"></span> 처리 중 (${i + 1}/${total})`;
+                        next(i + 1);
+                    });
+            }
+            next(0);
         }
 
         function formatDate(v) {
@@ -1092,6 +1238,10 @@
 
         document.getElementById('pinResetAllConfirmModal').addEventListener('click', function (e) {
             if (e.target === this) closePinResetAllConfirm();
+        });
+
+        document.getElementById('bulkResubmitConfirmModal').addEventListener('click', function (e) {
+            if (e.target === this) closeBulkResubmitConfirm();
         });
 
         // ── 전체 삭제 ──────────────────────────────────
