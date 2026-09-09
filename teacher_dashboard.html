@@ -157,6 +157,9 @@
     }
     .fb-badge.done { background: #ecfdf5; color: var(--success-green); }
     .fb-badge.pending { background: #fff7ed; color: var(--gold-main); }
+    .fb-badge.read { background: #eff6ff; color: var(--apple-blue); }
+    .fb-badge.unread { background: #fef2f2; color: var(--apple-red); }
+    .resubmit-flag { font-size: 0.85rem; cursor: help; }
     /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸은 가운데 정렬해서
        보기 좋게 정리 (실제 폭 비율은 <colgroup>에서 지정) */
     td.col-center, td.col-time, td.col-feedback, td.col-del, td.col-pin { text-align: center; }
@@ -218,6 +221,14 @@
     }
     .save-btn:hover { background: var(--teal-dark); }
     .save-btn:disabled { opacity: 0.6; cursor: default; }
+    .resubmit-toggle-btn {
+        width: 100%; padding: 11px; border-radius: 12px; border: 2px solid #e2e8f0; background: #fff;
+        color: var(--text-sub); font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.15s;
+        margin-bottom: 18px; font-family: inherit;
+    }
+    .resubmit-toggle-btn:hover { background: #f8fafc; border-color: var(--teal-light); }
+    .resubmit-toggle-btn.active { background: #fff7ed; border-color: rgba(217,119,6,0.4); color: var(--gold-main); }
+    .resubmit-toggle-btn:disabled { opacity: 0.6; cursor: default; }
 
     /* ── 전체 삭제 확인 모달 ── */
     .danger-card {
@@ -373,6 +384,8 @@
                 <button class="close-x" onclick="closeDetail()">✕</button>
             </div>
 
+            <button class="resubmit-toggle-btn" id="resubmitToggleBtn" onclick="toggleResubmitRequest()">🔄 재제출 요청하기</button>
+
             <div class="detail-block">
                 <div class="block-label">📝 배움노트</div>
                 <div class="block-body" id="detailMemo"></div>
@@ -473,7 +486,7 @@
             <div class="detail-top">
                 <div>
                     <h3>📋 반 명단 관리</h3>
-                    <div class="sub">미제출 학생 확인에 쓸 학년·반·번호 범위를 등록하세요 (이 브라우저에만 저장됩니다)</div>
+                    <div class="sub">미제출 학생 확인에 쓸 학년·반·번호 범위를 등록하세요 (서버에 저장되어 어떤 기기에서 열어도 같은 명단이 보여요)</div>
                 </div>
                 <button class="close-x" onclick="closeRosterModal()">✕</button>
             </div>
@@ -536,13 +549,13 @@
             <div class="detail-top">
                 <div>
                     <h3>✏️ 빠른 문구 관리</h3>
-                    <div class="sub">한 줄에 하나씩 입력하세요 (이 브라우저에만 저장됩니다)</div>
+                    <div class="sub">한 줄에 하나씩 입력하세요 (서버에 저장되어 어떤 기기에서 열어도 같은 문구가 보여요)</div>
                 </div>
                 <button class="close-x" onclick="closePhraseManageModal()">✕</button>
             </div>
             <textarea id="phraseManageInput" style="width:100%; min-height:180px; padding:14px 16px; border-radius:14px; border:2px solid #e2e8f0; font-family:inherit; font-size:0.88rem; resize:vertical; outline:none; line-height:1.6; margin-bottom:16px; box-sizing:border-box;"></textarea>
             <div class="detail-actions" style="margin-top:0;">
-                <button class="save-btn" onclick="savePhrasesFromManage()">저장</button>
+                <button class="save-btn" id="phraseManageSaveBtn" onclick="savePhrasesFromManage()">저장</button>
             </div>
         </div>
     </div>
@@ -629,6 +642,8 @@
                     populateClassFilter();
                     renderStats();
                     renderTable();
+                    fetchPhrases();
+                    fetchRoster();
                 })
                 .catch(err => {
                     if (err instanceof TypeError) throw new Error('서버에 연결할 수 없습니다. URL과 인터넷 연결을 확인해주세요.');
@@ -770,14 +785,18 @@
             tbody.innerHTML = rows.map(r => {
                 const scoreClass = (Number(r.score) || 0) >= 70 ? '' : 'low';
                 const fbBadge = r.feedback
-                    ? '<span class="fb-badge done">✅ 완료</span>'
+                    ? '<span class="fb-badge done">✅ 완료</span>' + (r.feedbackReadAt
+                        ? ' <span class="fb-badge read" title="학생이 확인했어요">👀 읽음</span>'
+                        : ' <span class="fb-badge unread" title="학생이 아직 확인하지 않았어요">🔔 안읽음</span>')
                     : '<span class="fb-badge pending">⏳ 대기</span>';
                 const concernBadge = (hasConcern(r.memo) || hasConcern(r.reflection))
                     ? ' <span class="concern-flag" title="소감/노트에 도움이 필요하다는 표현이 있어요">💭</span>' : '';
+                const resubmitBadge = r.resubmitRequested
+                    ? ' <span class="resubmit-flag" title="재제출을 요청했어요">🔄</span>' : '';
                 return `<tr onclick='openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
                     <td class="student-id" title="이 학생의 전체 제출 이력 보기"
                         onclick='event.stopPropagation(); openStudentOverview(${JSON.stringify(r.studentId)})'>${escapeHtml(r.studentId)}</td>
-                    <td>${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}</td>
+                    <td>${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}${resubmitBadge}</td>
                     <td class="col-center"><span class="score-pill ${scoreClass}">${escapeHtml(r.score)}</span></td>
                     <td class="col-time">${formatDate(r.timestamp)}</td>
                     <td class="col-feedback">${fbBadge}</td>
@@ -821,6 +840,7 @@
             reflEl.classList.toggle('empty', !row.reflection);
 
             renderQuickPhrases();
+            renderResubmitToggleBtn(row);
             document.getElementById('feedbackInput').value = row.feedback || '';
             document.getElementById('fbMeta').textContent = row.feedbackDate ? `마지막 저장: ${row.feedbackDate}` : '아직 저장된 피드백이 없습니다.';
 
@@ -875,6 +895,46 @@
         document.getElementById('detailModal').addEventListener('click', function (e) {
             if (e.target === this) closeDetail();
         });
+
+        // ── 재제출 요청 (선생님이 이 제출 건에 "다시 제출해달라" 표시) ──────────────────────
+        // 서버에 저장되므로, 학생이 다른 날/다른 기기에서 학번+PIN으로 피드백을 확인해도 보입니다.
+        function renderResubmitToggleBtn(row) {
+            const btn = document.getElementById('resubmitToggleBtn');
+            if (!btn) return;
+            if (row.resubmitRequested) {
+                btn.classList.add('active');
+                btn.textContent = '🔄 재제출 요청됨 (취소하려면 클릭)';
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '🔄 재제출 요청하기';
+            }
+        }
+
+        function toggleResubmitRequest() {
+            if (!currentDetail) return;
+            const row = allRows.find(r => String(r.studentId) === String(currentDetail.studentId) && String(r.unitId) === String(currentDetail.unitId));
+            if (!row) return;
+            const newState = !row.resubmitRequested;
+            const btn = document.getElementById('resubmitToggleBtn');
+            btn.disabled = true;
+
+            const payload = { action: 'requestResubmit', secret: ADMIN_SECRET, studentId: row.studentId, unitId: row.unitId, requested: newState };
+            fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok) throw new Error(data.error || '처리 실패');
+                    row.resubmitRequested = newState;
+                    renderResubmitToggleBtn(row);
+                    renderTable();
+                    showToast(newState ? '🔄 재제출을 요청했습니다' : '재제출 요청을 취소했습니다');
+                })
+                .catch(err => showToast('처리 실패: ' + err.message))
+                .finally(() => { btn.disabled = false; });
+        }
 
         // ── PIN 초기화 (학생이 PIN을 잊어버렸을 때) ──────────────────────────────────
         // 🌟 [수정] 상세보기 모달을 열지 않아도 표에서 바로 누를 수 있도록, 행의 🔑 버튼이
@@ -1105,9 +1165,11 @@
                     : '<span class="fb-badge pending">⏳ 대기</span>';
                 const concernBadge = (hasConcern(r.memo) || hasConcern(r.reflection))
                     ? ' <span class="concern-flag" title="소감/노트에 도움이 필요하다는 표현이 있어요">💭</span>' : '';
+                const resubmitBadge = r.resubmitRequested
+                    ? ' <span class="resubmit-flag" title="재제출을 요청했어요">🔄</span>' : '';
                 return `<div class="overview-row" onclick='closeStudentOverview(); openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
                     <div style="min-width:0;">
-                        <div style="font-weight:800; font-size:0.9rem;">${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}</div>
+                        <div style="font-weight:800; font-size:0.9rem;">${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}${resubmitBadge}</div>
                         <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px;">${formatDate(r.timestamp)}</div>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -1128,29 +1190,35 @@
         });
 
         // ── 반 명단 관리 & 미제출 학생 확인 ──────────────────────────────────
-        // 명단은 이 브라우저(localStorage)에만 저장됩니다. 학년/반/번호 범위를 등록해두면
-        // 현재 선택된 단원(+학년/반 필터)을 기준으로 아직 제출하지 않은 학번을 계산해줍니다.
-        const ROSTER_KEY = 'bitbox_dash_roster';
+        // 🌟 [수정] 명단을 이 브라우저가 아니라 서버(구글시트 "반명단")에 저장합니다.
+        // 그래야 다른 컴퓨터나 다른 브라우저에서 대시보드를 열어도 같은 명단을 볼 수 있어요.
+        let currentRoster = [];
 
-        function loadRoster() {
-            try {
-                const parsed = JSON.parse(localStorage.getItem(ROSTER_KEY) || '[]');
-                return Array.isArray(parsed) ? parsed : [];
-            } catch (e) { return []; }
+        function fetchRoster() {
+            const url = ENDPOINT + '?action=roster&secret=' + encodeURIComponent(ADMIN_SECRET);
+            return fetch(url)
+                .then(res => res.json())
+                .then(data => { currentRoster = (data.ok && data.roster) ? data.roster : []; })
+                .catch(() => { currentRoster = []; });
         }
 
-        function saveRoster(list) {
-            localStorage.setItem(ROSTER_KEY, JSON.stringify(list));
+        function saveRosterToServer(roster) {
+            return fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'saveRoster', secret: ADMIN_SECRET, roster: roster })
+            })
+                .then(res => res.json())
+                .then(data => { if (!data.ok) throw new Error(data.error || '저장 실패'); });
         }
 
         function renderRosterList() {
-            const roster = loadRoster();
             const wrap = document.getElementById('rosterListWrap');
-            if (!roster.length) {
+            if (!currentRoster.length) {
                 wrap.innerHTML = '<div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:20px 0;">등록된 명단이 없습니다.</div>';
                 return;
             }
-            wrap.innerHTML = roster.map((r, i) => `
+            wrap.innerHTML = currentRoster.map((r, i) => `
                 <div class="roster-row">
                     <span class="roster-label">${parseInt(r.grade, 10)}학년 ${parseInt(r.cls, 10)}반 · ${r.start}~${r.end}번 (${r.end - r.start + 1}명)</span>
                     <button class="row-del-btn" onclick="deleteRosterEntry(${i})" title="삭제">🗑</button>
@@ -1165,25 +1233,30 @@
             if (!clsRaw || !/^[0-9]+$/.test(clsRaw)) { showToast('반을 숫자로 입력해주세요'); return; }
             if (!start || !end || start < 1 || end < start || end > 99) { showToast('번호 범위를 올바르게 입력해주세요'); return; }
             const cls = String(parseInt(clsRaw, 10)).padStart(2, '0');
-            const roster = loadRoster();
-            roster.push({ grade, cls, start, end });
-            saveRoster(roster);
-            renderRosterList();
-            document.getElementById('rosterClassInput').value = '';
-            document.getElementById('rosterStartInput').value = '';
-            document.getElementById('rosterEndInput').value = '';
+            const updated = currentRoster.concat([{ grade, cls, start, end }]);
+            saveRosterToServer(updated)
+                .then(() => {
+                    currentRoster = updated;
+                    renderRosterList();
+                    document.getElementById('rosterClassInput').value = '';
+                    document.getElementById('rosterStartInput').value = '';
+                    document.getElementById('rosterEndInput').value = '';
+                })
+                .catch(err => showToast('저장 실패: ' + err.message));
         }
 
         function deleteRosterEntry(i) {
-            const roster = loadRoster();
-            roster.splice(i, 1);
-            saveRoster(roster);
-            renderRosterList();
+            const updated = currentRoster.slice();
+            updated.splice(i, 1);
+            saveRosterToServer(updated)
+                .then(() => { currentRoster = updated; renderRosterList(); })
+                .catch(err => showToast('삭제 실패: ' + err.message));
         }
 
         function openRosterModal() {
-            renderRosterList();
+            document.getElementById('rosterListWrap').innerHTML = '<div style="text-align:center; padding:20px 0; color:var(--text-sub);">불러오는 중...</div>';
             document.getElementById('rosterModal').style.display = 'flex';
+            fetchRoster().then(() => renderRosterList());
         }
 
         function closeRosterModal() {
@@ -1197,15 +1270,14 @@
         function checkMissingStudents() {
             const unit = document.getElementById('unitFilter').value;
             if (!unit) { showToast('먼저 확인할 단원을 선택해주세요 (단원 필터)'); return; }
-            const roster = loadRoster();
-            if (!roster.length) { showToast('먼저 반 명단을 등록해주세요'); openRosterModal(); return; }
+            if (!currentRoster.length) { showToast('먼저 반 명단을 등록해주세요'); openRosterModal(); return; }
 
             const gradeQ = document.getElementById('gradeFilterInput').value;
             const classQ = document.getElementById('classFilterInput').value;
             const submitted = new Set(allRows.filter(r => r.unitTitle === unit).map(r => String(r.studentId)));
 
             let expected = [];
-            roster.forEach(entry => {
+            currentRoster.forEach(entry => {
                 if (gradeQ && entry.grade !== gradeQ) return;
                 if (classQ && entry.cls !== classQ) return;
                 for (let no = entry.start; no <= entry.end; no++) {
@@ -1239,7 +1311,8 @@
         });
 
         // ── 피드백 빠른 문구 ──────────────────────────────────
-        const PHRASE_KEY = 'bitbox_dash_phrases';
+        // 🌟 [수정] 문구를 이 브라우저가 아니라 서버(구글시트 "빠른문구")에 저장합니다.
+        // 그래야 다른 컴퓨터나 다른 브라우저에서 대시보드를 열어도 같은 문구 목록을 씁니다.
         const DEFAULT_PHRASES = [
             '정말 잘했어요! 👍',
             '핵심 개념을 정확히 이해했네요.',
@@ -1247,25 +1320,26 @@
             '수고했어요. 예시를 들어보면 더 좋을 것 같아요.',
             '노력한 흔적이 보여요, 조금만 더 힘내봐요!'
         ];
+        let currentPhrases = DEFAULT_PHRASES.slice();
 
-        function loadPhrases() {
-            try {
-                const raw = localStorage.getItem(PHRASE_KEY);
-                if (!raw) return DEFAULT_PHRASES.slice();
-                const parsed = JSON.parse(raw);
-                return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_PHRASES.slice();
-            } catch (e) { return DEFAULT_PHRASES.slice(); }
-        }
-
-        function savePhrases(list) {
-            localStorage.setItem(PHRASE_KEY, JSON.stringify(list));
+        function fetchPhrases() {
+            const url = ENDPOINT + '?action=phrases&secret=' + encodeURIComponent(ADMIN_SECRET);
+            return fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    currentPhrases = (data.ok && data.phrases && data.phrases.length) ? data.phrases : DEFAULT_PHRASES.slice();
+                    renderQuickPhrases();
+                })
+                .catch(() => {
+                    currentPhrases = DEFAULT_PHRASES.slice();
+                    renderQuickPhrases();
+                });
         }
 
         function renderQuickPhrases() {
             const wrap = document.getElementById('quickPhraseRow');
             if (!wrap) return;
-            const phrases = loadPhrases();
-            wrap.innerHTML = phrases.map(p =>
+            wrap.innerHTML = currentPhrases.map(p =>
                 `<button type="button" class="quick-phrase-btn" onclick='insertPhrase(${JSON.stringify(p)})'>${escapeHtml(p)}</button>`
             ).join('');
         }
@@ -1278,7 +1352,7 @@
         }
 
         function openPhraseManageModal() {
-            document.getElementById('phraseManageInput').value = loadPhrases().join('\n');
+            document.getElementById('phraseManageInput').value = currentPhrases.join('\n');
             document.getElementById('phraseManageModal').style.display = 'flex';
         }
 
@@ -1288,10 +1362,27 @@
 
         function savePhrasesFromManage() {
             const lines = document.getElementById('phraseManageInput').value.split('\n').map(s => s.trim()).filter(Boolean);
-            savePhrases(lines.length ? lines : DEFAULT_PHRASES.slice());
-            renderQuickPhrases();
-            closePhraseManageModal();
-            showToast('빠른 문구가 저장되었습니다');
+            const finalPhrases = lines.length ? lines : DEFAULT_PHRASES.slice();
+            const btn = document.getElementById('phraseManageSaveBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> 저장 중...'; }
+
+            fetch(ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'savePhrases', secret: ADMIN_SECRET, phrases: finalPhrases })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok) throw new Error(data.error || '저장 실패');
+                    currentPhrases = finalPhrases;
+                    renderQuickPhrases();
+                    closePhraseManageModal();
+                    showToast('빠른 문구가 저장되었습니다');
+                })
+                .catch(err => showToast('저장 실패: ' + err.message))
+                .finally(() => {
+                    if (btn) { btn.disabled = false; btn.innerHTML = '저장'; }
+                });
         }
 
         document.getElementById('phraseManageModal').addEventListener('click', function (e) {
