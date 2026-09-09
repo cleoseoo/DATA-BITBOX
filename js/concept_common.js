@@ -641,11 +641,20 @@ function checkTeacherFeedback() {
                         showCustomAlert('⚠️ 확인 실패', (data && data.error) ? data.error : '알 수 없는 오류가 발생했습니다.', '⚠️');
                         return;
                     }
+                    // 🌟 [추가] 선생님이 이 단원에 "재제출"을 요청했다면, 피드백 확인 시 함께 안내합니다.
+                    const resubmitNote = data.resubmitRequested
+                        ? '<div style="background:#fff7ed; border:1px solid rgba(217,119,6,0.35); border-radius:12px; padding:10px 14px; margin-bottom:12px; color:#92400e; font-weight:800; font-size:0.88rem; text-align:left;">🔄 선생님이 이 단원을 다시 제출해달라고 요청했어요.<br>내용을 보완해서 다시 제출해주세요!</div>'
+                        : '';
+
                     if (data.feedback) {
                         const dateLine = data.feedbackDate
                             ? `<br><br><span style="font-size:0.78rem; color:#999;">(${data.feedbackDate} 작성)</span>`
                             : '';
-                        showCustomAlert('💬 선생님 피드백', String(data.feedback).replace(/\n/g, '<br>') + dateLine, '💬');
+                        showCustomAlert('💬 선생님 피드백', resubmitNote + String(data.feedback).replace(/\n/g, '<br>') + dateLine, '💬');
+                        // 🌟 [추가] 피드백을 실제로 보여준 시점에 "열람"으로 기록 (실패해도 학생 경험엔 영향 없도록 조용히 무시)
+                        markFeedbackReadSilently(studentId, pin, unitId);
+                    } else if (data.resubmitRequested) {
+                        showCustomAlert('🔄 재제출 요청', resubmitNote, '🔄');
                     } else {
                         showCustomAlert('ℹ️ 안내', '아직 선생님이 남긴 피드백이 없습니다.<br>제출 후 시간이 지나면 다시 확인해보세요.', 'ℹ️');
                     }
@@ -661,6 +670,23 @@ function checkTeacherFeedback() {
     }
 
     attempt(null, null);
+}
+
+// 🌟 [추가] 학생이 피드백을 실제로 확인한 시점을 서버에 기록 (선생님 대시보드의 "읽음" 표시용).
+// 실패하더라도 학생에게는 아무 영향이 없어야 하므로 오류를 조용히 무시합니다.
+function markFeedbackReadSilently(studentId, pin, unitId) {
+    if (typeof SUBMIT_ENDPOINT === 'undefined' || !SUBMIT_ENDPOINT || SUBMIT_ENDPOINT.indexOf('http') !== 0) return;
+    fetch(SUBMIT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+            action: 'markFeedbackRead',
+            secret: (typeof SUBMIT_SECRET !== 'undefined') ? SUBMIT_SECRET : '',
+            studentId: studentId,
+            pin: pin,
+            unitId: unitId
+        })
+    }).catch(() => { /* 읽음 표시 실패는 조용히 무시 */ });
 }
 
 // ✅ 페이지 로드 시 저장된 데이터 복원
