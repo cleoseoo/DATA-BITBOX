@@ -91,6 +91,40 @@
     #classFilterInput { width: 130px; flex: 0 0 auto; }
     #searchInput { flex: 1; min-width: 160px; }
     .toolbar .spacer { flex: 1; }
+    .toolbar-btn {
+        padding: 10px 16px; border-radius: 12px; border: 2px solid #e2e8f0; background: #fff;
+        font-weight: 800; font-size: 0.82rem; cursor: pointer; color: var(--text-main);
+        white-space: nowrap; font-family: inherit; transition: 0.15s;
+    }
+    .toolbar-btn:hover { background: #f8fafc; border-color: var(--teal-light); color: var(--teal-dark); }
+
+    /* 🌟 [추가] 학생 소통 기능: 걱정 키워드 표시, 학생별 통합 뷰, 빠른 문구 */
+    .concern-flag { font-size: 0.85rem; cursor: help; }
+    .student-id:hover { text-decoration: underline; }
+    mark.hl-concern { background: #fef3c7; color: #92400e; padding: 0 2px; border-radius: 3px; font-weight: 700; }
+    .quick-phrase-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .quick-phrase-btn {
+        padding: 6px 12px; border-radius: 16px; border: 1px solid #e2e8f0; background: #f8fafc;
+        font-size: 0.78rem; cursor: pointer; color: var(--text-sub); font-weight: 700; font-family: inherit;
+        transition: 0.15s;
+    }
+    .quick-phrase-btn:hover { background: #ecfdf5; border-color: var(--teal-light); color: var(--teal-dark); }
+    .manage-link {
+        font-size: 0.72rem; color: var(--apple-blue); cursor: pointer; text-decoration: underline;
+        margin-left: auto; font-weight: 700;
+    }
+    .block-label-row { display: flex; align-items: center; margin-bottom: 6px; }
+    .roster-row {
+        display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+        background: #f8fafc; border-radius: 12px; margin-bottom: 8px;
+    }
+    .roster-row .roster-label { font-weight: 800; font-size: 0.88rem; }
+    .overview-row {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 4px;
+        border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: 0.15s;
+    }
+    .overview-row:hover { background: #f8fffe; }
+    .missing-id-row { padding: 8px 4px; border-bottom: 1px solid #f1f5f9; }
 
     .table-wrap {
         background: #fff; border-radius: 22px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
@@ -290,6 +324,8 @@
                     <option value="done">피드백 완료만</option>
                 </select>
                 <div class="spacer"></div>
+                <button class="toolbar-btn" onclick="openRosterModal()">📋 명단 관리</button>
+                <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
             </div>
 
             <div class="table-wrap">
@@ -346,7 +382,11 @@
                 <div class="block-body" id="detailReflection"></div>
             </div>
             <div class="detail-block">
-                <div class="block-label">✏️ 선생님 피드백</div>
+                <div class="block-label-row">
+                    <div class="block-label">✏️ 선생님 피드백</div>
+                    <span class="manage-link" onclick="openPhraseManageModal()">문구 관리</span>
+                </div>
+                <div class="quick-phrase-row" id="quickPhraseRow"></div>
                 <textarea id="feedbackInput" placeholder="학생에게 남길 피드백을 입력하세요..."></textarea>
                 <div class="fb-meta" id="fbMeta"></div>
             </div>
@@ -427,6 +467,86 @@
         </div>
     </div>
 
+    <!-- 반 명단 관리 모달 (미제출 학생 확인용) -->
+    <div class="modal-overlay" id="rosterModal">
+        <div class="detail-card" style="width:480px;">
+            <div class="detail-top">
+                <div>
+                    <h3>📋 반 명단 관리</h3>
+                    <div class="sub">미제출 학생 확인에 쓸 학년·반·번호 범위를 등록하세요 (이 브라우저에만 저장됩니다)</div>
+                </div>
+                <button class="close-x" onclick="closeRosterModal()">✕</button>
+            </div>
+            <div id="rosterListWrap" style="margin-bottom:18px;"></div>
+            <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:14px; background:#f8fafc; border-radius:14px;">
+                <div style="margin:0;">
+                    <label style="display:block; font-size:0.75rem; font-weight:800; color:var(--teal-dark); margin-bottom:6px;">학년</label>
+                    <select id="rosterGradeInput" style="padding:10px; border-radius:10px; border:2px solid #e2e8f0; font-family:inherit; font-size:0.85rem;">
+                        <option value="1">1학년</option><option value="2">2학년</option><option value="3">3학년</option>
+                    </select>
+                </div>
+                <div style="margin:0;">
+                    <label style="display:block; font-size:0.75rem; font-weight:800; color:var(--teal-dark); margin-bottom:6px;">반</label>
+                    <input type="number" id="rosterClassInput" min="1" max="99" placeholder="예: 1" style="width:70px; padding:10px; border-radius:10px; border:2px solid #e2e8f0; font-family:inherit; font-size:0.85rem;">
+                </div>
+                <div style="margin:0;">
+                    <label style="display:block; font-size:0.75rem; font-weight:800; color:var(--teal-dark); margin-bottom:6px;">번호 범위</label>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <input type="number" id="rosterStartInput" min="1" max="99" placeholder="1" style="width:56px; padding:10px; border-radius:10px; border:2px solid #e2e8f0; font-family:inherit; font-size:0.85rem;">
+                        <span style="color:var(--text-sub);">~</span>
+                        <input type="number" id="rosterEndInput" min="1" max="99" placeholder="28" style="width:56px; padding:10px; border-radius:10px; border:2px solid #e2e8f0; font-family:inherit; font-size:0.85rem;">
+                    </div>
+                </div>
+                <button class="save-btn" style="flex:0 0 auto; padding:11px 18px;" onclick="addRosterEntry()">추가</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 미제출 학생 확인 결과 모달 -->
+    <div class="modal-overlay" id="missingModal">
+        <div class="detail-card" style="width:440px;">
+            <div class="detail-top">
+                <div>
+                    <h3 id="missingTitle">미제출 확인</h3>
+                    <div class="sub" id="missingSub"></div>
+                </div>
+                <button class="close-x" onclick="closeMissingModal()">✕</button>
+            </div>
+            <div id="missingBody" style="max-height:340px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- 학생별 통합 뷰 모달 -->
+    <div class="modal-overlay" id="overviewModal">
+        <div class="detail-card" style="width:520px;">
+            <div class="detail-top">
+                <div>
+                    <h3 id="overviewTitle">학번</h3>
+                    <div class="sub" id="overviewSub"></div>
+                </div>
+                <button class="close-x" onclick="closeStudentOverview()">✕</button>
+            </div>
+            <div id="overviewBody" style="max-height:400px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- 피드백 빠른 문구 관리 모달 -->
+    <div class="modal-overlay" id="phraseManageModal">
+        <div class="detail-card" style="width:440px;">
+            <div class="detail-top">
+                <div>
+                    <h3>✏️ 빠른 문구 관리</h3>
+                    <div class="sub">한 줄에 하나씩 입력하세요 (이 브라우저에만 저장됩니다)</div>
+                </div>
+                <button class="close-x" onclick="closePhraseManageModal()">✕</button>
+            </div>
+            <textarea id="phraseManageInput" style="width:100%; min-height:180px; padding:14px 16px; border-radius:14px; border:2px solid #e2e8f0; font-family:inherit; font-size:0.88rem; resize:vertical; outline:none; line-height:1.6; margin-bottom:16px; box-sizing:border-box;"></textarea>
+            <div class="detail-actions" style="margin-top:0;">
+                <button class="save-btn" onclick="savePhrasesFromManage()">저장</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast"></div>
 
     <script>
@@ -441,6 +561,7 @@
         const LS_SECRET = 'bitbox_dash_secret';
 
         window.onload = function () {
+            renderQuickPhrases();
             const savedEndpoint = localStorage.getItem(LS_ENDPOINT);
             const savedSecret = localStorage.getItem(LS_SECRET);
             if (savedEndpoint && savedSecret) {
@@ -651,9 +772,12 @@
                 const fbBadge = r.feedback
                     ? '<span class="fb-badge done">✅ 완료</span>'
                     : '<span class="fb-badge pending">⏳ 대기</span>';
+                const concernBadge = (hasConcern(r.memo) || hasConcern(r.reflection))
+                    ? ' <span class="concern-flag" title="소감/노트에 도움이 필요하다는 표현이 있어요">💭</span>' : '';
                 return `<tr onclick='openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
-                    <td class="student-id">${escapeHtml(r.studentId)}</td>
-                    <td>${escapeHtml(r.unitTitle || r.unitId || '')}</td>
+                    <td class="student-id" title="이 학생의 전체 제출 이력 보기"
+                        onclick='event.stopPropagation(); openStudentOverview(${JSON.stringify(r.studentId)})'>${escapeHtml(r.studentId)}</td>
+                    <td>${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}</td>
                     <td class="col-center"><span class="score-pill ${scoreClass}">${escapeHtml(r.score)}</span></td>
                     <td class="col-time">${formatDate(r.timestamp)}</td>
                     <td class="col-feedback">${fbBadge}</td>
@@ -691,11 +815,12 @@
 
             const memoEl = document.getElementById('detailMemo');
             const reflEl = document.getElementById('detailReflection');
-            memoEl.textContent = row.memo || '';
+            memoEl.innerHTML = row.memo ? highlightConcernHtml(row.memo) : '';
             memoEl.classList.toggle('empty', !row.memo);
-            reflEl.textContent = row.reflection || '';
+            reflEl.innerHTML = row.reflection ? highlightConcernHtml(row.reflection) : '';
             reflEl.classList.toggle('empty', !row.reflection);
 
+            renderQuickPhrases();
             document.getElementById('feedbackInput').value = row.feedback || '';
             document.getElementById('fbMeta').textContent = row.feedbackDate ? `마지막 저장: ${row.feedbackDate}` : '아직 저장된 피드백이 없습니다.';
 
@@ -943,6 +1068,234 @@
 
         document.getElementById('rowDeleteConfirmModal').addEventListener('click', function (e) {
             if (e.target === this) closeRowDeleteConfirm();
+        });
+
+        // ── 소감/노트 걱정 키워드 하이라이트 ──────────────────────────────────
+        // 학생이 소감이나 배움노트에 "어렵다", "모르겠다" 류의 표현을 남기면
+        // 표에서 💭 표시로 눈에 띄게 하고, 상세보기에서는 노란색으로 하이라이트합니다.
+        const CONCERN_KEYWORDS = ['어렵', '모르겠', '헷갈', '이해가 안', '잘 모르', '어려워', '힘들', '모르는'];
+
+        function hasConcern(text) {
+            if (!text) return false;
+            const s = String(text);
+            return CONCERN_KEYWORDS.some(k => s.indexOf(k) !== -1);
+        }
+
+        function highlightConcernHtml(text) {
+            let s = escapeHtml(text || '');
+            CONCERN_KEYWORDS.forEach(k => {
+                const ek = escapeHtml(k);
+                if (!ek) return;
+                s = s.split(ek).join(`<mark class="hl-concern">${ek}</mark>`);
+            });
+            return s;
+        }
+
+        // ── 학생별 통합 뷰 (학번 클릭 시 그 학생의 전체 제출 이력 모아보기) ──────
+        function openStudentOverview(studentId) {
+            const rows = allRows.filter(r => String(r.studentId) === String(studentId))
+                .sort((a, b) => (new Date(b.timestamp).getTime() || 0) - (new Date(a.timestamp).getTime() || 0));
+            if (!rows.length) return;
+            const avg = (rows.reduce((s, r) => s + (Number(r.score) || 0), 0) / rows.length).toFixed(1);
+            document.getElementById('overviewTitle').textContent = `🙋 ${studentId}`;
+            document.getElementById('overviewSub').textContent = `총 ${rows.length}건 제출 · 평균 ${avg}점`;
+            document.getElementById('overviewBody').innerHTML = rows.map(r => {
+                const fbBadge = r.feedback
+                    ? '<span class="fb-badge done">✅ 완료</span>'
+                    : '<span class="fb-badge pending">⏳ 대기</span>';
+                const concernBadge = (hasConcern(r.memo) || hasConcern(r.reflection))
+                    ? ' <span class="concern-flag" title="소감/노트에 도움이 필요하다는 표현이 있어요">💭</span>' : '';
+                return `<div class="overview-row" onclick='closeStudentOverview(); openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
+                    <div style="min-width:0;">
+                        <div style="font-weight:800; font-size:0.9rem;">${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}</div>
+                        <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px;">${formatDate(r.timestamp)}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                        <span class="score-pill ${(Number(r.score) || 0) >= 70 ? '' : 'low'}">${escapeHtml(r.score)}</span>
+                        ${fbBadge}
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('overviewModal').style.display = 'flex';
+        }
+
+        function closeStudentOverview() {
+            document.getElementById('overviewModal').style.display = 'none';
+        }
+
+        document.getElementById('overviewModal').addEventListener('click', function (e) {
+            if (e.target === this) closeStudentOverview();
+        });
+
+        // ── 반 명단 관리 & 미제출 학생 확인 ──────────────────────────────────
+        // 명단은 이 브라우저(localStorage)에만 저장됩니다. 학년/반/번호 범위를 등록해두면
+        // 현재 선택된 단원(+학년/반 필터)을 기준으로 아직 제출하지 않은 학번을 계산해줍니다.
+        const ROSTER_KEY = 'bitbox_dash_roster';
+
+        function loadRoster() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(ROSTER_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) { return []; }
+        }
+
+        function saveRoster(list) {
+            localStorage.setItem(ROSTER_KEY, JSON.stringify(list));
+        }
+
+        function renderRosterList() {
+            const roster = loadRoster();
+            const wrap = document.getElementById('rosterListWrap');
+            if (!roster.length) {
+                wrap.innerHTML = '<div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:20px 0;">등록된 명단이 없습니다.</div>';
+                return;
+            }
+            wrap.innerHTML = roster.map((r, i) => `
+                <div class="roster-row">
+                    <span class="roster-label">${parseInt(r.grade, 10)}학년 ${parseInt(r.cls, 10)}반 · ${r.start}~${r.end}번 (${r.end - r.start + 1}명)</span>
+                    <button class="row-del-btn" onclick="deleteRosterEntry(${i})" title="삭제">🗑</button>
+                </div>`).join('');
+        }
+
+        function addRosterEntry() {
+            const grade = document.getElementById('rosterGradeInput').value;
+            const clsRaw = document.getElementById('rosterClassInput').value.trim();
+            const start = parseInt(document.getElementById('rosterStartInput').value, 10);
+            const end = parseInt(document.getElementById('rosterEndInput').value, 10);
+            if (!clsRaw || !/^[0-9]+$/.test(clsRaw)) { showToast('반을 숫자로 입력해주세요'); return; }
+            if (!start || !end || start < 1 || end < start || end > 99) { showToast('번호 범위를 올바르게 입력해주세요'); return; }
+            const cls = String(parseInt(clsRaw, 10)).padStart(2, '0');
+            const roster = loadRoster();
+            roster.push({ grade, cls, start, end });
+            saveRoster(roster);
+            renderRosterList();
+            document.getElementById('rosterClassInput').value = '';
+            document.getElementById('rosterStartInput').value = '';
+            document.getElementById('rosterEndInput').value = '';
+        }
+
+        function deleteRosterEntry(i) {
+            const roster = loadRoster();
+            roster.splice(i, 1);
+            saveRoster(roster);
+            renderRosterList();
+        }
+
+        function openRosterModal() {
+            renderRosterList();
+            document.getElementById('rosterModal').style.display = 'flex';
+        }
+
+        function closeRosterModal() {
+            document.getElementById('rosterModal').style.display = 'none';
+        }
+
+        document.getElementById('rosterModal').addEventListener('click', function (e) {
+            if (e.target === this) closeRosterModal();
+        });
+
+        function checkMissingStudents() {
+            const unit = document.getElementById('unitFilter').value;
+            if (!unit) { showToast('먼저 확인할 단원을 선택해주세요 (단원 필터)'); return; }
+            const roster = loadRoster();
+            if (!roster.length) { showToast('먼저 반 명단을 등록해주세요'); openRosterModal(); return; }
+
+            const gradeQ = document.getElementById('gradeFilterInput').value;
+            const classQ = document.getElementById('classFilterInput').value;
+            const submitted = new Set(allRows.filter(r => r.unitTitle === unit).map(r => String(r.studentId)));
+
+            let expected = [];
+            roster.forEach(entry => {
+                if (gradeQ && entry.grade !== gradeQ) return;
+                if (classQ && entry.cls !== classQ) return;
+                for (let no = entry.start; no <= entry.end; no++) {
+                    expected.push(entry.grade + entry.cls + String(no).padStart(2, '0'));
+                }
+            });
+            expected = [...new Set(expected)].sort();
+            const missing = expected.filter(id => !submitted.has(id));
+
+            document.getElementById('missingTitle').textContent = `📋 ${unit}`;
+            const submittedCount = expected.length - missing.length;
+            document.getElementById('missingSub').textContent =
+                `등록 명단 ${expected.length}명 중 ${submittedCount}명 제출 · ${missing.length}명 미제출`;
+            const body = document.getElementById('missingBody');
+            if (!expected.length) {
+                body.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--text-sub);">현재 필터에 해당하는 등록 명단이 없습니다.</div>';
+            } else if (!missing.length) {
+                body.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--success-green); font-weight:800;">🎉 전원 제출했습니다!</div>';
+            } else {
+                body.innerHTML = missing.map(id => `<div class="student-id missing-id-row">${escapeHtml(id)}</div>`).join('');
+            }
+            document.getElementById('missingModal').style.display = 'flex';
+        }
+
+        function closeMissingModal() {
+            document.getElementById('missingModal').style.display = 'none';
+        }
+
+        document.getElementById('missingModal').addEventListener('click', function (e) {
+            if (e.target === this) closeMissingModal();
+        });
+
+        // ── 피드백 빠른 문구 ──────────────────────────────────
+        const PHRASE_KEY = 'bitbox_dash_phrases';
+        const DEFAULT_PHRASES = [
+            '정말 잘했어요! 👍',
+            '핵심 개념을 정확히 이해했네요.',
+            '조금 더 자세히 설명해볼까요?',
+            '수고했어요. 예시를 들어보면 더 좋을 것 같아요.',
+            '노력한 흔적이 보여요, 조금만 더 힘내봐요!'
+        ];
+
+        function loadPhrases() {
+            try {
+                const raw = localStorage.getItem(PHRASE_KEY);
+                if (!raw) return DEFAULT_PHRASES.slice();
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_PHRASES.slice();
+            } catch (e) { return DEFAULT_PHRASES.slice(); }
+        }
+
+        function savePhrases(list) {
+            localStorage.setItem(PHRASE_KEY, JSON.stringify(list));
+        }
+
+        function renderQuickPhrases() {
+            const wrap = document.getElementById('quickPhraseRow');
+            if (!wrap) return;
+            const phrases = loadPhrases();
+            wrap.innerHTML = phrases.map(p =>
+                `<button type="button" class="quick-phrase-btn" onclick='insertPhrase(${JSON.stringify(p)})'>${escapeHtml(p)}</button>`
+            ).join('');
+        }
+
+        function insertPhrase(text) {
+            const input = document.getElementById('feedbackInput');
+            const cur = input.value;
+            input.value = (cur && !/\s$/.test(cur)) ? cur + ' ' + text : cur + text;
+            input.focus();
+        }
+
+        function openPhraseManageModal() {
+            document.getElementById('phraseManageInput').value = loadPhrases().join('\n');
+            document.getElementById('phraseManageModal').style.display = 'flex';
+        }
+
+        function closePhraseManageModal() {
+            document.getElementById('phraseManageModal').style.display = 'none';
+        }
+
+        function savePhrasesFromManage() {
+            const lines = document.getElementById('phraseManageInput').value.split('\n').map(s => s.trim()).filter(Boolean);
+            savePhrases(lines.length ? lines : DEFAULT_PHRASES.slice());
+            renderQuickPhrases();
+            closePhraseManageModal();
+            showToast('빠른 문구가 저장되었습니다');
+        }
+
+        document.getElementById('phraseManageModal').addEventListener('click', function (e) {
+            if (e.target === this) closePhraseManageModal();
         });
     </script>
 </body>
