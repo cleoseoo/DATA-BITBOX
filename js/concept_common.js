@@ -452,10 +452,14 @@ function openStudentIdModal(errorMsg, prefillId) {
     content.innerHTML = `
         <div style="font-size:2.2rem; margin-bottom:10px;">🙋</div>
         <h3 style="margin-bottom:10px; font-size:1.2rem; font-weight:900;">학번과 PIN을 입력해주세요</h3>
-        <p style="font-size:0.9rem; color:#555; line-height:1.7; margin-bottom:14px;">
-            학번: 학년(1자리)+반(2자리)+번호(2자리) = 총 5자리 (예: 1학년 1반 1번 → <b>10101</b>)<br>
-            PIN: 나만 아는 숫자 4자리 <span style="color:#0f766e; font-weight:700;">(처음 입력하는 값이 앞으로 계속 쓰이는 내 PIN이 됩니다)</span><br>
-            <span style="color:#dc2626; font-weight:700;">※ 다른 친구가 쓰던 PC일 수 있으니, 본인 학번·PIN이 맞는지 꼭 확인하세요.</span>
+        <p style="font-size:0.92rem; color:#555; line-height:1.6; margin-bottom:6px; word-break:keep-all;">
+            학번 5자리(예: <b>10101</b>)와 나만의 PIN 4자리를 입력하세요
+        </p>
+        <p style="font-size:0.78rem; color:#0f766e; font-weight:700; margin-bottom:4px; word-break:keep-all;">
+            PIN은 처음 입력한 값이 계속 사용돼요
+        </p>
+        <p style="font-size:0.78rem; color:#dc2626; font-weight:700; margin-bottom:14px; word-break:keep-all;">
+            ⚠️ 다른 친구 PC라면 학번·PIN을 꼭 확인하세요
         </p>
         <input id="studentIdInput" type="text" inputmode="numeric" maxlength="5" placeholder="학번 (예: 10101)"
             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
