@@ -471,11 +471,11 @@
             </div>
             <div class="toolbar">
                 <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
-                <button class="toolbar-btn" onclick="openClassStatsModal()">📊 학년/학급/학생별 통계</button>
-                <div class="spacer"></div>
                 <button class="toolbar-btn ghost" id="bulkClearBtn" style="display:none;" onclick="clearSelection()">선택 해제</button>
                 <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()"
-                    title="한 번에 여러 명을 요청하면 한 명씩 순서대로 처리돼요. 인원이 많을수록 시간이 조금 더 걸릴 수 있어요.">🔄 선택 재제출 요청</button>
+                    title="한 번에 여러 명을 요청하면 한 명씩 순서대로 처리돼요.&#10;인원이 많을수록 시간이 조금 더 걸릴 수 있어요.">🔄 선택 재제출 요청</button>
+                <div class="spacer"></div>
+                <button class="toolbar-btn" onclick="openClassStatsModal()">📊 학년/학급/학생별 통계</button>
             </div>
             <div style="font-size:0.76rem; color: var(--text-sub); margin: -10px 0 14px; padding: 0 2px;">
                 💡 학년·반으로 목록을 좁힌 뒤 표 왼쪽 <b>체크박스로 전체 선택</b>하면, 학급 전체에게 한 번에 재제출을 요청할 수 있어요.
