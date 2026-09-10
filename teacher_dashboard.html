@@ -129,7 +129,8 @@
     .toolbar input:focus, .toolbar select:focus { border-color: var(--teal-main); }
     #gradeFilterInput { width: 120px; flex: 0 0 auto; }
     #classFilterInput { width: 130px; flex: 0 0 auto; }
-    #searchInput { flex: 1; min-width: 160px; }
+    #searchInput { flex: 0 0 auto; width: 225px; }
+    #rosterBtn { flex: 0 0 auto; width: 155px; }
     .toolbar .spacer { flex: 1; }
     .toolbar-btn {
         padding: 10px 16px; border-radius: 12px; border: 2px solid #e2e8f0; background: #fff;
@@ -445,7 +446,7 @@
                     <option value="pending">피드백 대기만</option>
                     <option value="done">피드백 완료만</option>
                 </select>
-                <button class="toolbar-btn" onclick="openRosterModal()">📋 명단 관리</button>
+                <button class="toolbar-btn" id="rosterBtn" onclick="openRosterModal()">📋 명단 관리</button>
             </div>
             <div class="toolbar">
                 <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
