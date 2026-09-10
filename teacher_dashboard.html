@@ -132,7 +132,7 @@
     #searchInput { flex: 0 0 225px; }
     #unitFilter { flex: 1 1 142px; }
     #fbFilter { flex: 1 1 155px; }
-    #rosterBtn { flex: 1 1 155px; }
+    #rosterBtn, #classStatsOpenBtn { flex: 0 0 195px; width: 195px; }
     .toolbar .spacer { flex: 1; }
     .toolbar-btn {
         padding: 10px 16px; border-radius: 12px; border: 2px solid #e2e8f0; background: #fff;
@@ -265,6 +265,8 @@
     .trend-point { fill: #fff; stroke: var(--success-green); stroke-width: 2.5; cursor: help; }
     .trend-point.low { stroke: var(--apple-red); }
     .trend-label { font-size: 9px; fill: var(--apple-gray); font-family: inherit; }
+    .trend-grid { stroke: #f1f5f9; stroke-width: 1; }
+    .trend-ylabel { font-size: 8px; fill: var(--apple-gray); font-family: inherit; }
     /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸은 가운데 정렬해서
        보기 좋게 정리 (실제 폭 비율은 <colgroup>에서 지정) */
     td.col-center, td.col-time, td.col-feedback, td.col-del, td.col-pin, td.col-check { text-align: center; }
@@ -475,7 +477,7 @@
                 <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()"
                     title="한 번에 여러 명을 요청하면 한 명씩 순서대로 처리돼요.&#10;인원이 많을수록 시간이 조금 더 걸릴 수 있어요.">🔄 선택 재제출 요청</button>
                 <div class="spacer"></div>
-                <button class="toolbar-btn" onclick="openClassStatsModal()">📊 학년/학급/학생별 통계</button>
+                <button class="toolbar-btn" id="classStatsOpenBtn" onclick="openClassStatsModal()">📊 학년/학급/학생별 통계</button>
             </div>
             <div style="font-size:0.76rem; color: var(--text-sub); margin: -10px 0 14px; padding: 0 2px;">
                 💡 학년·반으로 목록을 좁힌 뒤 표 왼쪽 <b>체크박스로 전체 선택</b>하면, 학급 전체에게 한 번에 재제출을 요청할 수 있어요.
@@ -1689,28 +1691,43 @@
 
         // 🌟 [추가] 학생 한 명의 제출 이력을 시간순(오래된→최신)으로 이어, 점수가 어떻게
         // 바뀌어왔는지 한눈에 볼 수 있는 꺾은선 그래프를 SVG로 직접 그림.
+        function truncateLabel(s, maxLen) {
+            s = String(s || '');
+            return s.length > maxLen ? s.slice(0, maxLen) + '…' : s;
+        }
+
         function buildScoreTrendSVG(rows) {
             const asc = [...rows].sort((a, b) => (new Date(a.timestamp).getTime() || 0) - (new Date(b.timestamp).getTime() || 0));
             if (asc.length < 2) {
                 return '<div class="trend-chart-empty">📈 제출이 2건 이상 쌓이면 점수 변화 그래프가 여기 표시돼요.</div>';
             }
-            const W = 460, H = 130, padL = 30, padR = 16, padT = 14, padB = 24;
+            // 🌟 [수정] x축=단원명, y축=20점 단위 눈금으로 표시. 단원명이 길 수 있어 아래쪽
+            // 여백(padB)을 넉넉히 주고, 라벨을 비스듬히(-35도) 기울여서 겹치지 않게 함.
+            const W = 460, H = 175, padL = 56, padR = 16, padT = 14, padB = 46;
             const innerW = W - padL - padR, innerH = H - padT - padB;
             const n = asc.length;
             const xFor = i => padL + (n > 1 ? (innerW * i / (n - 1)) : innerW / 2);
             const yFor = score => padT + innerH - (Math.max(0, Math.min(100, Number(score) || 0)) / 100) * innerH;
             const refY = yFor(70);
-            const shortDate = v => {
-                const d = new Date(v);
-                if (isNaN(d.getTime())) return '';
-                return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-            };
+            const axisY = padT + innerH;
 
             const pts = asc.map((r, i) => ({ x: xFor(i), y: yFor(r.score), r }));
             const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
 
-            const labelIdx = n <= 6 ? pts.map((_, i) => i) : [0, Math.round((n - 1) / 2), n - 1];
-            const labels = labelIdx.map(i => `<text class="trend-label" x="${pts[i].x.toFixed(1)}" y="${H - 6}" text-anchor="middle">${escapeHtml(shortDate(pts[i].r.timestamp))}</text>`).join('');
+            // y축: 0~100점을 20점 간격으로 가로 눈금선 + 작은 숫자 라벨
+            const yTicks = [0, 20, 40, 60, 80, 100];
+            const yGrid = yTicks.map(t => {
+                const y = yFor(t);
+                return `<line class="trend-grid" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}"/>` +
+                    `<text class="trend-ylabel" x="${(padL - 6).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end">${t}</text>`;
+            }).join('');
+
+            // x축: 각 점마다 단원명을 짧게 잘라 비스듬히 표시 (전체 이름은 점에 마우스를 올리면 나옴)
+            const xLabels = pts.map(p => {
+                const label = truncateLabel(p.r.unitTitle || p.r.unitId || '', 7);
+                const lx = p.x.toFixed(1), ly = (axisY + 12).toFixed(1);
+                return `<text class="trend-label" x="${lx}" y="${ly}" text-anchor="end" transform="rotate(-35 ${lx} ${ly})">${escapeHtml(label)}</text>`;
+            }).join('');
 
             const circles = pts.map(p => {
                 const low = (Number(p.r.score) || 0) < 70;
@@ -1719,12 +1736,13 @@
             }).join('');
 
             return `<div class="trend-chart-wrap">
-                <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="학생 점수 변화 그래프">
+                <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="학생 점수 변화 그래프 (가로축: 단원, 세로축: 점수)">
+                    ${yGrid}
                     <line class="trend-ref" x1="${padL}" y1="${refY.toFixed(1)}" x2="${W - padR}" y2="${refY.toFixed(1)}" stroke-dasharray="3,3"/>
-                    <line class="trend-axis" x1="${padL}" y1="${(padT + innerH).toFixed(1)}" x2="${W - padR}" y2="${(padT + innerH).toFixed(1)}"/>
+                    <line class="trend-axis" x1="${padL}" y1="${axisY.toFixed(1)}" x2="${W - padR}" y2="${axisY.toFixed(1)}"/>
                     <path class="trend-line" d="${pathD}"/>
                     ${circles}
-                    ${labels}
+                    ${xLabels}
                 </svg>
             </div>`;
         }
