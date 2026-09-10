@@ -127,10 +127,12 @@
         font-family: inherit; outline: none; background: #fff;
     }
     .toolbar input:focus, .toolbar select:focus { border-color: var(--teal-main); }
-    #gradeFilterInput { width: 132px; flex: 0 0 auto; }
-    #classFilterInput { width: 130px; flex: 0 0 auto; }
-    #searchInput { flex: 0 0 auto; width: 225px; }
-    #rosterBtn { flex: 0 0 auto; width: 155px; }
+    #gradeFilterInput { flex: 1 1 132px; }
+    #classFilterInput { flex: 1 1 130px; }
+    #searchInput { flex: 0 0 225px; }
+    #unitFilter { flex: 1 1 142px; }
+    #fbFilter { flex: 1 1 155px; }
+    #rosterBtn { flex: 1 1 155px; }
     .toolbar .spacer { flex: 1; }
     .toolbar-btn {
         padding: 10px 16px; border-radius: 12px; border: 2px solid #e2e8f0; background: #fff;
@@ -676,17 +678,20 @@
         <div class="detail-card" style="width:460px;">
             <div class="detail-top">
                 <div>
-                    <h3>📊 학급/학년 통계</h3>
-                    <div class="sub">평균 점수를 학년별 또는 반별로 비교해서 볼 수 있어요</div>
+                    <h3 id="classStatsTitle">📊 학급/학년 통계</h3>
+                    <div class="sub" id="classStatsSub">평균 점수를 학년별 또는 반별로 비교해서 볼 수 있어요</div>
                 </div>
                 <button class="close-x" onclick="closeClassStatsModal()">✕</button>
             </div>
             <div class="stat-tabs">
                 <button class="stat-tab-btn" id="statTabGrade" onclick="switchClassStatsTab('grade')">🎓 학년별</button>
                 <button class="stat-tab-btn" id="statTabClass" onclick="switchClassStatsTab('class')">🏫 반별</button>
+                <button class="stat-tab-btn" id="statTabStudent" onclick="switchClassStatsTab('student')">🙋 학생별</button>
             </div>
             <select class="stat-unit-select" id="classStatsUnitFilter" onchange="renderClassStats()">
                 <option value="">전체 단원 (모든 제출 기준)</option>
+            </select>
+            <select class="stat-unit-select" id="classStatsStudentFilter" style="display:none;" onchange="renderClassStats()">
             </select>
             <div id="classStatsBody" style="max-height:360px; overflow-y:auto;"></div>
         </div>
@@ -874,7 +879,7 @@
             document.getElementById('statAvg').textContent = avg;
         }
 
-        // ── 📊 학급/학년 통계 ────────────────────────────────────────────
+        // ── 📊 학급/학년/학생 통계 ────────────────────────────────────────
         function openClassStatsModal() {
             const sel = document.getElementById('classStatsUnitFilter');
             const cur = sel.value;
@@ -882,6 +887,14 @@
             sel.innerHTML = '<option value="">전체 단원 (모든 제출 기준)</option>' +
                 units.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
             sel.value = cur;
+
+            const stuSel = document.getElementById('classStatsStudentFilter');
+            const curStu = stuSel.value;
+            const studentIds = [...new Set(allRows.map(r => r.studentId).filter(Boolean))]
+                .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+            stuSel.innerHTML = studentIds.map(id => `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`).join('');
+            stuSel.value = studentIds.includes(curStu) ? curStu : (studentIds[0] || '');
+
             switchClassStatsTab(classStatsMode);
             document.getElementById('classStatsModal').style.display = 'flex';
         }
@@ -894,13 +907,25 @@
             classStatsMode = mode;
             document.getElementById('statTabGrade').classList.toggle('active', mode === 'grade');
             document.getElementById('statTabClass').classList.toggle('active', mode === 'class');
+            document.getElementById('statTabStudent').classList.toggle('active', mode === 'student');
+            document.getElementById('classStatsUnitFilter').style.display = mode === 'student' ? 'none' : '';
+            document.getElementById('classStatsStudentFilter').style.display = mode === 'student' ? '' : 'none';
+            document.getElementById('classStatsSub').textContent = mode === 'student'
+                ? '학생 한 명을 골라 제출 이력과 점수 변화를 볼 수 있어요'
+                : '평균 점수를 학년별 또는 반별로 비교해서 볼 수 있어요';
             renderClassStats();
         }
 
         function renderClassStats() {
+            const body = document.getElementById('classStatsBody');
+
+            if (classStatsMode === 'student') {
+                renderStudentStats(body);
+                return;
+            }
+
             const unit = document.getElementById('classStatsUnitFilter').value;
             const rows = unit ? allRows.filter(r => r.unitTitle === unit) : allRows;
-            const body = document.getElementById('classStatsBody');
 
             if (!rows.length) {
                 body.innerHTML = '<div class="stat-empty">해당 조건에 맞는 제출 데이터가 없어요.</div>';
@@ -949,6 +974,26 @@
             }).join('');
 
             body.innerHTML = html;
+        }
+
+        // 🌟 [추가] 학급/학년 통계 모달의 "학생별" 탭: 고른 학생 한 명의 전체 제출
+        // 이력과 점수 변화 그래프를 학생별 통합 뷰(openStudentOverview)와 같은 방식으로 보여줌.
+        function renderStudentStats(body) {
+            const studentId = document.getElementById('classStatsStudentFilter').value;
+            if (!studentId) {
+                body.innerHTML = '<div class="stat-empty">제출 기록이 있는 학생이 없어요.</div>';
+                return;
+            }
+            const rows = allRows.filter(r => String(r.studentId) === String(studentId))
+                .sort((a, b) => (new Date(b.timestamp).getTime() || 0) - (new Date(a.timestamp).getTime() || 0));
+            if (!rows.length) {
+                body.innerHTML = '<div class="stat-empty">이 학생의 제출 기록이 없어요.</div>';
+                return;
+            }
+            const avg = (rows.reduce((s, r) => s + (Number(r.score) || 0), 0) / rows.length).toFixed(1);
+            body.innerHTML = `<div class="group-bar-meta" style="margin-bottom:10px; font-size:0.8rem;">🙋 <b style="color:var(--text-main);">${escapeHtml(studentId)}</b> · 총 ${rows.length}건 제출 · 평균 ${avg}점</div>`
+                + buildScoreTrendSVG(rows)
+                + buildOverviewRowsHTML(rows, 'closeClassStatsModal');
         }
 
         document.getElementById('classStatsModal').addEventListener('click', function (e) {
@@ -1535,7 +1580,20 @@
             const avg = (rows.reduce((s, r) => s + (Number(r.score) || 0), 0) / rows.length).toFixed(1);
             document.getElementById('overviewTitle').textContent = `🙋 ${studentId}`;
             document.getElementById('overviewSub').textContent = `총 ${rows.length}건 제출 · 평균 ${avg}점`;
-            document.getElementById('overviewBody').innerHTML = rows.map(r => {
+            document.getElementById('overviewBody').innerHTML = buildOverviewRowsHTML(rows, 'closeStudentOverview');
+            document.getElementById('overviewChart').innerHTML = buildScoreTrendSVG(rows);
+            document.getElementById('overviewModal').style.display = 'flex';
+        }
+
+        function closeStudentOverview() {
+            document.getElementById('overviewModal').style.display = 'none';
+        }
+
+        // 🌟 [추가] 제출 이력 목록(단원명/점수/피드백 상태)을 카드 목록 HTML로 만들어줌.
+        // 학생별 통합 뷰와 학급/학년 통계의 "학생별" 탭에서 함께 재사용.
+        // closeFn: 행을 클릭해 상세보기로 이동하기 전에 닫아야 할 모달의 닫기 함수 이름
+        function buildOverviewRowsHTML(rows, closeFn) {
+            return rows.map(r => {
                 const fbBadge = r.feedback
                     ? '<span class="fb-badge done">✅ 완료</span>'
                     : '<span class="fb-badge pending">⏳ 대기</span>';
@@ -1543,7 +1601,7 @@
                     ? ' <span class="concern-flag" title="소감/노트에 도움이 필요하다는 표현이 있어요">💭</span>' : '';
                 const resubmitBadge = r.resubmitRequested
                     ? ' <span class="resubmit-flag" title="재제출을 요청했어요">🔄</span>' : '';
-                return `<div class="overview-row" onclick='closeStudentOverview(); openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
+                return `<div class="overview-row" onclick='${closeFn}(); openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
                     <div style="min-width:0;">
                         <div style="font-weight:800; font-size:0.9rem;">${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}${resubmitBadge}</div>
                         <div style="font-size:0.75rem; color:var(--text-sub); margin-top:2px;">${formatDate(r.timestamp)}</div>
@@ -1554,12 +1612,6 @@
                     </div>
                 </div>`;
             }).join('');
-            document.getElementById('overviewChart').innerHTML = buildScoreTrendSVG(rows);
-            document.getElementById('overviewModal').style.display = 'flex';
-        }
-
-        function closeStudentOverview() {
-            document.getElementById('overviewModal').style.display = 'none';
         }
 
         // 🌟 [추가] 학생 한 명의 제출 이력을 시간순(오래된→최신)으로 이어, 점수가 어떻게
