@@ -691,8 +691,9 @@
             <select class="stat-unit-select" id="classStatsUnitFilter" onchange="renderClassStats()">
                 <option value="">전체 단원 (모든 제출 기준)</option>
             </select>
-            <select class="stat-unit-select" id="classStatsStudentFilter" style="display:none;" onchange="renderClassStats()">
-            </select>
+            <input type="text" class="stat-unit-select" id="classStatsStudentFilter" list="classStatsStudentList"
+                style="display:none;" placeholder="🔍 학번 검색 또는 선택" autocomplete="off" oninput="renderClassStats()">
+            <datalist id="classStatsStudentList"></datalist>
             <div id="classStatsBody" style="max-height:360px; overflow-y:auto;"></div>
         </div>
     </div>
@@ -888,12 +889,13 @@
                 units.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
             sel.value = cur;
 
-            const stuSel = document.getElementById('classStatsStudentFilter');
-            const curStu = stuSel.value;
+            const stuInput = document.getElementById('classStatsStudentFilter');
+            const curStu = stuInput.value;
             const studentIds = [...new Set(allRows.map(r => r.studentId).filter(Boolean))]
                 .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
-            stuSel.innerHTML = studentIds.map(id => `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`).join('');
-            stuSel.value = studentIds.includes(curStu) ? curStu : (studentIds[0] || '');
+            document.getElementById('classStatsStudentList').innerHTML =
+                studentIds.map(id => `<option value="${escapeHtml(id)}"></option>`).join('');
+            stuInput.value = studentIds.includes(curStu) ? curStu : (studentIds[0] || '');
 
             switchClassStatsTab(classStatsMode);
             document.getElementById('classStatsModal').style.display = 'flex';
@@ -979,15 +981,15 @@
         // 🌟 [추가] 학급/학년 통계 모달의 "학생별" 탭: 고른 학생 한 명의 전체 제출
         // 이력과 점수 변화 그래프를 학생별 통합 뷰(openStudentOverview)와 같은 방식으로 보여줌.
         function renderStudentStats(body) {
-            const studentId = document.getElementById('classStatsStudentFilter').value;
+            const studentId = document.getElementById('classStatsStudentFilter').value.trim();
             if (!studentId) {
-                body.innerHTML = '<div class="stat-empty">제출 기록이 있는 학생이 없어요.</div>';
+                body.innerHTML = '<div class="stat-empty">학번을 검색하거나 목록에서 선택해주세요.</div>';
                 return;
             }
             const rows = allRows.filter(r => String(r.studentId) === String(studentId))
                 .sort((a, b) => (new Date(b.timestamp).getTime() || 0) - (new Date(a.timestamp).getTime() || 0));
             if (!rows.length) {
-                body.innerHTML = '<div class="stat-empty">이 학생의 제출 기록이 없어요.</div>';
+                body.innerHTML = '<div class="stat-empty">"' + escapeHtml(studentId) + '" 학번의 제출 기록을 찾을 수 없어요. 목록에서 선택해보세요.</div>';
                 return;
             }
             const avg = (rows.reduce((s, r) => s + (Number(r.score) || 0), 0) / rows.length).toFixed(1);
