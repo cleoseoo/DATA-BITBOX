@@ -207,6 +207,42 @@
     .fb-badge.unread { background: #fef2f2; color: var(--apple-red); }
     .fb-badge.resubmit { background: #fff7ed; color: var(--gold-main); }
     .resubmit-flag { font-size: 0.85rem; cursor: help; }
+
+    /* 📊 학급/학년 통계 모달 */
+    .stat-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .stat-tab-btn {
+        flex: 1; padding: 9px 10px; border-radius: 10px; border: 2px solid #e2e8f0; background: #fff;
+        font-weight: 800; font-size: 0.82rem; cursor: pointer; color: var(--text-sub); font-family: inherit; transition: 0.15s;
+    }
+    .stat-tab-btn:hover { border-color: var(--teal-light); }
+    .stat-tab-btn.active { background: var(--teal-main); border-color: var(--teal-main); color: #fff; }
+    .stat-unit-select {
+        width: 100%; padding: 10px 14px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 0.84rem;
+        font-family: inherit; outline: none; background: #fff; margin-bottom: 16px; box-sizing: border-box;
+    }
+    .stat-unit-select:focus { border-color: var(--teal-main); }
+    .group-bar-row { margin-bottom: 14px; }
+    .group-bar-row.overall { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px dashed #e2e8f0; }
+    .group-bar-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px; }
+    .group-bar-label { font-weight: 800; font-size: 0.86rem; color: var(--text-main); }
+    .group-bar-row.overall .group-bar-label { color: var(--teal-dark); }
+    .group-bar-meta { font-size: 0.74rem; color: var(--apple-gray); font-weight: 700; }
+    .group-bar-track { height: 10px; border-radius: 6px; background: #f1f5f9; overflow: hidden; }
+    .group-bar-fill { height: 100%; border-radius: 6px; background: var(--success-green); transition: width 0.3s; }
+    .group-bar-fill.low { background: var(--apple-red); }
+    .group-bar-fill.overall { background: var(--teal-main); }
+    .group-bar-value { font-family: 'JetBrains Mono'; font-weight: 900; font-size: 0.86rem; color: var(--text-main); }
+    .stat-empty { text-align: center; color: var(--text-sub); font-size: 0.85rem; padding: 30px 0; }
+
+    /* 학생별 점수 변화 그래프 */
+    .trend-chart-wrap { padding: 2px 2px 14px; border-bottom: 1px solid #f1f5f9; margin-bottom: 10px; }
+    .trend-chart-empty { font-size: 0.78rem; color: var(--apple-gray); text-align: center; padding: 14px 0; }
+    .trend-line { fill: none; stroke: var(--teal-main); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .trend-ref { stroke: #e2e8f0; stroke-width: 1; }
+    .trend-axis { stroke: #e2e8f0; stroke-width: 1; }
+    .trend-point { fill: #fff; stroke: var(--success-green); stroke-width: 2.5; cursor: help; }
+    .trend-point.low { stroke: var(--apple-red); }
+    .trend-label { font-size: 9px; fill: var(--apple-gray); font-family: inherit; }
     /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸은 가운데 정렬해서
        보기 좋게 정리 (실제 폭 비율은 <colgroup>에서 지정) */
     td.col-center, td.col-time, td.col-feedback, td.col-del, td.col-pin, td.col-check { text-align: center; }
@@ -413,6 +449,7 @@
             </div>
             <div class="toolbar">
                 <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
+                <button class="toolbar-btn" onclick="openClassStatsModal()">📊 학급/학년 통계</button>
                 <div class="spacer"></div>
                 <button class="toolbar-btn ghost" id="bulkClearBtn" style="display:none;" onclick="clearSelection()">선택 해제</button>
                 <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()">🔄 선택 재제출 요청</button>
@@ -633,6 +670,27 @@
         </div>
     </div>
 
+    <!-- 학급/학년 통계 모달 -->
+    <div class="modal-overlay" id="classStatsModal">
+        <div class="detail-card" style="width:460px;">
+            <div class="detail-top">
+                <div>
+                    <h3>📊 학급/학년 통계</h3>
+                    <div class="sub">평균 점수를 학년별 또는 반별로 비교해서 볼 수 있어요</div>
+                </div>
+                <button class="close-x" onclick="closeClassStatsModal()">✕</button>
+            </div>
+            <div class="stat-tabs">
+                <button class="stat-tab-btn" id="statTabGrade" onclick="switchClassStatsTab('grade')">🎓 학년별</button>
+                <button class="stat-tab-btn" id="statTabClass" onclick="switchClassStatsTab('class')">🏫 반별</button>
+            </div>
+            <select class="stat-unit-select" id="classStatsUnitFilter" onchange="renderClassStats()">
+                <option value="">전체 단원 (모든 제출 기준)</option>
+            </select>
+            <div id="classStatsBody" style="max-height:360px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
     <!-- 학생별 통합 뷰 모달 -->
     <div class="modal-overlay" id="overviewModal">
         <div class="detail-card" style="width:520px;">
@@ -643,6 +701,7 @@
                 </div>
                 <button class="close-x" onclick="closeStudentOverview()">✕</button>
             </div>
+            <div id="overviewChart"></div>
             <div id="overviewBody" style="max-height:400px; overflow-y:auto;"></div>
         </div>
     </div>
@@ -676,6 +735,8 @@
         // 🌟 [추가] 학급/학년 단위 일괄 재제출 요청: 체크박스로 선택한 (학번+단원) 쌍의 집합
         let selectedKeys = new Set();
         let bulkResubmitTargets = [];
+        // 🌟 [추가] 학급/학년 통계 모달의 현재 탭('grade' 또는 'class')
+        let classStatsMode = 'grade';
 
         const LS_ENDPOINT = 'bitbox_dash_endpoint';
         const LS_SECRET = 'bitbox_dash_secret';
@@ -811,6 +872,87 @@
             document.getElementById('statPending').textContent = pending;
             document.getElementById('statAvg').textContent = avg;
         }
+
+        // ── 📊 학급/학년 통계 ────────────────────────────────────────────
+        function openClassStatsModal() {
+            const sel = document.getElementById('classStatsUnitFilter');
+            const cur = sel.value;
+            const units = [...new Set(allRows.map(r => r.unitTitle).filter(Boolean))];
+            sel.innerHTML = '<option value="">전체 단원 (모든 제출 기준)</option>' +
+                units.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)}</option>`).join('');
+            sel.value = cur;
+            switchClassStatsTab(classStatsMode);
+            document.getElementById('classStatsModal').style.display = 'flex';
+        }
+
+        function closeClassStatsModal() {
+            document.getElementById('classStatsModal').style.display = 'none';
+        }
+
+        function switchClassStatsTab(mode) {
+            classStatsMode = mode;
+            document.getElementById('statTabGrade').classList.toggle('active', mode === 'grade');
+            document.getElementById('statTabClass').classList.toggle('active', mode === 'class');
+            renderClassStats();
+        }
+
+        function renderClassStats() {
+            const unit = document.getElementById('classStatsUnitFilter').value;
+            const rows = unit ? allRows.filter(r => r.unitTitle === unit) : allRows;
+            const body = document.getElementById('classStatsBody');
+
+            if (!rows.length) {
+                body.innerHTML = '<div class="stat-empty">해당 조건에 맞는 제출 데이터가 없어요.</div>';
+                return;
+            }
+
+            const avgOf = list => (list.reduce((s, r) => s + (Number(r.score) || 0), 0) / list.length);
+            const overallAvg = avgOf(rows);
+
+            // 그룹 키: 학년별이면 "1", 반별이면 "1-01" (학년+반) 형태로 묶어서 숫자 순 정렬
+            const groups = new Map();
+            rows.forEach(r => {
+                const g = getStudentGradePart(r.studentId);
+                const c = getStudentClassPart(r.studentId);
+                if (!g) return;
+                const key = classStatsMode === 'grade' ? g : `${g}-${c}`;
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(r);
+            });
+
+            const entries = [...groups.entries()].sort((a, b) => {
+                const [ag, ac] = a[0].split('-'); const [bg, bc] = b[0].split('-');
+                if (ag !== bg) return parseInt(ag, 10) - parseInt(bg, 10);
+                return parseInt(ac || '0', 10) - parseInt(bc || '0', 10);
+            });
+
+            const barRow = (label, avg, count, extraClass) => {
+                const low = avg < 70;
+                return `<div class="group-bar-row ${extraClass || ''}">
+                    <div class="group-bar-head">
+                        <span class="group-bar-label">${escapeHtml(label)}</span>
+                        <span class="group-bar-value">${avg.toFixed(1)}점</span>
+                    </div>
+                    <div class="group-bar-track">
+                        <div class="group-bar-fill ${extraClass === 'overall' ? 'overall' : (low ? 'low' : '')}" style="width:${Math.max(0, Math.min(100, avg))}%;"></div>
+                    </div>
+                    <div class="group-bar-meta">제출 ${count}건</div>
+                </div>`;
+            };
+
+            let html = barRow('전체 평균', overallAvg, rows.length, 'overall');
+            html += entries.map(([key, list]) => {
+                const [g, c] = key.split('-');
+                const label = classStatsMode === 'grade' ? `${parseInt(g, 10)}학년` : `${parseInt(g, 10)}학년 ${parseInt(c, 10)}반`;
+                return barRow(label, avgOf(list), list.length);
+            }).join('');
+
+            body.innerHTML = html;
+        }
+
+        document.getElementById('classStatsModal').addEventListener('click', function (e) {
+            if (e.target === this) closeClassStatsModal();
+        });
 
         function sortBy(key) {
             if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
@@ -1411,11 +1553,54 @@
                     </div>
                 </div>`;
             }).join('');
+            document.getElementById('overviewChart').innerHTML = buildScoreTrendSVG(rows);
             document.getElementById('overviewModal').style.display = 'flex';
         }
 
         function closeStudentOverview() {
             document.getElementById('overviewModal').style.display = 'none';
+        }
+
+        // 🌟 [추가] 학생 한 명의 제출 이력을 시간순(오래된→최신)으로 이어, 점수가 어떻게
+        // 바뀌어왔는지 한눈에 볼 수 있는 꺾은선 그래프를 SVG로 직접 그림.
+        function buildScoreTrendSVG(rows) {
+            const asc = [...rows].sort((a, b) => (new Date(a.timestamp).getTime() || 0) - (new Date(b.timestamp).getTime() || 0));
+            if (asc.length < 2) {
+                return '<div class="trend-chart-empty">📈 제출이 2건 이상 쌓이면 점수 변화 그래프가 여기 표시돼요.</div>';
+            }
+            const W = 460, H = 130, padL = 30, padR = 16, padT = 14, padB = 24;
+            const innerW = W - padL - padR, innerH = H - padT - padB;
+            const n = asc.length;
+            const xFor = i => padL + (n > 1 ? (innerW * i / (n - 1)) : innerW / 2);
+            const yFor = score => padT + innerH - (Math.max(0, Math.min(100, Number(score) || 0)) / 100) * innerH;
+            const refY = yFor(70);
+            const shortDate = v => {
+                const d = new Date(v);
+                if (isNaN(d.getTime())) return '';
+                return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+            };
+
+            const pts = asc.map((r, i) => ({ x: xFor(i), y: yFor(r.score), r }));
+            const pathD = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+
+            const labelIdx = n <= 6 ? pts.map((_, i) => i) : [0, Math.round((n - 1) / 2), n - 1];
+            const labels = labelIdx.map(i => `<text class="trend-label" x="${pts[i].x.toFixed(1)}" y="${H - 6}" text-anchor="middle">${escapeHtml(shortDate(pts[i].r.timestamp))}</text>`).join('');
+
+            const circles = pts.map(p => {
+                const low = (Number(p.r.score) || 0) < 70;
+                const title = `${escapeHtml(p.r.unitTitle || p.r.unitId || '')} · ${escapeHtml(p.r.score)}점 · ${formatDate(p.r.timestamp)}`;
+                return `<circle class="trend-point ${low ? 'low' : ''}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5"><title>${title}</title></circle>`;
+            }).join('');
+
+            return `<div class="trend-chart-wrap">
+                <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="학생 점수 변화 그래프">
+                    <line class="trend-ref" x1="${padL}" y1="${refY.toFixed(1)}" x2="${W - padR}" y2="${refY.toFixed(1)}" stroke-dasharray="3,3"/>
+                    <line class="trend-axis" x1="${padL}" y1="${(padT + innerH).toFixed(1)}" x2="${W - padR}" y2="${(padT + innerH).toFixed(1)}"/>
+                    <path class="trend-line" d="${pathD}"/>
+                    ${circles}
+                    ${labels}
+                </svg>
+            </div>`;
         }
 
         document.getElementById('overviewModal').addEventListener('click', function (e) {
