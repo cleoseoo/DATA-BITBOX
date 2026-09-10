@@ -205,6 +205,7 @@
     .fb-badge.pending { background: #fff7ed; color: var(--gold-main); }
     .fb-badge.read { background: #eff6ff; color: var(--apple-blue); }
     .fb-badge.unread { background: #fef2f2; color: var(--apple-red); }
+    .fb-badge.resubmit { background: #fff7ed; color: var(--gold-main); }
     .resubmit-flag { font-size: 0.85rem; cursor: help; }
     /* 🌟 [수정] 점수/제출시각/피드백작성/데이터삭제/PIN초기화 칸은 가운데 정렬해서
        보기 좋게 정리 (실제 폭 비율은 <colgroup>에서 지정) */
@@ -425,14 +426,15 @@
                 <table id="dataTable">
                     <colgroup>
                         <col style="width:4%;">
-                        <col style="width:9%;">
-                        <col style="width:19%;">
-                        <col style="width:7%;">
+                        <col style="width:10%;">
+                        <col style="width:21%;">
+                        <col style="width:6%;">
                         <col style="width:15%;">
                         <col style="width:10%;">
                         <col style="width:10%;">
-                        <col style="width:13%;">
-                        <col style="width:13%;">
+                        <col style="width:10%;">
+                        <col style="width:7%;">
+                        <col style="width:7%;">
                     </colgroup>
                     <thead>
                         <tr>
@@ -443,6 +445,7 @@
                             <th class="col-time" onclick="sortBy('timestamp')">제출 시각</th>
                             <th class="col-feedback" onclick="sortBy('feedback')">피드백 작성(교사)</th>
                             <th class="col-feedback" onclick="sortBy('feedbackReadAt')">피드백 확인(학생)</th>
+                            <th class="col-feedback" onclick="sortBy('resubmitRequested')">재제출 요청</th>
                             <th class="col-del">데이터 삭제</th>
                             <th class="col-pin">PIN 초기화</th>
                         </tr>
@@ -912,8 +915,10 @@
                         : '<span class="fb-badge unread" title="학생이 아직 확인하지 않았어요">🔔 안읽음</span>');
                 const concernBadge = (hasConcern(r.memo) || hasConcern(r.reflection))
                     ? ' <span class="concern-flag" title="소감/노트에 도움이 필요하다는 표현이 있어요">💭</span>' : '';
-                const resubmitBadge = r.resubmitRequested
-                    ? ' <span class="resubmit-flag" title="재제출을 요청했어요">🔄</span>' : '';
+                // 🌟 [수정] 재제출 요청 여부도 "피드백 확인" 옆에 별도 칸으로 표시 (단원 칸의 아이콘은 중복이라 제거)
+                const resubmitCell = r.resubmitRequested
+                    ? '<span class="fb-badge resubmit" title="교사가 재제출을 요청했어요">🔄 요청됨</span>'
+                    : '<span style="color:#cbd5e1; font-size:0.8rem;">—</span>';
                 const checked = selectedKeys.has(selKey(r)) ? 'checked' : '';
                 return `<tr onclick='openDetail(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)})'>
                     <td class="col-check" onclick="event.stopPropagation()">
@@ -922,11 +927,12 @@
                     </td>
                     <td class="student-id" title="이 학생의 전체 제출 이력 보기"
                         onclick='event.stopPropagation(); openStudentOverview(${JSON.stringify(r.studentId)})'>${escapeHtml(r.studentId)}</td>
-                    <td>${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}${resubmitBadge}</td>
+                    <td>${escapeHtml(r.unitTitle || r.unitId || '')}${concernBadge}</td>
                     <td class="col-center"><span class="score-pill ${scoreClass}">${escapeHtml(r.score)}</span></td>
                     <td class="col-time">${formatDate(r.timestamp)}</td>
                     <td class="col-feedback">${fbBadge}</td>
                     <td class="col-feedback">${readBadge}</td>
+                    <td class="col-feedback">${resubmitCell}</td>
                     <td class="col-del">
                         <button class="row-del-btn" title="이 기록 삭제"
                             onclick='event.stopPropagation(); openRowDeleteConfirm(${JSON.stringify(r.studentId)}, ${JSON.stringify(r.unitId)}, ${JSON.stringify(r.unitTitle || r.unitId || "")})'>🗑</button>
