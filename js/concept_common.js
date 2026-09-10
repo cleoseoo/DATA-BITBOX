@@ -643,7 +643,7 @@ function checkTeacherFeedback() {
                     }
                     // 🌟 [추가] 선생님이 이 단원에 "재제출"을 요청했다면, 피드백 확인 시 함께 안내합니다.
                     const resubmitNote = data.resubmitRequested
-                        ? '<div style="background:#fff7ed; border:1px solid rgba(217,119,6,0.35); border-radius:12px; padding:10px 14px; margin-bottom:12px; color:#92400e; font-weight:800; font-size:0.88rem; text-align:left;">🔄 선생님이 이 단원을 다시 제출해달라고 요청했어요.<br>내용을 보완해서 다시 제출해주세요!</div>'
+                        ? '<div style="background:#fff7ed; border:1px solid rgba(217,119,6,0.35); border-radius:12px; padding:10px 14px; margin-bottom:12px; color:#92400e; font-weight:800; font-size:0.88rem; text-align:left;">🔄내용을 보완해서 다시 제출해주세요!</div>'
                         : '';
 
                     if (data.feedback) {
