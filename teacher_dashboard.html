@@ -440,7 +440,7 @@
 
             <div class="toolbar">
                 <select id="gradeFilterInput" onchange="renderTable()"><option value="">🎓 전체 학년</option></select>
-                <select id="classFilterInput" onchange="renderTable()"><option value="">🏫 전체 반</option></select>
+                <select id="classFilterInput" onchange="renderTable()"><option value="">🏫 전체 학급</option></select>
                 <input type="text" id="searchInput" placeholder="🔍 학번으로 검색 (예: 10101)" oninput="renderTable()">
                 <select id="unitFilter" onchange="renderTable()"><option value="">제출 단원 검색</option></select>
                 <select id="fbFilter" onchange="renderTable()">
@@ -452,7 +452,7 @@
             </div>
             <div class="toolbar">
                 <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
-                <button class="toolbar-btn" onclick="openClassStatsModal()">📊 학급/학년 통계</button>
+                <button class="toolbar-btn" onclick="openClassStatsModal()">📊 학년/학급/학생별 통계</button>
                 <div class="spacer"></div>
                 <button class="toolbar-btn ghost" id="bulkClearBtn" style="display:none;" onclick="clearSelection()">선택 해제</button>
                 <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()">🔄 선택 재제출 요청</button>
