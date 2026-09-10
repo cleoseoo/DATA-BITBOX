@@ -474,7 +474,8 @@
                 <button class="toolbar-btn" onclick="openClassStatsModal()">📊 학년/학급/학생별 통계</button>
                 <div class="spacer"></div>
                 <button class="toolbar-btn ghost" id="bulkClearBtn" style="display:none;" onclick="clearSelection()">선택 해제</button>
-                <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()">🔄 선택 재제출 요청</button>
+                <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()"
+                    title="한 번에 여러 명을 요청하면 한 명씩 순서대로 처리돼요. 인원이 많을수록 시간이 조금 더 걸릴 수 있어요.">🔄 선택 재제출 요청</button>
             </div>
             <div style="font-size:0.76rem; color: var(--text-sub); margin: -10px 0 14px; padding: 0 2px;">
                 💡 학년·반으로 목록을 좁힌 뒤 표 왼쪽 <b>체크박스로 전체 선택</b>하면, 학급 전체에게 한 번에 재제출을 요청할 수 있어요.
@@ -597,7 +598,8 @@
             <h3 style="color: var(--gold-main);">선택한 학생들에게 재제출 요청</h3>
             <p>
                 선택한 <b id="bulkResubmitCount">0건</b>에 대해 재제출을 요청합니다.<br>
-                학생이 다음에 학번·PIN으로 피드백을 확인할 때 재제출 요청 안내가 함께 보입니다.
+                학생이 다음에 학번·PIN으로 피드백을 확인할 때 재제출 요청 안내가 함께 보입니다.<br>
+                <span style="font-size:0.78rem; color:var(--text-sub);">💡 한 명씩 순서대로 처리되어, 인원이 많으면 완료까지 시간이 조금 걸릴 수 있어요.</span>
             </p>
             <div id="bulkResubmitList" style="max-height:140px; overflow-y:auto; background:#f8fafc; border-radius:12px; padding:10px 14px; margin-bottom:18px; font-size:0.8rem; color:var(--text-sub); text-align:left; line-height:1.8;"></div>
             <div class="danger-actions">
