@@ -262,7 +262,7 @@
     .trend-line { fill: none; stroke: var(--teal-main); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .trend-ref { stroke: #e2e8f0; stroke-width: 1; }
     .trend-axis { stroke: #e2e8f0; stroke-width: 1; }
-    .trend-point { fill: #fff; stroke: var(--success-green); stroke-width: 2.5; cursor: help; }
+    .trend-point { fill: #fff; stroke: var(--success-green); stroke-width: 2.5; }
     .trend-point.low { stroke: var(--apple-red); }
     .trend-label { font-size: 9px; fill: var(--apple-gray); font-family: inherit; }
     .trend-grid { stroke: #f1f5f9; stroke-width: 1; }
@@ -717,7 +717,7 @@
             <div class="stat-student-combo" id="classStatsStudentWrap" style="display:none;">
                 <input type="text" class="stat-unit-select" id="classStatsStudentFilter"
                     placeholder="🔍 학번 검색 또는 선택" autocomplete="off"
-                    oninput="onStudentSearchInput()" onfocus="openStudentDropdown()">
+                    oninput="onStudentSearchInput()" onfocus="openStudentDropdown()" onclick="openStudentDropdown()">
                 <div class="stat-student-dropdown" id="classStatsStudentDropdown"></div>
             </div>
             <div id="classStatsBody" style="max-height:360px; overflow-y:auto;"></div>
@@ -1696,6 +1696,14 @@
             return s.length > maxLen ? s.slice(0, maxLen) + '…' : s;
         }
 
+        // 🌟 [추가] "3. 숫자의 디지털 표현" 처럼 "~의 디지털 표현"으로 끝나는 3~7단원 제목을
+        // "3. 숫자의" / "디지털 표현" 두 줄로 나눔. 1, 2단원(패턴에 안 맞음)은 null → 기존 한 줄 표시 유지.
+        function splitUnitLabel(title) {
+            const s = String(title || '');
+            const m = s.match(/^(\d+\.\s*.+의)\s*(디지털\s*표현)\s*$/);
+            return m ? { line1: m[1], line2: m[2] } : null;
+        }
+
         function buildScoreTrendSVG(rows) {
             const asc = [...rows].sort((a, b) => (new Date(a.timestamp).getTime() || 0) - (new Date(b.timestamp).getTime() || 0));
             if (asc.length < 2) {
@@ -1703,7 +1711,7 @@
             }
             // 🌟 [수정] x축=단원명, y축=20점 단위 눈금으로 표시. 단원명이 길 수 있어 아래쪽
             // 여백(padB)을 넉넉히 주고, 라벨을 비스듬히(-35도) 기울여서 겹치지 않게 함.
-            const W = 460, H = 175, padL = 56, padR = 16, padT = 14, padB = 46;
+            const W = 460, H = 190, padL = 56, padR = 16, padT = 14, padB = 58;
             const innerW = W - padL - padR, innerH = H - padT - padB;
             const n = asc.length;
             const xFor = i => padL + (n > 1 ? (innerW * i / (n - 1)) : innerW / 2);
@@ -1724,8 +1732,18 @@
 
             // x축: 각 점마다 단원명을 짧게 잘라 비스듬히 표시 (전체 이름은 점에 마우스를 올리면 나옴)
             const xLabels = pts.map(p => {
-                const label = truncateLabel(p.r.unitTitle || p.r.unitId || '', 7);
+                const rawTitle = p.r.unitTitle || p.r.unitId || '';
                 const lx = p.x.toFixed(1), ly = (axisY + 12).toFixed(1);
+                const split = splitUnitLabel(rawTitle);
+                if (split) {
+                    // 3~7단원: "N. 주제의" / "디지털 표현" 두 줄, 둘 다 비스듬히(-35도) 표시
+                    return `<text class="trend-label" x="${lx}" y="${ly}" text-anchor="end" transform="rotate(-35 ${lx} ${ly})">` +
+                        `<tspan x="${lx}" dy="0">${escapeHtml(split.line1)}</tspan>` +
+                        `<tspan x="${lx}" dy="10">${escapeHtml(split.line2)}</tspan>` +
+                        `</text>`;
+                }
+                // 1, 2단원: 기존처럼 한 줄로 짧게 잘라 표시
+                const label = truncateLabel(rawTitle, 7);
                 return `<text class="trend-label" x="${lx}" y="${ly}" text-anchor="end" transform="rotate(-35 ${lx} ${ly})">${escapeHtml(label)}</text>`;
             }).join('');
 
