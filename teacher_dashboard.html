@@ -408,11 +408,13 @@
                     <option value="pending">피드백 대기만</option>
                     <option value="done">피드백 완료만</option>
                 </select>
+                <button class="toolbar-btn" onclick="openRosterModal()">📋 명단 관리</button>
+            </div>
+            <div class="toolbar">
+                <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
                 <div class="spacer"></div>
                 <button class="toolbar-btn ghost" id="bulkClearBtn" style="display:none;" onclick="clearSelection()">선택 해제</button>
                 <button class="toolbar-btn accent" id="bulkResubmitBtn" disabled onclick="openBulkResubmitConfirm()">🔄 선택 재제출 요청</button>
-                <button class="toolbar-btn" onclick="openRosterModal()">📋 명단 관리</button>
-                <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
             </div>
             <div style="font-size:0.76rem; color: var(--text-sub); margin: -10px 0 14px; padding: 0 2px;">
                 💡 학년·반으로 목록을 좁힌 뒤 표 왼쪽 <b>체크박스로 전체 선택</b>하면, 학급 전체에게 한 번에 재제출을 요청할 수 있어요.
