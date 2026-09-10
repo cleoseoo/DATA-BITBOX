@@ -224,6 +224,25 @@
         font-family: inherit; outline: none; background: #fff; margin-bottom: 16px; box-sizing: border-box;
     }
     .stat-unit-select:focus { border-color: var(--teal-main); }
+    /* 🌟 [추가] 학생별 검색: 네이티브 <datalist>는 브라우저마다 클릭으로 안 열리는 경우가
+       있어서, 직접 만든 검색형 드롭다운으로 교체함(클릭/입력 모두 항상 동작). */
+    .stat-student-combo { position: relative; margin-bottom: 16px; }
+    .stat-student-combo .stat-unit-select { margin-bottom: 0; }
+    .stat-student-dropdown {
+        display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff;
+        border: 2px solid #e2e8f0; border-radius: 12px; max-height: 220px; overflow-y: auto; z-index: 20;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    }
+    .stat-student-dropdown.show { display: block; }
+    .stat-student-option {
+        padding: 10px 14px; font-size: 0.84rem; font-family: 'JetBrains Mono'; font-weight: 700;
+        cursor: pointer; color: var(--text-main);
+    }
+    .stat-student-option:hover, .stat-student-option.highlight { background: #f0fdfa; color: var(--teal-dark); }
+    .stat-student-option.empty {
+        color: var(--apple-gray); cursor: default; font-family: inherit; font-weight: 500; text-align: center;
+    }
+    .stat-student-option.empty:hover { background: transparent; }
     .group-bar-row { margin-bottom: 14px; }
     .group-bar-row.overall { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px dashed #e2e8f0; }
     .group-bar-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px; }
@@ -691,9 +710,12 @@
             <select class="stat-unit-select" id="classStatsUnitFilter" onchange="renderClassStats()">
                 <option value="">전체 단원 (모든 제출 기준)</option>
             </select>
-            <input type="text" class="stat-unit-select" id="classStatsStudentFilter" list="classStatsStudentList"
-                style="display:none;" placeholder="🔍 학번 검색 또는 선택" autocomplete="off" oninput="renderClassStats()">
-            <datalist id="classStatsStudentList"></datalist>
+            <div class="stat-student-combo" id="classStatsStudentWrap" style="display:none;">
+                <input type="text" class="stat-unit-select" id="classStatsStudentFilter"
+                    placeholder="🔍 학번 검색 또는 선택" autocomplete="off"
+                    oninput="onStudentSearchInput()" onfocus="openStudentDropdown()">
+                <div class="stat-student-dropdown" id="classStatsStudentDropdown"></div>
+            </div>
             <div id="classStatsBody" style="max-height:360px; overflow-y:auto;"></div>
         </div>
     </div>
@@ -744,6 +766,8 @@
         let bulkResubmitTargets = [];
         // 🌟 [추가] 학급/학년 통계 모달의 현재 탭('grade' 또는 'class')
         let classStatsMode = 'grade';
+        // 🌟 [추가] 학생별 탭의 검색 드롭다운에 쓸 전체 학번 목록
+        let classStatsStudentIds = [];
 
         const LS_ENDPOINT = 'bitbox_dash_endpoint';
         const LS_SECRET = 'bitbox_dash_secret';
@@ -891,11 +915,10 @@
 
             const stuInput = document.getElementById('classStatsStudentFilter');
             const curStu = stuInput.value;
-            const studentIds = [...new Set(allRows.map(r => r.studentId).filter(Boolean))]
+            classStatsStudentIds = [...new Set(allRows.map(r => r.studentId).filter(Boolean))]
                 .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
-            document.getElementById('classStatsStudentList').innerHTML =
-                studentIds.map(id => `<option value="${escapeHtml(id)}"></option>`).join('');
-            stuInput.value = studentIds.includes(curStu) ? curStu : (studentIds[0] || '');
+            stuInput.value = classStatsStudentIds.includes(curStu) ? curStu : (classStatsStudentIds[0] || '');
+            closeStudentDropdown();
 
             switchClassStatsTab(classStatsMode);
             document.getElementById('classStatsModal').style.display = 'flex';
@@ -903,6 +926,7 @@
 
         function closeClassStatsModal() {
             document.getElementById('classStatsModal').style.display = 'none';
+            closeStudentDropdown();
         }
 
         function switchClassStatsTab(mode) {
@@ -911,12 +935,57 @@
             document.getElementById('statTabClass').classList.toggle('active', mode === 'class');
             document.getElementById('statTabStudent').classList.toggle('active', mode === 'student');
             document.getElementById('classStatsUnitFilter').style.display = mode === 'student' ? 'none' : '';
-            document.getElementById('classStatsStudentFilter').style.display = mode === 'student' ? '' : 'none';
+            document.getElementById('classStatsStudentWrap').style.display = mode === 'student' ? '' : 'none';
+            if (mode !== 'student') closeStudentDropdown();
             document.getElementById('classStatsSub').textContent = mode === 'student'
                 ? '학생 한 명을 골라 제출 이력과 점수 변화를 볼 수 있어요'
                 : '평균 점수를 학년별 또는 반별로 비교해서 볼 수 있어요';
             renderClassStats();
         }
+
+        // 🌟 [추가] 학생별 검색 드롭다운: 클릭하면 전체 학번을, 입력하면 일치하는 학번만 보여줌.
+        // 네이티브 <datalist>가 브라우저에 따라 클릭으로 안 열리는 문제를 피하려고 직접 구현함.
+        function renderStudentDropdown(filterText) {
+            const dd = document.getElementById('classStatsStudentDropdown');
+            const q = (filterText || '').trim().toLowerCase();
+            const matches = q ? classStatsStudentIds.filter(id => String(id).toLowerCase().includes(q)) : classStatsStudentIds;
+            if (!matches.length) {
+                dd.innerHTML = '<div class="stat-student-option empty">일치하는 학번이 없어요</div>';
+            } else {
+                dd.innerHTML = matches.map(id =>
+                    `<div class="stat-student-option" onmousedown='event.preventDefault(); selectStudentOption(${JSON.stringify(id)})'>${escapeHtml(id)}</div>`
+                ).join('');
+            }
+        }
+
+        function openStudentDropdown() {
+            // 포커스/클릭으로 열 때는 검색어와 상관없이 항상 전체 학번 목록을 보여줌
+            // (기존 <select>를 눌렀을 때와 같은 느낌 — 목록을 훑어볼 수 있어야 함).
+            renderStudentDropdown('');
+            document.getElementById('classStatsStudentDropdown').classList.add('show');
+        }
+
+        function closeStudentDropdown() {
+            document.getElementById('classStatsStudentDropdown').classList.remove('show');
+        }
+
+        function onStudentSearchInput() {
+            const val = document.getElementById('classStatsStudentFilter').value;
+            renderStudentDropdown(val);
+            document.getElementById('classStatsStudentDropdown').classList.add('show');
+            renderClassStats();
+        }
+
+        function selectStudentOption(id) {
+            document.getElementById('classStatsStudentFilter').value = id;
+            closeStudentDropdown();
+            renderClassStats();
+        }
+
+        document.addEventListener('click', function (e) {
+            const wrap = document.getElementById('classStatsStudentWrap');
+            if (wrap && !wrap.contains(e.target)) closeStudentDropdown();
+        });
 
         function renderClassStats() {
             const body = document.getElementById('classStatsBody');
