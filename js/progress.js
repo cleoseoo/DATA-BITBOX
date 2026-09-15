@@ -119,7 +119,7 @@ function openInfoModal(){
                 • 웹 폰트: Noto Sans KR, Orbitron, JetBrains Mono, Pretendard, Inter (OFL)
             </div>
         </div>`,
-        buttonsHTML:`<button class="mbtn primary" onclick="closeModal()">확인했습니다</button>`
+        buttonsHTML:`<button class="mbtn primary" onclick="closeModal()">확인</button>`
     });
 }
 const copyBtn = document.getElementById('copyBtn');
