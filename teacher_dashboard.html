@@ -521,7 +521,7 @@
                     <option value="pending">피드백 대기만</option>
                     <option value="done">피드백 완료만</option>
                 </select>
-                <button class="toolbar-btn" id="rosterBtn" onclick="openRosterModal()">📋 학생 명단 관리</button>
+                <button class="toolbar-btn" id="rosterBtn" onclick="openRosterModal()">📋 학번 생성</button>
             </div>
             <div class="toolbar">
                 <button class="toolbar-btn" onclick="checkMissingStudents()">🔍 미제출 확인</button>
@@ -699,13 +699,13 @@
         </div>
     </div>
 
-    <!-- 반 명단 관리 모달 (미제출 학생 확인용) -->
+    <!-- 반 학번 생성 모달 (미제출 학생 확인용) -->
     <div class="modal-overlay" id="rosterModal">
         <div class="detail-card" style="width:480px;">
             <div class="detail-top">
                 <div>
-                    <h3>📋 반 명단 관리</h3>
-                    <div class="sub">학년·반·번호 범위를 등록하세요<br>(서버에 저장되어 어떤 기기에서 열어도 같은 명단이 보여요)</div>
+                    <h3>📋 학번 생성</h3>
+                    <div class="sub">학년·반·번호 범위를 등록하세요<br>(서버에 저장되어 어떤 기기에서 열어도 같은 학번이 보여요)</div>
                 </div>
                 <button class="close-x" onclick="closeRosterModal()">✕</button>
             </div>
@@ -1822,9 +1822,9 @@
             if (e.target === this) closeStudentOverview();
         });
 
-        // ── 반 명단 관리 & 미제출 학생 확인 ──────────────────────────────────
-        // 🌟 [수정] 명단을 이 브라우저가 아니라 서버(구글시트 "반명단")에 저장합니다.
-        // 그래야 다른 컴퓨터나 다른 브라우저에서 대시보드를 열어도 같은 명단을 볼 수 있어요.
+        // ── 반 학번 생성 & 미제출 학생 확인 ──────────────────────────────────
+        // 🌟 [수정] 학번 목록을 이 브라우저가 아니라 서버(구글시트 "반명단")에 저장합니다.
+        // 그래야 다른 컴퓨터나 다른 브라우저에서 대시보드를 열어도 같은 학번 목록을 볼 수 있어요.
         let currentRoster = [];
 
         function fetchRoster() {
@@ -1848,7 +1848,7 @@
         function renderRosterList() {
             const wrap = document.getElementById('rosterListWrap');
             if (!currentRoster.length) {
-                wrap.innerHTML = '<div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:20px 0;">등록된 명단이 없습니다.</div>';
+                wrap.innerHTML = '<div style="color:var(--text-sub); font-size:0.85rem; text-align:center; padding:20px 0;">등록된 학번이 없습니다.</div>';
                 return;
             }
             wrap.innerHTML = currentRoster.map((r, i) => `
@@ -1903,7 +1903,7 @@
         function checkMissingStudents() {
             const unit = document.getElementById('unitFilter').value;
             if (!unit) { showToast('먼저 확인할 단원을 선택해주세요 (단원 필터)'); return; }
-            if (!currentRoster.length) { showToast('먼저 반 명단을 등록해주세요'); openRosterModal(); return; }
+            if (!currentRoster.length) { showToast('먼저 학번을 등록해주세요'); openRosterModal(); return; }
 
             const gradeQ = document.getElementById('gradeFilterInput').value;
             const classQ = document.getElementById('classFilterInput').value;
@@ -1923,10 +1923,10 @@
             document.getElementById('missingTitle').textContent = `📋 ${unit}`;
             const submittedCount = expected.length - missing.length;
             document.getElementById('missingSub').textContent =
-                `등록 명단 ${expected.length}명 중 ${submittedCount}명 제출 · ${missing.length}명 미제출`;
+                `등록 학번 ${expected.length}명 중 ${submittedCount}명 제출 · ${missing.length}명 미제출`;
             const body = document.getElementById('missingBody');
             if (!expected.length) {
-                body.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--text-sub);">현재 필터에 해당하는 등록 명단이 없습니다.</div>';
+                body.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--text-sub);">현재 필터에 해당하는 등록 학번이 없습니다.</div>';
             } else if (!missing.length) {
                 body.innerHTML = '<div style="text-align:center; padding:30px 0; color:var(--success-green); font-weight:800;">🎉 전원 제출했습니다!</div>';
             } else {
